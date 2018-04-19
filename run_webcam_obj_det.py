@@ -103,8 +103,8 @@ def camera_fast(source=0):
         tensor_dict = framework(sess)
         image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         # Tracker
-        tracker = None
-        #tracker = cv2.MultiTracker_create()
+        #tracker = None
+        tracker = cv2.MultiTracker_create()
         refresh_tracker_t = 25 # 1 to update every frame
 
         while camera.isOpened():
