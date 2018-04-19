@@ -111,7 +111,7 @@ def init_video_write(camera, using_camera, height, width, FPS=6):
     else:
         fps = round(camera.get(cv2.CAP_PROP_FPS))
     videoWriter = cv2.VideoWriter(
-            'video.avi', fourcc, fps, (width, height))
+            SAVE_PATH, fourcc, fps, (width, height))
     return videoWriter
 
 def handle_tracker(i, tracker, net_out, buffer_inp, 
@@ -190,6 +190,8 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
                                 net_out['detection_scores'][i] >= det_threshold)]
                     img = display(buffer_inp[i], boxes, do_convert)
                     # TODO labels
+                    if SaveVideo:
+                        videoWriter.write(img)
                     cv2.imshow('', img)
                 buffer_inp = list()
                 buffer_pre = list()
