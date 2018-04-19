@@ -4,13 +4,25 @@
 #source `which virtualenvwrapper.sh`
 #workon tf-py3
 
+YOLO=true
+#YOLO=false
+
 START_LOC=$(pwd)
 
-cd /home/derek/env_tf_models_research/object_detection
 
-python $(echo $START_LOC)/run_webcam_obj_det.py
+if $YOLO; then
+    cd ~/darkflow
+    flow --model cfg/yolov2.cfg --load bin/yolov2.weights --demo camera --gpu 0.6 --labels cfg/coco.names
+    cd $START_LOC
+else
+    cd /home/derek/env_tf_models_research/object_detection
 
-cd $START_LOC
+    python $(echo $START_LOC)/run_webcam_obj_det.py
 
-#Deactivate the virtualenv
-#deactivate 
+    cd $START_LOC
+
+    #Deactivate the virtualenv
+    #deactivate 
+
+fi
+
