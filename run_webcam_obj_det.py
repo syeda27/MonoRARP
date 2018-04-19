@@ -21,13 +21,19 @@ from utils import label_map_util
 
 from utils import visualization_utils as vis_util
 
+#### FLAGS ####
+SAVE_VIDEO = True
+SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
+
 # What model to download.
 MODEL_NAME = 'faster_rcnn_resnet101_kitti_2018_01_28' #'ssd_mobilenet_v1_coco_2017_11_17'
 MODEL_FILE = MODEL_NAME + '.tar.gz'
 DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
 PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
 PATH_TO_LABELS = os.path.join('data', 'kitti_label_map.pbtxt')#'mscoco_label_map.pbtxt')
-NUM_CLASSES = 2#90
+NUM_CLASSES = 2
+####
+
 
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -76,47 +82,95 @@ def framework(sess):
             tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
     return tensor_dict
 
-def camera_fast(source=0):
-    with tf.device('/gpu:0'):
-     with detection_graph.as_default():
-      with tf.Session() as sess:
-        camera = cv2.VideoCapture(source)
-        assert camera.isOpened(), \
-            'Cannot capture source'
-
-        cv2.namedWindow('',0)
+# source of 0 for webcam 0, 1 for webcam 1, a string for an actual file
+def init_camera(INPUT_FILE):
+    using_camera = (type(INPUT_FILE) is not str)
+    if not using_camera:
+        assert os.path.isfile(INPUT_FILE), \
+                'file {} does not exist'.format(INPUT_FILE)
+    else:
+        print('Press [ESC] to quit demo')
+    camera = cv2.VideoCapture(INPUT_FILE)
+    assert camera.isOpened(), \
+            'Cannot caputure source'
+    if using_camera:
+        cv2.namedWindow('', 0)
         _, frame = camera.read()
         height, width, _ = frame.shape
         cv2.resizeWindow('', width, height)
+    else:
+        _, frame = camera.read()
+        height, width, _ = frame.shape
+
+    return camera, using_camera, height, width
+
+def init_video_write(camera, using_camera, height, width, FPS=6):
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    if using_camera:
+        fps=FPS
+    else:
+        fps = round(camera.get(cv2.CAP_PROP_FPS))
+    videoWriter = cv2.VideoWriter(
+            'video.avi', fourcc, fps, (width, height))
+    return videoWriter
+
+def handle_tracker(i, tracker, net_out, buffer_inp, 
+        im_height, im_width,
+        init_tracker, det_threshold):
+    do_convert = True
+    if init_tracker:
+        init_tracker = False
+        boxes = net_out['detection_boxes'][i][np.where(\
+                net_out['detection_scores'][i] >= det_threshold)]
+        for b in boxes:
+            tracker.add(cv2.TrackerKCF_create(), buffer_inp[i],\
+                    convert(im_height, im_width, b))
+        ok = None
+    else:
+        do_convert=False
+        ok, boxes = tracker.update(buffer_inp[i])
+    return boxes, init_tracker, do_convert, ok
+
+def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
+        refresh_tracker_t=25, # 1 to update every frame
+        do_tracking=True
+        ):
+    with tf.device('/gpu:0'):
+     with detection_graph.as_default():
+      with tf.Session() as sess:
+        camera, using_camera, height, width = init_camera(source)
+        
+        if SaveVideo:
+            videoWriter = init_video_write(camera, using_camera, height, width)
 
         # Buffers to allow for batch demo
         buffer_inp = list()
         buffer_pre = list()
-
         elapsed = int()
-
-        queue = 1
-        det_threshold = 0.5
-
         start = time.time()
 
         tensor_dict = framework(sess)
         image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         # Tracker
-        #tracker = None
-        tracker = cv2.MultiTracker_create()
-        refresh_tracker_t = 25 # 1 to update every frame
+        if do_tracking:
+            tracker = cv2.MultiTracker_create()
+        else:
+            tracker = None
 
         while camera.isOpened():
             elapsed += 1
             init_tracker = elapsed % refresh_tracker_t == 1
-            if tracker and init_tracker:
+            if tracker and init_tracker: 
+                #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
             
             _, image_np = camera.read()
+            if image_np is None:
+                print('\nEnd of Video')
+                break
+
             #image_np_expanded = np.expand_dims(image_np, axis=0)
             im_height, im_width, _ = image_np.shape
-
             buffer_inp.append(image_np)
             buffer_pre.append(image_np)
 
@@ -127,16 +181,10 @@ def camera_fast(source=0):
                     # Visualization of the results of a detection
                     do_convert = True
                     if tracker:
-                        if init_tracker:
-                            init_tracker = False
-                            boxes = net_out['detection_boxes'][i][np.where(\
-                                    net_out['detection_scores'][i] >= det_threshold)]
-                            for b in boxes:
-                                tracker.add(cv2.TrackerKCF_create(), buffer_inp[i],\
-                                        convert(im_height, im_width, b))
-                        else:
-                            do_convert=False
-                            ok, boxes = tracker.update(buffer_inp[i])
+                        boxes, init_tracker, do_convert, _ = handle_tracker(i, 
+                                tracker, net_out, buffer_inp,
+                                im_height, im_width, init_tracker, 
+                                det_threshold) 
                     else:
                         boxes = net_out['detection_boxes'][i][np.where(\
                                 net_out['detection_scores'][i] >= det_threshold)]
@@ -151,9 +199,11 @@ def camera_fast(source=0):
         print("Total time: ", end - start)
         print("Frames processed: ", elapsed)
         print("Average FPS: ", elapsed/(end-start))
-
+        if SaveVideo:
+            videoWriter.release()
         camera.release()
-        cv2.destroyAllWindows()
+        if using_camera:
+            cv2.destroyAllWindows()
 
 camera_fast(0)
 

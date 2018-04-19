@@ -4,8 +4,8 @@
 #source `which virtualenvwrapper.sh`
 #workon tf-py3
 
-YOLO=true
-#YOLO=false
+#YOLO=true
+YOLO=false
 
 START_LOC=$(pwd)
 
