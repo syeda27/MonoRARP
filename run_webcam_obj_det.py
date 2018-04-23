@@ -21,17 +21,48 @@ from utils import label_map_util
 
 from utils import visualization_utils as vis_util
 
-#### FLAGS ####
-SAVE_VIDEO = True
-SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
 
-# What model to download.
-MODEL_NAME = 'faster_rcnn_resnet101_kitti_2018_01_28' #'ssd_mobilenet_v1_coco_2017_11_17'
-MODEL_FILE = MODEL_NAME + '.tar.gz'
-DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
+# for argparsing
+def str2bool(v):
+    return v.lower() == "true"
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--queue", type=int, default=1)
+parser.add_argument("--tracker_refresh", type=int, default=25)
+parser.add_argument("--det_thresh", type=float, default=0.5)
+parser.add_argument("--source", type=str, default="0")
+parser.add_argument("--track", type=str2bool, default="True")
+parser.add_argument("--save", type=str2bool, default="True")
+parser.add_argument("--save_path", type=str, \
+        default='/home/derek/object_detection_mono_video/video.avi')
+parser.add_argument("--model", type=str, \
+        default='faster_rcnn_resnet101_kitti_2018_01_28')
+parser.add_argument("--labels", type=str, \
+        default=os.path.join('data', 'kitti_label_map.pbtxt'))
+
+
+args = parser.parse_args()
+if args.source == "0" or args.source == "1": 
+    args.source = int(args.source)
+
+#### FLAGS ####
+SAVE_VIDEO = args.save
+SAVE_PATH = args.save_path
+
+# What model to use.
+#'faster_rcnn_resnet101_kitti_2018_01_28' 
+#'ssd_mobilenet_v1_coco_2017_11_17'
+MODEL_NAME = args.model
+#MODEL_FILE = MODEL_NAME + '.tar.gz'
+#DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
 PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
-PATH_TO_LABELS = os.path.join('data', 'kitti_label_map.pbtxt')#'mscoco_label_map.pbtxt')
-NUM_CLASSES = 2
+PATH_TO_LABELS = args.labels
+#os.path.join('data', 'kitti_label_map.pbtxt')#'mscoco_label_map.pbtxt')
+if 'kitti' in PATH_TO_LABELS:
+    NUM_CLASSES = 2
+else: #Coco?
+    NUM_CLASSES = 90
 ####
 
 
@@ -207,5 +238,7 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         if using_camera:
             cv2.destroyAllWindows()
 
-camera_fast(0)
-
+camera_fast(source=args.source, SaveVideo=args.save, queue=args.queue, 
+        det_threshold=args.det_thresh,
+        refresh_tracker_t=args.tracker_refresh, # 1 to update every frame
+        do_tracking=args.track)

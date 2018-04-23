@@ -4,25 +4,42 @@
 #source `which virtualenvwrapper.sh`
 #workon tf-py3
 
-#YOLO=true
-YOLO=false
+YOLO=true
+YOLO=false #comment to use yolo model
 
 START_LOC=$(pwd)
 
+SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
+SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
 
-if $YOLO; then
+SOURCE=0
+#SOURCE=1
+
+SAVE='false'
+SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.avi'
+
+if ($YOLO); then
+    if (($SOURCE==1) || ($SOURCE==0)); then
+        $SOURCE=camera$SOURCE
+    fi
     cd ~/darkflow
-    flow --model cfg/yolov2.cfg --load bin/yolov2.weights --demo camera --gpu 0.6 --labels cfg/coco.names
+    cmd = 'flow --model cfg/yolov2.cfg --load bin/yolov2.weights \
+        --demo $SOURCE --gpu 0.75 \
+        --labels cfg/coco.names'
+    if ($SAVE=='true'); then
+        cmd = $(cmd)' --saveVideo'
+    fi
+    mv video.avi $SAVE_PATH
     cd $START_LOC
 else
     cd /home/derek/env_tf_models_research/object_detection
 
-    python $(echo $START_LOC)/run_webcam_obj_det.py
-
+    python $(echo $START_LOC)/run_webcam_obj_det.py \
+        --source $SOURCE \
+        --save_path $SAVE_PATH \
+        --save $SAVE 
     cd $START_LOC
 
-    #Deactivate the virtualenv
     #deactivate 
-
 fi
 
