@@ -92,13 +92,16 @@ def display(im, boxes, do_convert=True):
     im_height, im_width, _ = imgcv.shape
     thick = int((im_height + im_width) // 300)
     for b in boxes:
+        color = 0
         if do_convert:
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
             (left, right, top, bot) = b
+        cv2.putText(imgcv, "test label", (int(left), int(top)-12), 
+                0, 1e-3*im_height, color, thick//2)
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
-                        0, thick)
+                        color, thick)
     return imgcv
 
 def framework(sess):
