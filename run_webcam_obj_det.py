@@ -85,19 +85,21 @@ def convert(im_height, im_width, b):
                               int(ymin * im_height), int(ymax * im_height))
     return (left, right, top, bot)
 
-def display(im, boxes, do_convert=True):
+def display(im, boxes, do_convert=True, labels=[]):
     if type(im) is not np.ndarray:
                 imgcv = cv2.imread(im)
     else: imgcv = im
     im_height, im_width, _ = imgcv.shape
     thick = int((im_height + im_width) // 300)
-    for b in boxes:
+    if len(labels) < len(boxes):
+        labels.extend([""] * (len(boxes) - len(labels)))
+    for i,b in enumerate(boxes):
         color = 0
         if do_convert:
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
             (left, right, top, bot) = b
-        cv2.putText(imgcv, "test label", (int(left), int(top)-12), 
+        cv2.putText(imgcv, labels[i], (int(left), int(top)-12), 
                 0, 1e-3*im_height, color, thick//2)
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
@@ -150,12 +152,16 @@ def init_video_write(camera, using_camera, height, width, FPS=6):
 
 def handle_tracker(i, tracker, net_out, buffer_inp, 
         im_height, im_width,
-        init_tracker, det_threshold):
+        init_tracker, det_threshold, labels):
     do_convert = True
     if init_tracker:
         init_tracker = False
         boxes = net_out['detection_boxes'][i][np.where(\
                 net_out['detection_scores'][i] >= det_threshold)]
+        labels = [category_index[key]['name'] for key in \
+                net_out['detection_classes'][i][np.where(\
+                    net_out['detection_scores'][i] >= det_threshold)]
+                ]
         for b in boxes:
             tracker.add(cv2.TrackerKCF_create(), buffer_inp[i],\
                     convert(im_height, im_width, b))
@@ -163,7 +169,7 @@ def handle_tracker(i, tracker, net_out, buffer_inp,
     else:
         do_convert=False
         ok, boxes = tracker.update(buffer_inp[i])
-    return boxes, init_tracker, do_convert, ok
+    return boxes, init_tracker, do_convert, ok, labels
 
 def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         refresh_tracker_t=25, # 1 to update every frame
@@ -190,13 +196,14 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
             tracker = cv2.MultiTracker_create()
         else:
             tracker = None
-
+        labels = defaultdict(list) # i -> list of labels
         while camera.isOpened():
             elapsed += 1
             init_tracker = elapsed % refresh_tracker_t == 1
             if tracker and init_tracker: 
                 #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
+                labels = defaultdict(list) # i -> list of labels
             
             _, image_np = camera.read()
             if image_np is None:
@@ -215,15 +222,18 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
                     # Visualization of the results of a detection
                     do_convert = True
                     if tracker:
-                        boxes, init_tracker, do_convert, _ = handle_tracker(i, 
+                        boxes, init_tracker, do_convert, ok, labels[i] = handle_tracker(i, 
                                 tracker, net_out, buffer_inp,
                                 im_height, im_width, init_tracker, 
-                                det_threshold) 
+                                det_threshold, labels[i]) 
                     else:
                         boxes = net_out['detection_boxes'][i][np.where(\
                                 net_out['detection_scores'][i] >= det_threshold)]
-                    img = display(buffer_inp[i], boxes, do_convert)
-                    # TODO labels
+                        labels[i] = [category_index[key]['name'] for key in \
+                                net_out['detection_classes'][i][np.where(\
+                                    net_out['detection_scores'][i] >= det_threshold)]
+                                ]
+                    img = display(buffer_inp[i], boxes, do_convert, labels[i])
                     if SaveVideo:
                         videoWriter.write(img)
                     cv2.imshow('', img)
