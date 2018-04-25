@@ -29,6 +29,8 @@ def str2bool(v):
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--queue", type=int, default=1)
+parser.add_argument("--focal", type=int, default=500)
+parser.add_argument("--carW", type=int, default=100)
 parser.add_argument("--tracker_refresh", type=int, default=25)
 parser.add_argument("--det_thresh", type=float, default=0.5)
 parser.add_argument("--source", type=str, default="0")
@@ -99,8 +101,14 @@ def display(im, boxes, do_convert=True, labels=[]):
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
             (left, right, top, bot) = b
-        cv2.putText(imgcv, labels[i], (int(left), int(top)-12), 
-                0, 1e-3*im_height, color, thick//2)
+        state = state_estimation((left, right, top, bot), 
+                im_height, im_width, 
+                camera_focal_length=args.focal, 
+                car_width=args.carW)
+        text = "c: " + labels[i] + ", d: {0:.2f}".format(state['distance'])
+        cv2.putText(imgcv, text, 
+                (int(left), int(top)-12), 
+                0, 1e-3*im_height, color, int(2*thick/3))
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, thick)
@@ -250,6 +258,24 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         camera.release()
         if using_camera:
             cv2.destroyAllWindows()
+
+# F is camera focal length
+# W is car width in meters
+# returns distance in meters
+def triangle_similarity_distance(box, im_h, im_w, F, W):
+    distance = 0
+    (left, right, top, bot) = box
+    object_width_pixels = right - left
+    return (W * F) / object_width_pixels
+
+# called after converting box
+# box, im_h, im_w are pixels
+# car width in meters
+def state_estimation(box, im_h, im_w, camera_focal_length=500, 
+        car_width=100):
+    distance = triangle_similarity_distance(box, im_h, im_w, \
+            camera_focal_length, car_width)
+    return {"distance": distance}
 
 camera_fast(source=args.source, SaveVideo=args.save, queue=args.queue, 
         det_threshold=args.det_thresh,

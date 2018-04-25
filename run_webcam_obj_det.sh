@@ -13,10 +13,14 @@ SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
 SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
 
 SOURCE=0
-#SOURCE=1
+SOURCE=1
 
 SAVE='false'
 SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.avi'
+
+QUEUE=1
+FOCAL=500
+CAR_WIDTH=3
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
@@ -36,8 +40,8 @@ else
 
     python $(echo $START_LOC)/run_webcam_obj_det.py \
         --source $SOURCE \
-        --save_path $SAVE_PATH \
-        --save $SAVE 
+        --save $SAVE --save_path $SAVE_PATH \
+        --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH
     cd $START_LOC
 
     #deactivate 
