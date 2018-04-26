@@ -49,8 +49,7 @@ class state:
 # F is camera focal length
 # W is car width in meters
 # returns distance in meters
-def triangle_similarity_distance(box, im_h, im_w, F, W):
-    distance = 0
+def triangle_similarity_distance(box, F, W):
     (left, right, top, bot) = box
     object_width_pixels = right - left
     return (W * F) / object_width_pixels
@@ -58,8 +57,17 @@ def triangle_similarity_distance(box, im_h, im_w, F, W):
 # called after converting box
 # box, im_h, im_w are pixels
 # car width in meters
-def state_estimation(box, im_h, im_w, camera_focal_length=500, 
-        car_width=100):
-    distance = triangle_similarity_distance(box, im_h, im_w, \
+def state_estimation(box, im_h, im_w, camera_focal_length=1000, 
+        car_width=2):
+    distance = triangle_similarity_distance(box, 
             camera_focal_length, car_width)
     return {"distance": distance}
+
+# 3/4" at 8 inches away, Focal of about 1000 for built in webcam
+def calibrate(box, im_h, im_w, object_width=0.019, distance=0.2032):
+    (left, right, top, bot) = box
+    object_width_pixels = right - left
+    print(object_width_pixels)
+    print("F= " + str((distance * object_width_pixels) / object_width))
+
+

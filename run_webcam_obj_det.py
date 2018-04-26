@@ -28,8 +28,8 @@ def str2bool(v):
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--queue", type=int, default=1)
-parser.add_argument("--focal", type=int, default=500)
-parser.add_argument("--carW", type=int, default=100)
+parser.add_argument("--focal", type=int, default=1000)
+parser.add_argument("--carW", type=float, default=1.8)
 parser.add_argument("--tracker_refresh", type=int, default=25)
 parser.add_argument("--det_thresh", type=float, default=0.5)
 parser.add_argument("--source", type=str, default="0")

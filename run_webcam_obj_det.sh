@@ -12,15 +12,16 @@ START_LOC=$(pwd)
 SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
 SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
 
-SOURCE=0
-SOURCE=1
+#SOURCE=0
+#SOURCE=1
 
-SAVE='false'
+SAVE='true'
+#SAVE='false'
 SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.avi'
 
 QUEUE=1
-FOCAL=500
-CAR_WIDTH=3
+FOCAL=1000
+CAR_WIDTH=1.8
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
