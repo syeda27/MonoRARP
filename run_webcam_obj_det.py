@@ -21,7 +21,6 @@ from utils import label_map_util
 
 from utils import visualization_utils as vis_util
 
-
 # for argparsing
 def str2bool(v):
     return v.lower() == "true"
@@ -42,11 +41,17 @@ parser.add_argument("--model", type=str, \
         default='faster_rcnn_resnet101_kitti_2018_01_28')
 parser.add_argument("--labels", type=str, \
         default=os.path.join('data', 'kitti_label_map.pbtxt'))
+parser.add_argument("--extra_import_path", type=str, \
+        default='/home/derek/object_detection_mono_video/')
 
 
 args = parser.parse_args()
 if args.source == "0" or args.source == "1": 
     args.source = int(args.source)
+
+## FOR IMPORTING FILES FROM OBJECT_DETECTION_MONO_VIDEO_REPO ##
+sys.path.append(args.extra_import_path)
+import obj_det_state
 
 #### FLAGS ####
 SAVE_VIDEO = args.save
@@ -65,6 +70,8 @@ if 'kitti' in PATH_TO_LABELS:
     NUM_CLASSES = 2
 else: #Coco?
     NUM_CLASSES = 90
+
+STATE = obj_det_state.state()
 ####
 
 
@@ -101,11 +108,11 @@ def display(im, boxes, do_convert=True, labels=[]):
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
             (left, right, top, bot) = b
-        state = state_estimation((left, right, top, bot), 
+        this_state = STATE.update_state((left, right, top, bot), 
                 im_height, im_width, 
-                camera_focal_length=args.focal, 
-                car_width=args.carW)
-        text = "c: " + labels[i] + ", d: {0:.2f}".format(state['distance'])
+                args.focal, args.carW,
+                object_key = i)
+        text = "c: "+labels[i]+", d: {0:.2f}".format(this_state['distance'])
         cv2.putText(imgcv, text, 
                 (int(left), int(top)-12), 
                 0, 1e-3*im_height, color, int(2*thick/3))
@@ -212,7 +219,8 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
                 #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
                 labels = defaultdict(list) # i -> list of labels
-            
+                STATE.clear()
+
             _, image_np = camera.read()
             if image_np is None:
                 print('\nEnd of Video')
@@ -258,24 +266,6 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         camera.release()
         if using_camera:
             cv2.destroyAllWindows()
-
-# F is camera focal length
-# W is car width in meters
-# returns distance in meters
-def triangle_similarity_distance(box, im_h, im_w, F, W):
-    distance = 0
-    (left, right, top, bot) = box
-    object_width_pixels = right - left
-    return (W * F) / object_width_pixels
-
-# called after converting box
-# box, im_h, im_w are pixels
-# car width in meters
-def state_estimation(box, im_h, im_w, camera_focal_length=500, 
-        car_width=100):
-    distance = triangle_similarity_distance(box, im_h, im_w, \
-            camera_focal_length, car_width)
-    return {"distance": distance}
 
 camera_fast(source=args.source, SaveVideo=args.save, queue=args.queue, 
         det_threshold=args.det_thresh,

@@ -41,7 +41,8 @@ else
     python $(echo $START_LOC)/run_webcam_obj_det.py \
         --source $SOURCE \
         --save $SAVE --save_path $SAVE_PATH \
-        --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH
+        --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
+        --extra_import_path $START_LOC
     cd $START_LOC
 
     #deactivate 

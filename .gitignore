@@ -2,3 +2,5 @@
 videos/
 videos/*
 *.avi
+
+__pycache__/*
