@@ -54,6 +54,19 @@ def triangle_similarity_distance(box, F, W):
     object_width_pixels = right - left
     return (W * F) / object_width_pixels
 
+'''
+camera height in meters
+camera_min_angle in degrees
+rel_horizon is relative position of horizon in image. 0 <= x <= 1
+'''
+def bottom_bounding_box_distance(box, im_h, im_w, 
+        rel_horizon=0.35, camera_min_angle=15, camera_height=1.0):
+    horizon_p = rel_horizon * im_h
+    (left, right, top, bot) = box
+    phi = ((horizon_p - bot) / horizon_p) * (90.0 - camera_min_angle)
+    return camera_height * np.tan(np.deg2rad(90.0 - phi))
+
+
 # called after converting box
 # box, im_h, im_w are pixels
 # car width in meters
@@ -61,6 +74,7 @@ def state_estimation(box, im_h, im_w, camera_focal_length=1000,
         car_width=2):
     distance = triangle_similarity_distance(box, 
             camera_focal_length, car_width)
+    print(bottom_bounding_box_distance(box, im_h, im_w))
     return {"distance": distance}
 
 # 3/4" at 8 inches away, Focal of about 1000 for built in webcam
