@@ -60,10 +60,14 @@ camera_min_angle in degrees
 rel_horizon is relative position of horizon in image. 0 <= x <= 1
 '''
 def bottom_bounding_box_distance(box, im_h, im_w, 
-        rel_horizon=0.35, camera_min_angle=15, camera_height=1.0):
+        rel_horizon=0.39, camera_min_angle=25.0, camera_height=1.0):
     horizon_p = rel_horizon * im_h
     (left, right, top, bot) = box
-    phi = ((horizon_p - bot) / horizon_p) * (90.0 - camera_min_angle)
+    d_image = im_h - bot # distance from bottom of image
+    if d_image > horizon_p:
+        print("this box is floating. Ignoring. Check horizon")
+        return
+    phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     return camera_height * np.tan(np.deg2rad(90.0 - phi))
 
 
@@ -72,10 +76,14 @@ def bottom_bounding_box_distance(box, im_h, im_w,
 # car width in meters
 def state_estimation(box, im_h, im_w, camera_focal_length=1000, 
         car_width=2):
-    distance = triangle_similarity_distance(box, 
+    state = dict()
+    state["distance_triangle"] = triangle_similarity_distance(box, 
             camera_focal_length, car_width)
-    print(bottom_bounding_box_distance(box, im_h, im_w))
-    return {"distance": distance}
+    d_bbb = bottom_bounding_box_distance(box, im_h, im_w)
+    if d_bbb is not None:
+        state["distance_bbb"] = d_bbb
+    state["distance"] = np.mean([state[i] for i in state.keys() if "distance" in i])
+    return state
 
 # 3/4" at 8 inches away, Focal of about 1000 for built in webcam
 def calibrate(box, im_h, im_w, object_width=0.019, distance=0.2032):
@@ -84,4 +92,9 @@ def calibrate(box, im_h, im_w, object_width=0.019, distance=0.2032):
     print(object_width_pixels)
     print("F= " + str((distance * object_width_pixels) / object_width))
 
-
+def calibrate2(box, im_h, im_w, height=1.0):
+    height = 1.0
+    min_d = 2.5
+    alpha = np.rad2deg(np.arctan(min_d))
+    print("Alpha for min_d: ", str(alpha))
+    print("Min observable distance: ", str(min_d))

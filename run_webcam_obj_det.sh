@@ -12,7 +12,7 @@ START_LOC=$(pwd)
 SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
 SOURCE=$(echo $START_LOC)/videos/Untitled.mov
 
-SOURCE=0
+#SOURCE=0
 #SOURCE=1
 
 SAVE='true'
