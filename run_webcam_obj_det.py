@@ -94,7 +94,7 @@ def convert(im_height, im_width, b):
                               int(ymin * im_height), int(ymax * im_height))
     return (left, right, top, bot)
 
-def display(im, boxes, do_convert=True, labels=[]):
+def display(im, boxes, do_convert=True, labels=[], fps=6.0):
     if type(im) is not np.ndarray:
                 imgcv = cv2.imread(im)
     else: imgcv = im
@@ -103,7 +103,8 @@ def display(im, boxes, do_convert=True, labels=[]):
     if len(labels) < len(boxes):
         labels.extend([""] * (len(boxes) - len(labels)))
     for i,b in enumerate(boxes):
-        color = 0
+        color = (0,50,255) # BGR
+        black = (0, 0 ,0)
         if do_convert:
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
@@ -112,13 +113,18 @@ def display(im, boxes, do_convert=True, labels=[]):
                 im_height, im_width, 
                 args.focal, args.carW,
                 object_key = i)
-        text = "c: "+labels[i]+", d: {0:.2f}".format(this_state['distance'])
-        cv2.putText(imgcv, text, 
+        text = "d: {0:.2f}".format(this_state['distance'])
+        if this_state['speed'] is not None:
+            text = text + ", s: {0:.2f}".format(this_state['speed']*fps)
+        cv2.putText(imgcv, text,
                 (int(left), int(top)-12), 
-                0, 1e-3*im_height, color, int(2*thick/3))
+                0, 1e-3*im_height, black, int(2*thick/3))
+        cv2.putText(imgcv, text,
+                (int(left), int(top)-12), 
+                0, 1e-3*im_height, color, int(1*thick/4))
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
-                        color, thick)
+                        color, int(thick/3))
     return imgcv
 
 def framework(sess):
@@ -203,6 +209,7 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         buffer_pre = list()
         elapsed = int()
         start = time.time()
+        fps = 1
 
         tensor_dict = framework(sess)
         image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
@@ -220,6 +227,7 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
                 tracker = cv2.MultiTracker_create()
                 labels = defaultdict(list) # i -> list of labels
                 STATE.clear()
+                fps = get_fps(start, elapsed)
 
             _, image_np = camera.read()
             if image_np is None:
@@ -249,7 +257,8 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
                                 net_out['detection_classes'][i][np.where(\
                                     net_out['detection_scores'][i] >= det_threshold)]
                                 ]
-                    img = display(buffer_inp[i], boxes, do_convert, labels[i])
+                    img = display(buffer_inp[i], boxes, do_convert, 
+                            labels[i], fps=fps)
                     if SaveVideo:
                         videoWriter.write(img)
                     cv2.imshow('', img)
@@ -266,6 +275,10 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         camera.release()
         if using_camera:
             cv2.destroyAllWindows()
+
+def get_fps(start, frames):
+    elapsed_time = time.time() - start
+    return frames / elapsed_time
 
 camera_fast(source=args.source, SaveVideo=args.save, queue=args.queue, 
         det_threshold=args.det_thresh,

@@ -35,15 +35,44 @@ class state:
             return self.states[object_key]
         return self.states
 
+    # TODO direction position/distance and velocity
     # TODO if no object key, finds closest box from last frame
     # F is camera focal length
     # W is car width in meters
+    # called after converting box
+    # box, im_h, im_w are pixels
+    # car width in meters
     def update_state(self, box, im_h, im_w, F, W, object_key=1):
-        if len(self.states[object_key]) >= self.MAX_HISTORY:
-            self.states[object_key] = self.states[object_key][-self.MAX_HISTORY:]
-        new_state = state_estimation(box, im_h, im_w, F, W)
-        self.states[object_key].append(new_state)
-        return new_state
+        state_len = len(self.states[object_key])
+        if state_len >= self.MAX_HISTORY:
+            self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
+        state = dict()
+        state["distance_triangle"] = triangle_similarity_distance(box, F, W)
+        d_bbb = bottom_bounding_box_distance(box, im_h, im_w)
+        if d_bbb is not None:
+            state["distance_bbb"] = d_bbb
+        state["distance"] = np.mean([state[i] for i in state.keys() if "distance" in i])
+        self.states[object_key].append(state)
+        self.states[object_key][-1]["speed"] = calc_speed(
+                self.states[object_key])
+        return self.states[object_key][-1]
+
+# TODO velocity (x, y)
+# TODO don't assume uniform frame rate - could record time
+# right now this function returns the average distance change per frame 
+#  from the last TO_USE  frames. 
+# If there is no history, aka this is the first frame, it returns None so
+#  that it will be ignored.
+# state_for_object is the list of states (history) identified by an object.
+def calc_speed(state_for_object, TO_USE=5):
+    if (len(state_for_object)) <= 1:
+        return None
+    to_consider = state_for_object[-TO_USE:]
+    D = 0
+    for i in range(len(to_consider) - 1):
+        D += (to_consider[i+1]['distance'] - to_consider[i]['distance'])
+    return D / len(to_consider)
+
 
 
 # F is camera focal length
@@ -70,20 +99,6 @@ def bottom_bounding_box_distance(box, im_h, im_w,
     phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     return camera_height * np.tan(np.deg2rad(90.0 - phi))
 
-
-# called after converting box
-# box, im_h, im_w are pixels
-# car width in meters
-def state_estimation(box, im_h, im_w, camera_focal_length=1000, 
-        car_width=2):
-    state = dict()
-    state["distance_triangle"] = triangle_similarity_distance(box, 
-            camera_focal_length, car_width)
-    d_bbb = bottom_bounding_box_distance(box, im_h, im_w)
-    if d_bbb is not None:
-        state["distance_bbb"] = d_bbb
-    state["distance"] = np.mean([state[i] for i in state.keys() if "distance" in i])
-    return state
 
 # 3/4" at 8 inches away, Focal of about 1000 for built in webcam
 def calibrate(box, im_h, im_w, object_width=0.019, distance=0.2032):
