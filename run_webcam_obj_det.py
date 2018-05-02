@@ -31,12 +31,19 @@ parser.add_argument("--queue", type=int, default=1)
 parser.add_argument("--focal", type=int, default=1000)
 parser.add_argument("--carW", type=float, default=1.8)
 parser.add_argument("--tracker_refresh", type=int, default=25)
+# 1 to update every frame
 parser.add_argument("--det_thresh", type=float, default=0.5)
+
+parser.add_argument("--cameraH", type=float, default=1.0)
+parser.add_argument("--cameraMinAngle", type=float, default=25.0) #degrees
+parser.add_argument("--horizon", type=float, default=0.39) # 0 - 1
+
 parser.add_argument("--source", type=str, default="0")
 parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--save", type=str2bool, default="True")
 parser.add_argument("--save_path", type=str, \
         default='/home/derek/object_detection_mono_video/video.avi')
+
 parser.add_argument("--model", type=str, \
         default='faster_rcnn_resnet101_kitti_2018_01_28')
 parser.add_argument("--labels", type=str, \
@@ -48,6 +55,8 @@ parser.add_argument("--extra_import_path", type=str, \
 args = parser.parse_args()
 if args.source == "0" or args.source == "1": 
     args.source = int(args.source)
+assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
+        'Must pass in a relative horizon position, between 0 and 1'
 
 ## FOR IMPORTING FILES FROM OBJECT_DETECTION_MONO_VIDEO_REPO ##
 sys.path.append(args.extra_import_path)
@@ -94,7 +103,7 @@ def convert(im_height, im_width, b):
                               int(ymin * im_height), int(ymax * im_height))
     return (left, right, top, bot)
 
-def display(im, boxes, do_convert=True, labels=[], fps=6.0):
+def display(args, im, boxes, do_convert=True, labels=[], fps=6.0):
     if type(im) is not np.ndarray:
                 imgcv = cv2.imread(im)
     else: imgcv = im
@@ -110,9 +119,7 @@ def display(im, boxes, do_convert=True, labels=[], fps=6.0):
         else:
             (left, right, top, bot) = b
         this_state = STATE.update_state((left, right, top, bot), 
-                im_height, im_width, 
-                args.focal, args.carW,
-                object_key = i)
+                im_height, im_width, args)
         text = "d: {0:.2f}".format(this_state['distance'])
         if this_state['speed'] is not None:
             text = text + ", s: {0:.2f}".format(this_state['speed']*fps)
@@ -192,16 +199,14 @@ def handle_tracker(i, tracker, net_out, buffer_inp,
         ok, boxes = tracker.update(buffer_inp[i])
     return boxes, init_tracker, do_convert, ok, labels
 
-def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
-        refresh_tracker_t=25, # 1 to update every frame
-        do_tracking=True
-        ):
+def camera_fast(args):
+    det_threshold=args.det_thresh
     with tf.device('/gpu:0'):
      with detection_graph.as_default():
       with tf.Session() as sess:
-        camera, using_camera, height, width = init_camera(source)
+        camera, using_camera, height, width = init_camera(args.source)
         
-        if SaveVideo:
+        if args.save:
             videoWriter = init_video_write(camera, using_camera, height, width)
 
         # Buffers to allow for batch demo
@@ -214,14 +219,14 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         tensor_dict = framework(sess)
         image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         # Tracker
-        if do_tracking:
+        if args.track:
             tracker = cv2.MultiTracker_create()
         else:
             tracker = None
         labels = defaultdict(list) # i -> list of labels
         while camera.isOpened():
             elapsed += 1
-            init_tracker = elapsed % refresh_tracker_t == 1
+            init_tracker = elapsed % args.tracker_refresh == 1
             if tracker and init_tracker: 
                 #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
@@ -239,10 +244,10 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
             buffer_inp.append(image_np)
             buffer_pre.append(image_np)
 
-            if elapsed % queue == 0:
+            if elapsed % args.queue == 0:
                 net_out = sess.run(tensor_dict,
                                 feed_dict={image_tensor: buffer_pre})
-                for i in range(queue):
+                for i in range(args.queue):
                     # Visualization of the results of a detection
                     do_convert = True
                     if tracker:
@@ -257,9 +262,9 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
                                 net_out['detection_classes'][i][np.where(\
                                     net_out['detection_scores'][i] >= det_threshold)]
                                 ]
-                    img = display(buffer_inp[i], boxes, do_convert, 
+                    img = display(args, buffer_inp[i], boxes, do_convert, 
                             labels[i], fps=fps)
-                    if SaveVideo:
+                    if args.save:
                         videoWriter.write(img)
                     cv2.imshow('', img)
                 buffer_inp = list()
@@ -270,7 +275,7 @@ def camera_fast(source=0, SaveVideo=SAVE_VIDEO, queue=1, det_threshold=0.5,
         print("Total time: ", end - start)
         print("Frames processed: ", elapsed)
         print("Average FPS: ", elapsed/(end-start))
-        if SaveVideo:
+        if args.save:
             videoWriter.release()
         camera.release()
         if using_camera:
@@ -280,7 +285,4 @@ def get_fps(start, frames):
     elapsed_time = time.time() - start
     return frames / elapsed_time
 
-camera_fast(source=args.source, SaveVideo=args.save, queue=args.queue, 
-        det_threshold=args.det_thresh,
-        refresh_tracker_t=args.tracker_refresh, # 1 to update every frame
-        do_tracking=args.track)
+camera_fast(args)

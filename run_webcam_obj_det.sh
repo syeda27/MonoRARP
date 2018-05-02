@@ -10,9 +10,9 @@ YOLO=false #comment to use yolo model
 START_LOC=$(pwd)
 
 SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
-SOURCE=$(echo $START_LOC)/videos/Untitled.mov
+SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
 
-#SOURCE=0
+SOURCE=0
 #SOURCE=1
 
 SAVE='true'
@@ -20,8 +20,13 @@ SAVE='false'
 SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.avi'
 
 QUEUE=1
+DET_THRESH=0.5
+
 FOCAL=1000
 CAR_WIDTH=1.8
+CAMERA_HEIGHT=1.0
+MIN_CAMERA_ANGLE=0.25
+RELATIVE_HORIZON=0.39 # between 0 and 1
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
@@ -43,6 +48,8 @@ else
         --source $SOURCE \
         --save $SAVE --save_path $SAVE_PATH \
         --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
+        --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
+        --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
         --extra_import_path $START_LOC
     cd $START_LOC
 

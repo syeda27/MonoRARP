@@ -37,20 +37,20 @@ class state:
 
     # TODO direction position/distance and velocity
     # TODO if no object key, finds closest box from last frame
-    # F is camera focal length
-    # W is car width in meters
+    # args needs camera (focal, height, minAngle), horizon, carW
     # called after converting box
     # box, im_h, im_w are pixels
     # car width in meters
-    def update_state(self, box, im_h, im_w, F, W, object_key=1):
+    def update_state(self, box, im_h, im_w, args, object_key=1):
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
         state = dict()
-        state["distance_triangle"] = triangle_similarity_distance(box, F, W)
-        d_bbb = bottom_bounding_box_distance(box, im_h, im_w)
+        state["distance_t"] = triangle_similarity_distance(box, args.focal, args.carW)
+        d_bbb = bottom_bounding_box_distance(box, im_h, im_w,
+                args.cameraH, args.cameraMinAngle, args.horizon)
         if d_bbb is not None:
-            state["distance_bbb"] = d_bbb
+            state["distance_b"] = d_bbb
         state["distance"] = np.mean([state[i] for i in state.keys() if "distance" in i])
         self.states[object_key].append(state)
         self.states[object_key][-1]["speed"] = calc_speed(
@@ -89,12 +89,13 @@ camera_min_angle in degrees
 rel_horizon is relative position of horizon in image. 0 <= x <= 1
 '''
 def bottom_bounding_box_distance(box, im_h, im_w, 
-        rel_horizon=0.39, camera_min_angle=25.0, camera_height=1.0):
+        rel_horizon=0.39, camera_min_angle=25.0, camera_height=1.0,
+        verbose=False):
     horizon_p = rel_horizon * im_h
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
     if d_image > horizon_p:
-        print("this box is floating. Ignoring. Check horizon")
+        if verbose: print("this box is floating. Ignoring. Check horizon")
         return
     phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     return camera_height * np.tan(np.deg2rad(90.0 - phi))
