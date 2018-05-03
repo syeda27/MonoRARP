@@ -12,7 +12,7 @@ START_LOC=$(pwd)
 SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
 SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
 
-SOURCE=0
+#SOURCE=0
 #SOURCE=1
 
 SAVE='true'
@@ -22,10 +22,10 @@ SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.av
 QUEUE=1
 DET_THRESH=0.5
 
-FOCAL=1000
+FOCAL=500
 CAR_WIDTH=1.8
 CAMERA_HEIGHT=1.0
-MIN_CAMERA_ANGLE=0.25
+MIN_CAMERA_ANGLE=53
 RELATIVE_HORIZON=0.39 # between 0 and 1
 
 if ($YOLO); then

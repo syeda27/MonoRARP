@@ -120,19 +120,30 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0):
             (left, right, top, bot) = b
         this_state = STATE.update_state((left, right, top, bot), 
                 im_height, im_width, args)
-        text = "d: {0:.2f}".format(this_state['distance'])
-        if this_state['speed'] is not None:
-            text = text + ", s: {0:.2f}".format(this_state['speed']*fps)
-        cv2.putText(imgcv, text,
-                (int(left), int(top)-12), 
-                0, 1e-3*im_height, black, int(2*thick/3))
-        cv2.putText(imgcv, text,
-                (int(left), int(top)-12), 
-                0, 1e-3*im_height, color, int(1*thick/4))
+        text = "dx: {0:.2f}, dy: {1:.2f}".format(this_state['distance_x'],
+                this_state['distance_y'])
+        text2 = ""
+        if 'speed_x' in this_state:
+            text2 += "sx: {0:.2f}".format(\
+                    this_state['speed_x']*fps)
+        print(fps)
+        if 'speed_y' in this_state:
+            text2 += text + ", sy: {0:.2f}".format(this_state['speed_y']*fps)
+        outline_text(imgcv, text, int(left), int(top), im_height, black, color, thick)
+        outline_text(imgcv, text2, int(left), int(top)-36, im_height, black, color, thick)
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
     return imgcv
+
+def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
+    cv2.putText(imgcv, text,
+            (left, top-12), 
+            0, 1e-3*imh, color1, int(2*thick/3))
+    cv2.putText(imgcv, text,
+            (left, top-12), 
+            0, 1e-3*imh, color2, int(1*thick/4))
+
 
 def framework(sess):
     # Get handles to input and output tensors
@@ -156,7 +167,7 @@ def init_camera(INPUT_FILE):
         print('Press [ESC] to quit demo')
     camera = cv2.VideoCapture(INPUT_FILE)
     assert camera.isOpened(), \
-            'Cannot caputure source'
+            'Cannot capture source'
     if using_camera:
         cv2.namedWindow('', 0)
         _, frame = camera.read()
@@ -282,6 +293,8 @@ def camera_fast(args):
             cv2.destroyAllWindows()
 
 def get_fps(start, frames):
+    if frames < 10:
+        return 1
     elapsed_time = time.time() - start
     return frames / elapsed_time
 
