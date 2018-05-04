@@ -1,4 +1,6 @@
 import numpy as np
+import sys
+sys.stdout.flush()
 from collections import defaultdict
 
 
@@ -87,7 +89,7 @@ class state:
             bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
                     args.cameraH, verbose=True)
             print("Average distance y:", self.states[object_key][-1]["distance_y"])
-            print("Average distance y:", self.states[object_key][-1]["distance_x"])
+            print("Average distance x:", self.states[object_key][-1]["distance_x"])
             print("==================================")
         return self.states[object_key][-1]
 
@@ -124,7 +126,7 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
     if verbose:
         print("dy:", Dy, "ny:", ny)
         print("dx:", Dx, "nx:", nx)
-        print("Sy:",Sy, "Sx:",Sx)
+        print("Sy:", Sy, "Sx:", Sx)
     return (Sy, Sx)
 
 
@@ -161,11 +163,17 @@ def bottom_bounding_box_distance(box, im_h, im_w,
     return (dy, dx)
 
 # to get dx, we assume the triangle similarity properties hold
-def triangle_for_x(box, im_w, d_image, dy):
+# TODO THIS IS WRONG
+def triangle_for_x(box, im_w, d_image, dy, verbose=False):
     (left, right, top, bot) = box
     center_bottom_box = left + ((left - right) / 2)
     center_image = im_w / 2
     # todo d_image = 0
+    if verbose:
+        print("l, r, t, b:", left, right, top, bot)
+        print("box center_bottom:", center_bottom_box)
+        print("image:", center_image, im_w)
+        print("d:", d_image)
     dx = dy * (abs(center_bottom_box-center_image)/(d_image+0.0001))
     return dx
 
