@@ -32,6 +32,7 @@ parser.add_argument("--focal", type=int, default=1000)
 parser.add_argument("--carW", type=float, default=1.8)
 parser.add_argument("--tracker_refresh", type=int, default=25)
 # 1 to update every frame
+parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--det_thresh", type=float, default=0.5)
 
 parser.add_argument("--cameraH", type=float, default=1.0)
@@ -39,7 +40,6 @@ parser.add_argument("--cameraMinAngle", type=float, default=25.0) #degrees
 parser.add_argument("--horizon", type=float, default=0.39) # 0 - 1
 
 parser.add_argument("--source", type=str, default="0")
-parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--save", type=str2bool, default="True")
 parser.add_argument("--save_path", type=str, \
         default='/home/derek/object_detection_mono_video/video.avi')
@@ -119,16 +119,15 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0):
         else:
             (left, right, top, bot) = b
         this_state = STATE.update_state((left, right, top, bot), 
-                im_height, im_width, args)
+                im_height, im_width, args, object_key=i)
         text = "dx: {0:.2f}, dy: {1:.2f}".format(this_state['distance_x'],
                 this_state['distance_y'])
         text2 = ""
         if 'speed_x' in this_state:
-            text2 += "sx: {0:.2f}".format(\
+            text2 += "sx: {0:.2f}, ".format(\
                     this_state['speed_x']*fps)
-        print(fps)
         if 'speed_y' in this_state:
-            text2 += text + ", sy: {0:.2f}".format(this_state['speed_y']*fps)
+            text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
         outline_text(imgcv, text, int(left), int(top), im_height, black, color, thick)
         outline_text(imgcv, text2, int(left), int(top)-36, im_height, black, color, thick)
         cv2.rectangle(imgcv,
@@ -238,12 +237,12 @@ def camera_fast(args):
         while camera.isOpened():
             elapsed += 1
             init_tracker = elapsed % args.tracker_refresh == 1
+            fps = get_fps(start, elapsed)
             if tracker and init_tracker: 
                 #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
                 labels = defaultdict(list) # i -> list of labels
                 STATE.clear()
-                fps = get_fps(start, elapsed)
 
             _, image_np = camera.read()
             if image_np is None:
@@ -293,7 +292,7 @@ def camera_fast(args):
             cv2.destroyAllWindows()
 
 def get_fps(start, frames):
-    if frames < 10:
+    if frames < 5:
         return 1
     elapsed_time = time.time() - start
     return frames / elapsed_time

@@ -20,6 +20,8 @@ SAVE='false'
 SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.avi'
 
 QUEUE=1
+DO_TRACK='true'
+TRACK_REFRESH=15
 DET_THRESH=0.5
 
 FOCAL=500
@@ -50,6 +52,7 @@ else
         --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
         --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
         --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
+        --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
         --extra_import_path $START_LOC
     cd $START_LOC
 
