@@ -103,7 +103,8 @@ def convert(im_height, im_width, b):
                               int(ymin * im_height), int(ymax * im_height))
     return (left, right, top, bot)
 
-def display(args, im, boxes, do_convert=True, labels=[], fps=6.0):
+def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
+        left_margin=12, top_margin=36, space=36):
     if type(im) is not np.ndarray:
                 imgcv = cv2.imread(im)
     else: imgcv = im
@@ -128,8 +129,14 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0):
                     this_state['speed_x']*fps)
         if 'speed_y' in this_state:
             text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
-        outline_text(imgcv, text, int(left), int(top), im_height, black, color, thick)
-        outline_text(imgcv, text2, int(left), int(top)-36, im_height, black, color, thick)
+        object_label = "obj: " + str(i)
+        outline_text(imgcv, object_label, left_margin, top_margin+space*(3*i), 
+                im_height, black, color, thick)
+        outline_text(imgcv, text, left_margin, top_margin+space*(3*i+1), 
+                im_height, black, color, thick)
+        outline_text(imgcv, text2, left_margin, top_margin+space*(3*i+2),
+                im_height, black, color, thick)
+        outline_text(imgcv, object_label, int(left), int(top), im_height, black, color, thick)
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
