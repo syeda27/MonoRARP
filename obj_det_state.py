@@ -44,7 +44,8 @@ class state:
     # box, im_h, im_w are pixels
     # car width in meters
     # TODO smooth distance
-    def update_state(self, box, im_h, im_w, args, object_key=1, test=True):
+    def update_state(self, box, im_h, im_w, args, object_key=1, 
+            test=False, do_calibrate=False):
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
@@ -73,6 +74,8 @@ class state:
             self.states[object_key][-1]["speed_y"] = Sy
         if Sx is not None:
             self.states[object_key][-1]["speed_x"] = Sx
+        if do_calibrate:
+            calibrate(box, im_h, im_w)
         if test:
             print("==================================")
             print("Object:", object_key)
@@ -154,7 +157,7 @@ def bottom_bounding_box_distance(box, im_h, im_w,
     d_image = im_h - bot # distance from bottom of image
     if d_image > horizon_p:
         if verbose: print("this box is floating. ignoring. check horizon")
-        return none
+        return None
     phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     dy = camera_height / np.tan(np.deg2rad(phi))
     dx = triangle_for_x(box, im_w, d_image, dy)
@@ -187,12 +190,15 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
         print("dy:", dy, "dx:", dx) 
     return (dy, dx)
 
-# 3/4" at 8 inches away, Focal of about 1000 for built in webcam
-def calibrate(box, im_h, im_w, object_width=0.019, distance=0.2032):
+# 3/4" wide, 2.5" tall, 10 inches away, Focal of ~1000 for built in webcam
+def calibrate(box, im_h, im_w, object_width=0.18, 
+        object_height=0.1325, distance=0.6096):
     (left, right, top, bot) = box
     object_width_pixels = right - left
     print(object_width_pixels)
-    print("F= " + str((distance * object_width_pixels) / object_width))
+    print("F_w= " + str((distance * object_width_pixels) / object_width))
+    object_height_pixels = bot-top
+    print("F_h= " + str((distance * object_height_pixels) / object_height))
 
 def calibrate2(box, im_h, im_w, height=1.3462):
     min_d = 1.8288

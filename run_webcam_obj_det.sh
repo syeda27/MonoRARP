@@ -13,7 +13,7 @@ SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
 SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
 
 #SOURCE=0
-#SOURCE=1
+SOURCE=1
 
 SAVE='true'
 SAVE='false'
@@ -24,11 +24,11 @@ DO_TRACK='true'
 TRACK_REFRESH=15
 DET_THRESH=0.5
 
-FOCAL=500
-CAR_WIDTH=1.8
-CAMERA_HEIGHT=1.0
-MIN_CAMERA_ANGLE=53
-RELATIVE_HORIZON=0.39 # between 0 and 1
+FOCAL=350
+CAR_WIDTH=1.8           # meters
+CAMERA_HEIGHT=1.0       # meters
+MIN_CAMERA_ANGLE=53     # degrees
+RELATIVE_HORIZON=0.39   # between 0 and 1
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then

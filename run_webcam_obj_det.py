@@ -121,8 +121,11 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
             (left, right, top, bot) = b
         this_state = STATE.update_state((left, right, top, bot), 
                 im_height, im_width, args, object_key=i)
-        text = "dx: {0:.2f}, dy: {1:.2f}".format(this_state['distance_x'],
-                this_state['distance_y'])
+        text = ""
+        if "distance_x" in this_state:
+            text += "dx: {0:.2f}, ".format(this_state['distance_x'])
+        if "distance_y" in this_state:
+            text += "dy: {0:.2f}".format(this_state['distance_y'])
         text2 = ""
         if 'speed_x' in this_state:
             text2 += "sx: {0:.2f}, ".format(\
