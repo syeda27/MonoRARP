@@ -9,15 +9,19 @@ YOLO=false #comment to use yolo model
 
 START_LOC=$(pwd)
 
-SOURCE=$(echo $START_LOC)/videos/kitti_5s.mp4
-SOURCE=$(echo $START_LOC)/videos/Untitled2.mov
+SOURCE=${START_LOC}/videos/kitti_5s.mp4
+SOURCE=${START_LOC}/videos/Untitled2.mov
 
 #SOURCE=0
-SOURCE=1
+#SOURCE=1
 
 SAVE='true'
 SAVE='false'
-SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'$(echo $YOLO)'.avi'
+SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'${YOLO}'.avi'
+
+#TEST=6
+SOURCE=${START_LOC}/videos/test_${TEST}.avi
+SAVE_PATH='/home/derek/object_detection_mono_video/test_'${TEST}'_marked.avi'
 
 QUEUE=1
 DO_TRACK='true'
@@ -25,10 +29,11 @@ TRACK_REFRESH=15
 DET_THRESH=0.5
 
 FOCAL=350
-CAR_WIDTH=1.8           # meters
-CAMERA_HEIGHT=1.0       # meters
-MIN_CAMERA_ANGLE=53     # degrees
-RELATIVE_HORIZON=0.39   # between 0 and 1
+CAR_WIDTH=1.8               # meters
+CAMERA_HEIGHT=1.1           # meters
+MIN_CAMERA_ANGLE=54.5       # degrees
+MAX_CAMERA_ANGLE_HORIZ=90.0 # degrees, aka FOV
+RELATIVE_HORIZON=0.5       # between 0 and 1
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
@@ -52,6 +57,7 @@ else
         --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
         --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
         --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
+        --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
         --extra_import_path $START_LOC
     cd $START_LOC

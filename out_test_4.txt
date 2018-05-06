@@ -1,0 +1,864 @@
+2018-05-05 21:11:20.281075: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2018-05-05 21:11:20.282357: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2018-05-05 21:11:20.282408: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:158] retrieving CUDA diagnostic information for host: derek-Predator-G9-793
+2018-05-05 21:11:20.282413: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:165] hostname: derek-Predator-G9-793
+2018-05-05 21:11:20.282473: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:189] libcuda reported version is: 390.48.0
+2018-05-05 21:11:20.282567: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:193] kernel reported version is: 387.34.0
+2018-05-05 21:11:20.282593: E tensorflow/stream_executor/cuda/cuda_diagnostics.cc:303] kernel version 387.34.0 does not match DSO version 390.48.0 -- cannot find working devices in this configuration
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0985831227193583
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.628365384615385
+Average distance y: 3.0031840980805558
+Average distance x: 2.0985831227193583
+==================================
+dy: 0.0 ny: 1
+dx: 0.0 nx: 1
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0985831227193583
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.628365384615385
+Average distance y: 3.0031840980805558
+Average distance x: 2.0985831227193583
+==================================
+dy: 0.0 ny: 2
+dx: 0.0 nx: 2
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0985831227193583
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.628365384615385
+Average distance y: 3.0031840980805558
+Average distance x: 2.0985831227193583
+==================================
+dy: 0.0 ny: 3
+dx: 0.0 nx: 3
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0985831227193583
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.628365384615385
+Average distance y: 3.0031840980805558
+Average distance x: 2.0985831227193583
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0985831227193583
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.628365384615385
+Average distance y: 3.0031840980805558
+Average distance x: 2.0985831227193583
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0985831227193583
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.628365384615385
+Average distance y: 3.0031840980805558
+Average distance x: 2.0985831227193583
+==================================
+dy: 0.0 ny: 4
+dx: 0.033081284468004846 nx: 4
+Sy: 0.0 Sx: 0.008270321117001211
+==================================
+Object: 0
+TRIANGLE
+is centered? 251.5 64.0
+False
+dy: 4.532374100719425
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.131664407187363
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6600961538461543
+Average distance y: 3.0031840980805558
+Average distance x: 2.131664407187363
+==================================
+dy: 0.0 ny: 4
+dx: 0.033081284468004846 nx: 4
+Sy: 0.0 Sx: 0.008270321117001211
+==================================
+Object: 0
+TRIANGLE
+is centered? 251.5 64.0
+False
+dy: 4.532374100719425
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.131664407187363
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6600961538461543
+Average distance y: 3.0031840980805558
+Average distance x: 2.131664407187363
+==================================
+dy: 0.0 ny: 4
+dx: 0.033081284468004846 nx: 4
+Sy: 0.0 Sx: 0.008270321117001211
+==================================
+Object: 0
+TRIANGLE
+is centered? 251.5 64.0
+False
+dy: 4.532374100719425
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.131664407187363
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6600961538461543
+Average distance y: 3.0031840980805558
+Average distance x: 2.131664407187363
+==================================
+dy: 0.0 ny: 4
+dx: 0.033081284468004846 nx: 4
+Sy: 0.0 Sx: 0.008270321117001211
+==================================
+Object: 0
+TRIANGLE
+is centered? 251.5 64.0
+False
+dy: 4.532374100719425
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.131664407187363
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6600961538461543
+Average distance y: 3.0031840980805558
+Average distance x: 2.131664407187363
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 251.5 64.0
+False
+dy: 4.532374100719425
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.131664407187363
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6600961538461543
+Average distance y: 3.0031840980805558
+Average distance x: 2.131664407187363
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 251.5 64.0
+False
+dy: 4.532374100719425
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.131664407187363
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6600961538461543
+Average distance y: 3.0031840980805558
+Average distance x: 2.131664407187363
+==================================
+dy: 0.0 ny: 4
+dx: -0.011065272183263808 nx: 4
+Sy: 0.0 Sx: -0.002766318045815952
+==================================
+Object: 0
+TRIANGLE
+is centered? 250.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.1205991350040994
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6495192307692315
+Average distance y: 3.0031840980805558
+Average distance x: 2.1205991350040994
+==================================
+dy: 0.0 ny: 4
+dx: -0.05494677505775014 nx: 4
+Sy: 0.0 Sx: -0.013736693764437535
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.5 64.0
+False
+dy: 4.7368421052631575
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.076717632129613
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.607211538461539
+Average distance y: 3.0031840980805558
+Average distance x: 2.076717632129613
+==================================
+dy: 0.0 ny: 4
+dx: -0.04403268247285652 nx: 4
+Sy: 0.0 Sx: -0.01100817061821413
+==================================
+Object: 0
+TRIANGLE
+is centered? 247.5 64.0
+False
+dy: 4.666666666666667
+Bounding Box 1
+dy: 3.0031840980805558 dx: 2.0876317247145066
+Bounding Box 2
+dy: 3.7019230769230775 dx: 2.6177884615384617
+Average distance y: 3.0031840980805558
+Average distance x: 2.0876317247145066
+==================================
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.122021109397906
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5289719626168226
+Average distance y: 3.0767627027515827
+Average distance x: 2.122021109397906
+==================================
+dy: 0.0 ny: 1
+dx: 0.0 nx: 1
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.122021109397906
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5289719626168226
+Average distance y: 3.0767627027515827
+Average distance x: 2.122021109397906
+==================================
+dy: 0.0 ny: 2
+dx: 0.011162503874080798 nx: 2
+Sy: 0.0 Sx: 0.005581251937040399
+==================================
+Object: 0
+TRIANGLE
+is centered? 247.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.133183613271987
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5392523364485986
+Average distance y: 3.0767627027515827
+Average distance x: 2.133183613271987
+==================================
+dy: 0.0 ny: 3
+dx: -0.011124776762693411 nx: 3
+Sy: 0.0 Sx: -0.0037082589208978036
+==================================
+Object: 0
+TRIANGLE
+is centered? 245.0 64.0
+False
+dy: 4.7727272727272725
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.1108963326352126
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.518691588785047
+Average distance y: 3.0767627027515827
+Average distance x: 2.1108963326352126
+==================================
+dy: 0.0 ny: 4
+dx: 0.011162503874080798 nx: 4
+Sy: 0.0 Sx: 0.0027906259685201995
+==================================
+Object: 0
+TRIANGLE
+is centered? 247.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.133183613271987
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5392523364485986
+Average distance y: 3.0767627027515827
+Average distance x: 2.133183613271987
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.122021109397906
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5289719626168226
+Average distance y: 3.0767627027515827
+Average distance x: 2.122021109397906
+==================================
+dy: 0.0 ny: 4
+dx: 0.011200558397272076 nx: 4
+Sy: 0.0 Sx: 0.002800139599318019
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.0 64.0
+False
+dy: 4.632352941176471
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.144384171669259
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.549532710280374
+Average distance y: 3.0767627027515827
+Average distance x: 2.144384171669259
+==================================
+dy: 0.0 ny: 4
+dx: 0.011124776762693411 nx: 4
+Sy: 0.0 Sx: 0.002781194190673353
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.122021109397906
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5289719626168226
+Average distance y: 3.0767627027515827
+Average distance x: 2.122021109397906
+==================================
+dy: 0.0 ny: 4
+dx: 0.011200558397272076 nx: 4
+Sy: 0.0 Sx: 0.002800139599318019
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.0 64.0
+False
+dy: 4.632352941176471
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.144384171669259
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.549532710280374
+Average distance y: 3.0767627027515827
+Average distance x: 2.144384171669259
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.122021109397906
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5289719626168226
+Average distance y: 3.0767627027515827
+Average distance x: 2.122021109397906
+==================================
+dy: 0.0 ny: 4
+dx: -0.011200558397272076 nx: 4
+Sy: 0.0 Sx: -0.002800139599318019
+==================================
+Object: 0
+TRIANGLE
+is centered? 247.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.133183613271987
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5392523364485986
+Average distance y: 3.0767627027515827
+Average distance x: 2.133183613271987
+==================================
+dy: 0.0 ny: 4
+dx: -0.011124776762693411 nx: 4
+Sy: 0.0 Sx: -0.002781194190673353
+==================================
+Object: 0
+TRIANGLE
+is centered? 245.0 64.0
+False
+dy: 4.7727272727272725
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.1108963326352126
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.518691588785047
+Average distance y: 3.0767627027515827
+Average distance x: 2.1108963326352126
+==================================
+dy: 0.0 ny: 4
+dx: -0.044575212981695866 nx: 4
+Sy: 0.0 Sx: -0.011143803245423967
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.0 64.0
+False
+dy: 4.7727272727272725
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.099808958687563
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5084112149532714
+Average distance y: 3.0767627027515827
+Average distance x: 2.099808958687563
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 246.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.122021109397906
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.5289719626168226
+Average distance y: 3.0767627027515827
+Average distance x: 2.122021109397906
+==================================
+dy: 0.0 ny: 4
+dx: 0.011200558397272076 nx: 4
+Sy: 0.0 Sx: 0.002800139599318019
+==================================
+Object: 0
+TRIANGLE
+is centered? 248.0 64.0
+False
+dy: 4.632352941176471
+Bounding Box 1
+dy: 3.0767627027515827 dx: 2.144384171669259
+Bounding Box 2
+dy: 3.598130841121496 dx: 2.549532710280374
+Average distance y: 3.0767627027515827
+Average distance x: 2.144384171669259
+==================================
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.117034131458249
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4851851851851854
+Average distance y: 3.102002031743885
+Average distance x: 2.117034131458249
+==================================
+dy: 0.0 ny: 1
+dx: 0.0 nx: 1
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.117034131458249
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4851851851851854
+Average distance y: 3.102002031743885
+Average distance x: 2.117034131458249
+==================================
+dy: 0.0 ny: 2
+dx: -0.0166974910240425 nx: 2
+Sy: 0.0 Sx: -0.00834874551202125
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.5 64.0
+False
+dy: 4.7368421052631575
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1003366404342065
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.469907407407408
+Average distance y: 3.102002031743885
+Average distance x: 2.1003366404342065
+==================================
+dy: 0.0 ny: 3
+dx: 0.0 nx: 3
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.117034131458249
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4851851851851854
+Average distance y: 3.102002031743885
+Average distance x: 2.117034131458249
+==================================
+dy: 0.0 ny: 4
+dx: 0.016781609750868398 nx: 4
+Sy: 0.0 Sx: 0.0041954024377170995
+==================================
+Object: 0
+TRIANGLE
+is centered? 245.5 64.0
+False
+dy: 4.666666666666667
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1338157412091174
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.5004629629629633
+Average distance y: 3.102002031743885
+Average distance x: 2.1338157412091174
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.117034131458249
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4851851851851854
+Average distance y: 3.102002031743885
+Average distance x: 2.117034131458249
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.5 64.0
+False
+dy: 4.7368421052631575
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1003366404342065
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.469907407407408
+Average distance y: 3.102002031743885
+Average distance x: 2.1003366404342065
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.117034131458249
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4851851851851854
+Average distance y: 3.102002031743885
+Average distance x: 2.117034131458249
+==================================
+dy: 0.0 ny: 4
+dx: -0.022356732961020143 nx: 4
+Sy: 0.0 Sx: -0.005589183240255036
+==================================
+Object: 0
+TRIANGLE
+is centered? 243.5 64.0
+False
+dy: 4.666666666666667
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1114590082480973
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4800925925925927
+Average distance y: 3.102002031743885
+Average distance x: 2.1114590082480973
+==================================
+dy: 0.0 ny: 4
+dx: 0.011178325998802308 nx: 4
+Sy: 0.0 Sx: 0.002794581499700577
+==================================
+Object: 0
+TRIANGLE
+is centered? 245.0 64.0
+False
+dy: 4.632352941176471
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1282124574570513
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4953703703703707
+Average distance y: 3.102002031743885
+Average distance x: 2.1282124574570513
+==================================
+dy: 0.0 ny: 4
+dx: 0.022281960631877595 nx: 4
+Sy: 0.0 Sx: 0.005570490157969399
+==================================
+Object: 0
+TRIANGLE
+is centered? 244.5 64.0
+False
+dy: 4.598540145985401
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.122618601066084
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4902777777777785
+Average distance y: 3.102002031743885
+Average distance x: 2.122618601066084
+==================================
+dy: 0.0 ny: 4
+dx: 0.011178325998802308 nx: 4
+Sy: 0.0 Sx: 0.002794581499700577
+==================================
+Object: 0
+TRIANGLE
+is centered? 245.0 64.0
+False
+dy: 4.632352941176471
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1282124574570513
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4953703703703707
+Average distance y: 3.102002031743885
+Average distance x: 2.1282124574570513
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 243.5 64.0
+False
+dy: 4.666666666666667
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1114590082480973
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4800925925925927
+Average distance y: 3.102002031743885
+Average distance x: 2.1114590082480973
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 245.0 64.0
+False
+dy: 4.632352941176471
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1282124574570513
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4953703703703707
+Average distance y: 3.102002031743885
+Average distance x: 2.1282124574570513
+==================================
+dy: 0.0 ny: 4
+dx: -0.011159592817986841 nx: 4
+Sy: 0.0 Sx: -0.0027898982044967102
+==================================
+Object: 0
+TRIANGLE
+is centered? 243.5 64.0
+False
+dy: 4.666666666666667
+Bounding Box 1
+dy: 3.102002031743885 dx: 2.1114590082480973
+Bounding Box 2
+dy: 3.5648148148148153 dx: 2.4800925925925927
+Average distance y: 3.102002031743885
+Average distance x: 2.1114590082480973
+==================================
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 1
+dx: 0.0 nx: 1
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 2
+dx: 0.0 nx: 2
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 3
+dx: 0.0 nx: 3
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+dy: 0.0 ny: 4
+dx: 0.0 nx: 4
+Sy: 0.0 Sx: 0.0
+==================================
+Object: 0
+TRIANGLE
+is centered? 242.0 64.0
+False
+dy: 4.701492537313433
+Bounding Box 1
+dy: 3.05188526643487 dx: 2.0609453457466573
+Bounding Box 2
+dy: 3.632075471698114 dx: 2.5113207547169814
+Average distance y: 3.05188526643487
+Average distance x: 2.0609453457466573
+==================================
+
+End of Video
+Total time:  101.55088877677917
+Frames processed:  55
+Average FPS:  0.5416003804840791

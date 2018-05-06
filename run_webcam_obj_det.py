@@ -36,8 +36,9 @@ parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--det_thresh", type=float, default=0.5)
 
 parser.add_argument("--cameraH", type=float, default=1.0)
-parser.add_argument("--cameraMinAngle", type=float, default=25.0) #degrees
-parser.add_argument("--horizon", type=float, default=0.39) # 0 - 1
+parser.add_argument("--cameraMinAngle", type=float, default=55.0) #degrees
+parser.add_argument("--cameraMaxHorizAngle", type=float, default=90.0) #degrees
+parser.add_argument("--horizon", type=float, default=0.5) # 0 - 1
 
 parser.add_argument("--source", type=str, default="0")
 parser.add_argument("--save", type=str2bool, default="True")

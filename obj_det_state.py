@@ -45,7 +45,7 @@ class state:
     # car width in meters
     # TODO smooth distance
     def update_state(self, box, im_h, im_w, args, object_key=1, 
-            test=False, do_calibrate=False):
+            test=True, do_calibrate=False):
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
@@ -58,7 +58,8 @@ class state:
             state["distance_y_t"] = triangle_similarity_distance(box, args.focal, args.carW)
         d_bbb = bottom_bounding_box_distance(box, im_h, im_w,
                 camera_height=args.cameraH, 
-                camera_min_angle=args.cameraMinAngle, 
+                camera_min_angle=args.cameraMinAngle,
+                camera_beta_max=args.cameraMaxHorizAngle,
                 rel_horizon=args.horizon)
         if d_bbb is not None:
             state["distance_y_b"], state["distance_x_b"] = d_bbb
@@ -87,6 +88,7 @@ class state:
             bottom_bounding_box_distance(box, im_h, im_w,
                 camera_height=args.cameraH, 
                 camera_min_angle=args.cameraMinAngle, 
+                camera_beta_max=args.cameraMaxHorizAngle,
                 rel_horizon=args.horizon, verbose=True)
             print("Bounding Box 2")
             bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
@@ -150,8 +152,8 @@ rel_horizon is relative position of horizon in image. 0 <= x <= 1
 return dy (along centerline) and dx (perpendicular to that, aka horizontal)
 '''
 def bottom_bounding_box_distance(box, im_h, im_w, 
-        rel_horizon=0.39, camera_min_angle=25.0, camera_height=1.0,
-        verbose=False):
+        rel_horizon=0.5, camera_min_angle=25.0, camera_height=1.0,
+        camera_beta_max=90.0, verbose=False):
     horizon_p = rel_horizon * im_h
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
@@ -160,24 +162,24 @@ def bottom_bounding_box_distance(box, im_h, im_w,
         return None
     phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     dy = camera_height / np.tan(np.deg2rad(phi))
-    dx = triangle_for_x(box, im_w, d_image, dy)
+    dx = triangle_for_x(box, im_w, d_image, dy, beta_max=camera_beta_max/2)
     if verbose:
         print("dy:", dy, "dx:", dx) 
     return (dy, dx)
 
-# to get dx, we assume the triangle similarity properties hold
-# TODO THIS IS WRONG
-def triangle_for_x(box, im_w, d_image, dy, verbose=False):
+# to get dx
+def triangle_for_x(box, im_w, d_image, dy, verbose=False,
+        beta_max = 45.0):
     (left, right, top, bot) = box
     center_bottom_box = left + ((left - right) / 2)
     center_image = im_w / 2
-    # todo d_image = 0
+    beta = (abs(center_image - center_bottom_box) / (im_w / 2)) * beta_max
     if verbose:
         print("l, r, t, b:", left, right, top, bot)
         print("box center_bottom:", center_bottom_box)
         print("image:", center_image, im_w)
         print("d:", d_image)
-    dx = dy * (abs(center_bottom_box-center_image)/(d_image+0.0001))
+    dx = dy * np.tan(np.deg2rad(beta))
     return dx
 
 def bottom_bounding_box_distance2(box, im_h, im_w, 
@@ -185,10 +187,16 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
     dy = (camera_height * camera_focal_len) / d_image
-    dx = triangle_for_x(box, im_w, d_image, dy)
+    
+    center_bottom_box = left + ((left - right) / 2)
+    center_image = im_w / 2
+    dx_pixels = abs(center_bottom_box - center_image)
+    dx = (dy * dx_pixels) / camera_focal_len
     if verbose:
         print("dy:", dy, "dx:", dx) 
     return (dy, dx)
+
+
 
 # 3/4" wide, 2.5" tall, 10 inches away, Focal of ~1000 for built in webcam
 def calibrate(box, im_h, im_w, object_width=0.18, 
