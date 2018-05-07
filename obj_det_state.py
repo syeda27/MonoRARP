@@ -18,6 +18,7 @@ We store a maximum amount of information at any given time.
 class state:
     states = defaultdict(list)
     MAX_HISTORY = 100
+    ego_speed = 0
 
     '''
     states is the main component here.
@@ -28,6 +29,7 @@ class state:
 
     def __init__(self):
         self.states = defaultdict(list)
+        self.ego_speed = 0
 
     # some helpers
     def clear(self):
@@ -36,6 +38,16 @@ class state:
         if object_key is not None:
             return self.states[object_key]
         return self.states
+    
+    def get_ego_speed(self):
+        return self.ego_speed
+    def get_ego_speed_mph(self):
+        return mps_to_mph(self.ego_speed)
+
+    def set_ego_speed(self, speed_mps):
+        self.ego_speed = speed_mps
+    def set_ego_speed_mph(self, speed_mph):
+        self.ego_speed = mph_to_mps(speed_mph)
 
     def update_distance(self, args, box, im_h, im_w, object_key,
             verbose=False):
@@ -235,3 +247,9 @@ def get_distance_far_box_edge(box, im_w):
     (left, right, top, bot) = box
     center_image = im_w / 2
     return max(abs(left - center_image), abs(right - center_image))
+
+# TODO probably just make a utils file
+def mph_to_mps(mph):
+    return mph * 0.44704
+def mps_to_mph(mps):
+    return mps / 0.44704
