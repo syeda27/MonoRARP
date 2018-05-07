@@ -37,7 +37,61 @@ class state:
             return self.states[object_key]
         return self.states
 
-    # TODO direction position/distance and velocity
+    def update_distance(self, args, box, im_h, im_w, object_key,
+            verbose=False):
+        state = dict()
+        if get_distance_far_box_edge(box, im_w) < im_w / 10:
+            # when further off center than this, we do not trust this distance.
+            state["distance_y_t"] = triangle_similarity_distance(box, args.focal, args.carW)
+        d_bbb = bottom_bounding_box_distance(box, im_h, im_w,
+                camera_height=args.cameraH, 
+                camera_min_angle=args.cameraMinAngle,
+                camera_beta_max=args.cameraMaxHorizAngle,
+                carW = args.carW,
+                rel_horizon=args.horizon)
+        if d_bbb is not None:
+            state["distance_y_b"], state["distance_x_b"] = d_bbb
+        state["distance_y_b2"], state["distance_x_b2"] = \
+                bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
+                    args.cameraH, carW=args.carW, verbose=True)
+        state["distance_x"] = np.mean([state[i] for i in state.keys() if "distance_x" in i])
+        state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
+        self.states[object_key].append(state)
+        
+    def update_speed(self, object_key, verbose=False):
+        S = calc_speed(self.states[object_key], verbose)
+        Sy = None
+        Sx = None
+        if S is not None:
+            Sy, Sx = S
+        if Sy is not None:
+            self.states[object_key][-1]["speed_y"] = Sy
+        if Sx is not None:
+            self.states[object_key][-1]["speed_x"] = Sx
+
+    def log_test_output(self, args, box, im_h, im_w, object_key):
+        print("==================================")
+        print("Object:", object_key)
+        print("TRIANGLE")            
+        distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
+        print("is centered?", distance_to_far_box_edge, im_w / 10)
+        print(distance_to_far_box_edge < im_w / 10)
+        print("dy:", triangle_similarity_distance(box, args.focal, args.carW))
+        print("Bounding Box 1")
+        bottom_bounding_box_distance(box, im_h, im_w,
+            camera_height=args.cameraH, 
+            camera_min_angle=args.cameraMinAngle, 
+            camera_beta_max=args.cameraMaxHorizAngle,
+            carW = args.carW,
+            rel_horizon=args.horizon, verbose=True)
+        print("Bounding Box 2")
+        bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
+                args.cameraH, carW=args.carW, verbose=True)
+        print("Average distance y:", self.states[object_key][-1]["distance_y"])
+        print("Average distance x:", self.states[object_key][-1]["distance_x"])
+        print("==================================")
+
+
     # TODO if no object key, finds closest box from last frame
     # args needs camera (focal, height, minAngle), horizon, carW
     # called after converting box
@@ -49,55 +103,14 @@ class state:
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
-        state = dict()
-        (left, right, top, bot) = box
-        center_image = im_w / 2
-        distance_to_far_box_edge = max(abs(left - center_image), abs(right - center_image))
-        if distance_to_far_box_edge < im_w / 10:
-            # when further off center than this, we do not trust this distance.
-            state["distance_y_t"] = triangle_similarity_distance(box, args.focal, args.carW)
-        d_bbb = bottom_bounding_box_distance(box, im_h, im_w,
-                camera_height=args.cameraH, 
-                camera_min_angle=args.cameraMinAngle,
-                camera_beta_max=args.cameraMaxHorizAngle,
-                carW = args.carW,
-                rel_horizon=args.horizon)
-        if d_bbb is not None:
-            state["distance_y_b"], state["distance_x_b"] = d_bbb
-            state["distance_x"] = np.mean([state[i] for i in state.keys() if "distance_x" in i])
-        state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
-        self.states[object_key].append(state)
-        S = calc_speed(self.states[object_key], verbose=test)
-        Sy = None
-        Sx = None
-        if S is not None:
-            Sy, Sx = S
-        if Sy is not None:
-            self.states[object_key][-1]["speed_y"] = Sy
-        if Sx is not None:
-            self.states[object_key][-1]["speed_x"] = Sx
+        self.update_distance(args, box, im_h, im_w, object_key, 
+                verbose=test)
+        self.update_speed(object_key, verbose=test)
+        
         if do_calibrate:
             calibrate(box, im_h, im_w)
         if test:
-            print("==================================")
-            print("Object:", object_key)
-            print("TRIANGLE")            
-            print("is centered?", distance_to_far_box_edge, im_w / 10)
-            print(distance_to_far_box_edge < im_w / 10)
-            print("dy:", triangle_similarity_distance(box, args.focal, args.carW))
-            print("Bounding Box 1")
-            bottom_bounding_box_distance(box, im_h, im_w,
-                camera_height=args.cameraH, 
-                camera_min_angle=args.cameraMinAngle, 
-                camera_beta_max=args.cameraMaxHorizAngle,
-                carW = args.carW,
-                rel_horizon=args.horizon, verbose=True)
-            print("Bounding Box 2")
-            bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
-                    args.cameraH, carW=args.carW, verbose=True)
-            print("Average distance y:", self.states[object_key][-1]["distance_y"])
-            print("Average distance x:", self.states[object_key][-1]["distance_x"])
-            print("==================================")
+            self.log_test_output(args, box, im_h, im_w, object_key)
         return self.states[object_key][-1]
 
 # TODO don't assume uniform frame rate - could record time
@@ -175,13 +188,12 @@ def bottom_bounding_box_distance(box, im_h, im_w,
 # to get the distance to the center of the car.
 def triangle_for_x(box, im_w, d_image, dy, verbose=False,
         beta_max = 90.0, carW=1.8):
-    (left, right, top, bot) = box
     center_image = im_w / 2
-    distance_to_far_box_edge = max(abs(left - center_image), abs(right - center_image))
+    distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     beta = (distance_to_far_box_edge / center_image) * (beta_max / 2)
     # divide beta_max by two because angle from center is half beta_max
     if verbose:
-        print("l, r, t, b:", left, right, top, bot)
+        print("left, right, top, bot:", box)
         print("distance far box edge:", distance_to_far_box_edge)
         print("image:", center_image, im_w)
         print("d:", d_image)
@@ -194,8 +206,7 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
     dy = (camera_height * camera_focal_len) / d_image
-    center_image = im_w / 2
-    distance_to_far_box_edge = max(abs(left - center_image), abs(right - center_image))
+    distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
     dx -= carW / 2
     if verbose:
@@ -219,3 +230,8 @@ def calibrate2(box, im_h, im_w, height=1.3462):
     alpha = np.rad2deg(np.arctan(min_d/height))
     print("Alpha for min_d: ", str(alpha))
     print("Min observable distance: ", str(min_d))
+
+def get_distance_far_box_edge(box, im_w):
+    (left, right, top, bot) = box
+    center_image = im_w / 2
+    return max(abs(left - center_image), abs(right - center_image))

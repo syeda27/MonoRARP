@@ -19,7 +19,7 @@ SAVE='true'
 SAVE='false'
 SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'${YOLO}'.avi'
 
-#TEST=6
+TEST=6
 SOURCE=${START_LOC}/videos/test_${TEST}.avi
 SAVE_PATH='/home/derek/object_detection_mono_video/test_'${TEST}'_marked.avi'
 
