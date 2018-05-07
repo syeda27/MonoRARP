@@ -51,15 +51,16 @@ class state:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
         state = dict()
         (left, right, top, bot) = box
-        center_bottom_box = left + (left - right) / 2
         center_image = im_w / 2
-        if abs(center_bottom_box - center_image) < im_w / 10:
+        distance_to_far_box_edge = max(abs(left - center_image), abs(right - center_image))
+        if distance_to_far_box_edge < im_w / 10:
             # when further off center than this, we do not trust this distance.
             state["distance_y_t"] = triangle_similarity_distance(box, args.focal, args.carW)
         d_bbb = bottom_bounding_box_distance(box, im_h, im_w,
                 camera_height=args.cameraH, 
                 camera_min_angle=args.cameraMinAngle,
                 camera_beta_max=args.cameraMaxHorizAngle,
+                carW = args.carW,
                 rel_horizon=args.horizon)
         if d_bbb is not None:
             state["distance_y_b"], state["distance_x_b"] = d_bbb
@@ -80,19 +81,20 @@ class state:
         if test:
             print("==================================")
             print("Object:", object_key)
-            print("TRIANGLE")
-            print("is centered?", abs(center_bottom_box - center_image), im_w / 10)
-            print(abs(center_bottom_box - center_image) < im_w / 10)
+            print("TRIANGLE")            
+            print("is centered?", distance_to_far_box_edge, im_w / 10)
+            print(distance_to_far_box_edge < im_w / 10)
             print("dy:", triangle_similarity_distance(box, args.focal, args.carW))
             print("Bounding Box 1")
             bottom_bounding_box_distance(box, im_h, im_w,
                 camera_height=args.cameraH, 
                 camera_min_angle=args.cameraMinAngle, 
                 camera_beta_max=args.cameraMaxHorizAngle,
+                carW = args.carW,
                 rel_horizon=args.horizon, verbose=True)
             print("Bounding Box 2")
             bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
-                    args.cameraH, verbose=True)
+                    args.cameraH, carW=args.carW, verbose=True)
             print("Average distance y:", self.states[object_key][-1]["distance_y"])
             print("Average distance x:", self.states[object_key][-1]["distance_x"])
             print("==================================")
@@ -153,7 +155,7 @@ return dy (along centerline) and dx (perpendicular to that, aka horizontal)
 '''
 def bottom_bounding_box_distance(box, im_h, im_w, 
         rel_horizon=0.5, camera_min_angle=25.0, camera_height=1.0,
-        camera_beta_max=90.0, verbose=False):
+        camera_beta_max=90.0, carW=1.8, verbose=False):
     horizon_p = rel_horizon * im_h
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
@@ -162,36 +164,40 @@ def bottom_bounding_box_distance(box, im_h, im_w,
         return None
     phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     dy = camera_height / np.tan(np.deg2rad(phi))
-    dx = triangle_for_x(box, im_w, d_image, dy, beta_max=camera_beta_max/2)
+    dx = triangle_for_x(box, im_w, d_image, dy, 
+            beta_max=camera_beta_max, carW=carW)
     if verbose:
         print("dy:", dy, "dx:", dx) 
     return (dy, dx)
 
 # to get dx
+# finds distance to furthest edge of the box, then subtract half a car width
+# to get the distance to the center of the car.
 def triangle_for_x(box, im_w, d_image, dy, verbose=False,
-        beta_max = 45.0):
+        beta_max = 90.0, carW=1.8):
     (left, right, top, bot) = box
-    center_bottom_box = left + ((left - right) / 2)
     center_image = im_w / 2
-    beta = (abs(center_image - center_bottom_box) / (im_w / 2)) * beta_max
+    distance_to_far_box_edge = max(abs(left - center_image), abs(right - center_image))
+    beta = (distance_to_far_box_edge / center_image) * (beta_max / 2)
+    # divide beta_max by two because angle from center is half beta_max
     if verbose:
         print("l, r, t, b:", left, right, top, bot)
-        print("box center_bottom:", center_bottom_box)
+        print("distance far box edge:", distance_to_far_box_edge)
         print("image:", center_image, im_w)
         print("d:", d_image)
-    dx = dy * np.tan(np.deg2rad(beta))
+    dx = dy * np.tan(np.deg2rad(beta)) - carW / 2
     return dx
 
 def bottom_bounding_box_distance2(box, im_h, im_w, 
-        camera_focal_len=1000, camera_height=1.0, verbose=False):
+        camera_focal_len=1000, camera_height=1.0, 
+        carW=1.8, verbose=False):
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
     dy = (camera_height * camera_focal_len) / d_image
-    
-    center_bottom_box = left + ((left - right) / 2)
     center_image = im_w / 2
-    dx_pixels = abs(center_bottom_box - center_image)
-    dx = (dy * dx_pixels) / camera_focal_len
+    distance_to_far_box_edge = max(abs(left - center_image), abs(right - center_image))
+    dx = (dy * distance_to_far_box_edge) / camera_focal_len
+    dx -= carW / 2
     if verbose:
         print("dy:", dy, "dx:", dx) 
     return (dy, dx)
