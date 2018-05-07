@@ -120,6 +120,11 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
             (left, right, top, bot) = b
+        if labels[i] != "car":
+            cv2.rectangle(imgcv,
+                        (int(left), int(top)), (int(right), int(bot)),
+                        (0,0,50), int(thick/3))
+            continue
         this_state = STATE.update_state((left, right, top, bot), 
                 im_height, im_width, args, object_key=i)
         text = ""
