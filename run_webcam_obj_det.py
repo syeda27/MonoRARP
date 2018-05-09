@@ -35,6 +35,8 @@ parser.add_argument("--tracker_refresh", type=int, default=25)
 parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--det_thresh", type=float, default=0.5)
 
+parser.add_argument("--accept_speed", type=str2bool, default="True")
+
 parser.add_argument("--cameraH", type=float, default=1.0)
 parser.add_argument("--cameraMinAngle", type=float, default=55.0) #degrees
 parser.add_argument("--cameraMaxHorizAngle", type=float, default=90.0) #degrees
@@ -250,6 +252,9 @@ def camera_fast(args):
         else:
             tracker = None
         labels = defaultdict(list) # i -> list of labels
+        
+        if args.accept_speed:
+            print("Press 's' to enter speed.")
         while camera.isOpened():
             elapsed += 1
             init_tracker = elapsed % args.tracker_refresh == 1
@@ -296,7 +301,15 @@ def camera_fast(args):
                 buffer_inp = list()
                 buffer_pre = list()
             choice = cv2.waitKey(1)
-            if choice == 27: break
+            if choice == 27: 
+                break
+            elif args.accept_speed and choice == ord('s'):
+                speed = input("Enter speed (mph): ")
+                try:
+                    STATE.set_ego_speed_mph(float(speed))
+                except ValueError:
+                    print("Please enter a float or integer.")
+
         end = time.time()
         print("Total time: ", end - start)
         print("Frames processed: ", elapsed)

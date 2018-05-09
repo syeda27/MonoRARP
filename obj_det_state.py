@@ -111,7 +111,8 @@ class state:
     # car width in meters
     # TODO smooth distance
     def update_state(self, box, im_h, im_w, args, object_key=1, 
-            test=True, do_calibrate=False):
+            test=False, do_calibrate=False):
+        return
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
