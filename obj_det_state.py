@@ -65,7 +65,7 @@ class state:
             state["distance_y_b"], state["distance_x_b"] = d_bbb
         state["distance_y_b2"], state["distance_x_b2"] = \
                 bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
-                    args.cameraH, carW=args.carW, verbose=True)
+                    args.cameraH, carW=args.carW)
         state["distance_x"] = np.mean([state[i] for i in state.keys() if "distance_x" in i])
         state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
         self.states[object_key].append(state)
@@ -112,7 +112,6 @@ class state:
     # TODO smooth distance
     def update_state(self, box, im_h, im_w, args, object_key=1, 
             test=False, do_calibrate=False):
-        return
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
@@ -157,6 +156,7 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
     if nx > 0:
         Sx = Dx / nx
     if verbose:
+        print("speed")
         print("dy:", Dy, "ny:", ny)
         print("dx:", Dx, "nx:", nx)
         print("Sy:", Sy, "Sx:", Sx)
@@ -193,7 +193,7 @@ def bottom_bounding_box_distance(box, im_h, im_w,
     dx = triangle_for_x(box, im_w, d_image, dy, 
             beta_max=camera_beta_max, carW=carW)
     if verbose:
-        print("dy:", dy, "dx:", dx) 
+        print("bottom obounding box, dy:", dy, "dx:", dx) 
     return (dy, dx)
 
 # to get dx
@@ -206,6 +206,7 @@ def triangle_for_x(box, im_w, d_image, dy, verbose=False,
     beta = (distance_to_far_box_edge / center_image) * (beta_max / 2)
     # divide beta_max by two because angle from center is half beta_max
     if verbose:
+        print("triangle for x")
         print("left, right, top, bot:", box)
         print("distance far box edge:", distance_to_far_box_edge)
         print("image:", center_image, im_w)
@@ -223,7 +224,7 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
     dx -= carW / 2
     if verbose:
-        print("dy:", dy, "dx:", dx) 
+        print("bot_box2: dy:", dy, "dx:", dx) 
     return (dy, dx)
 
 
