@@ -131,23 +131,30 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
         this_state = STATE.update_state((left, right, top, bot), 
                 im_height, im_width, args, object_key=i)
         text = ""
-        if "distance_x" in this_state:
-            text += "dx: {0:.2f}, ".format(this_state['distance_x'])
-        if "distance_y" in this_state:
-            text += "dy: {0:.2f}".format(this_state['distance_y'])
         text2 = ""
-        if 'speed_x' in this_state:
-            text2 += "sx: {0:.2f}, ".format(\
-                    this_state['speed_x']*fps)
-        if 'speed_y' in this_state:
-            text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
         object_label = "obj: " + str(i)
-        outline_text(imgcv, object_label, left_margin, top_margin+space*(3*i), 
-                im_height, black, color, thick)
-        outline_text(imgcv, text, left_margin, top_margin+space*(3*i+1), 
-                im_height, black, color, thick)
-        outline_text(imgcv, text2, left_margin, top_margin+space*(3*i+2),
-                im_height, black, color, thick)
+        if this_state is not None:
+            if "distance_x" in this_state:
+                text += "dx: {0:.2f}, ".format(this_state['distance_x'])
+            if "distance_y" in this_state:
+                text += "dy: {0:.2f}".format(this_state['distance_y'])
+            if 'speed_x' in this_state:
+                text2 += "sx: {0:.2f}, ".format(\
+                        this_state['speed_x']*fps)
+            if 'speed_y' in this_state:
+                text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
+            # state info in top left:
+            outline_text(imgcv, object_label, left_margin, 
+                    top_margin+space*(3*i), 
+                    im_height, black, color, thick)
+            outline_text(imgcv, text, left_margin, 
+                    top_margin+space*(3*i+1), 
+                    im_height, black, color, thick)
+            outline_text(imgcv, text2, left_margin, 
+                    top_margin+space*(3*i+2),
+                    im_height, black, color, thick)
+            
+        # object id on box:
         outline_text(imgcv, object_label, int(left), int(top), im_height, black, color, thick)
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
