@@ -122,7 +122,8 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
             (left, right, top, bot) = b
-        if labels[i] != "car":
+        aspect_ratio_off = check_aspect_ratio(b)
+        if labels[i] != "car" or aspect_ratio_off:
             cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         (0,0,50), int(thick/3))
@@ -325,5 +326,11 @@ def get_fps(start, frames):
         return 1
     elapsed_time = time.time() - start
     return frames / elapsed_time
+
+def check_aspect_ratio(box):
+    (left, right, top, bot) = box
+    width = right - left
+    height = bot - top
+    return width > 2 * height or height > 3 * width
 
 camera_fast(args)
