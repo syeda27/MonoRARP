@@ -64,6 +64,7 @@ assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
 ## FOR IMPORTING FILES FROM OBJECT_DETECTION_MONO_VIDEO_REPO ##
 sys.path.append(args.extra_import_path)
 import obj_det_state
+import risk_est
 
 #### FLAGS ####
 SAVE_VIDEO = args.save
@@ -159,6 +160,8 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
+    ttc = risk_est.calculate_ttc(STATE, step=0.01, H=10, col_tolerance=2.0)
+    print(ttc)
     return imgcv
 
 def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
