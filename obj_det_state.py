@@ -64,8 +64,9 @@ class state:
         if d_bbb is not None:
             state["distance_y_b"], state["distance_x_b"] = d_bbb
         state["distance_y_b2"], state["distance_x_b2"] = \
-                bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
-                    args.cameraH, carW=args.carW)
+                bottom_bounding_box_distance2(box, im_h, im_w, 
+                        camera_focal_len = args.focal,
+                        camera_height = args.cameraH, carW=args.carW)
         state["distance_x"] = np.mean([state[i] for i in state.keys() if "distance_x" in i])
         state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
         self.states[object_key].append(state)
@@ -170,6 +171,7 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
 def triangle_similarity_distance(box, F, W):
     (left, right, top, bot) = box
     object_width_pixels = right - left
+    if object_width_pixels == 0: return np.Inf
     return (W * F) / object_width_pixels
 
 '''
@@ -183,6 +185,7 @@ def bottom_bounding_box_distance(box, im_h, im_w,
         rel_horizon=0.5, camera_min_angle=25.0, camera_height=1.0,
         camera_beta_max=90.0, carW=1.8, verbose=False):
     horizon_p = rel_horizon * im_h
+    if horizon_p == 0: return (0, 0)
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
     if d_image > horizon_p:
@@ -219,6 +222,7 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
         carW=1.8, verbose=False):
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
+    if d_image == 0 or camera_focal_len == 0: return (0, 0)
     dy = (camera_height * camera_focal_len) / d_image
     distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len

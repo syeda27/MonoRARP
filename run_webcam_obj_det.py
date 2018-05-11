@@ -114,11 +114,11 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
     else: imgcv = im
     im_height, im_width, _ = imgcv.shape
     thick = int((im_height + im_width) // 300)
+    color = (0,50,255) # BGR
+    black = (0, 0 ,0)
     if len(labels) < len(boxes):
         labels.extend([""] * (len(boxes) - len(labels)))
     for i,b in enumerate(boxes):
-        color = (0,50,255) # BGR
-        black = (0, 0 ,0)
         if do_convert:
             (left, right, top, bot) = convert(im_height, im_width, b)
         else:
@@ -161,7 +161,10 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
     ttc = risk_est.calculate_ttc(STATE, step=0.01, H=10, col_tolerance=2.0)
-    print(ttc)
+    if ttc is not None:
+        outline_text(imgcv, "TTC: {0:.2f}".format(ttc), 
+                left_margin + 4 * space, im_height - space, im_height, 
+                black, color, thick)
     return imgcv
 
 def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
