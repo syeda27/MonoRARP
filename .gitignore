@@ -2,5 +2,6 @@
 videos/
 videos/*
 *.avi
+*.log
 
 __pycache__/*

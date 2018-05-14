@@ -196,7 +196,7 @@ def bottom_bounding_box_distance(box, im_h, im_w,
     dx = triangle_for_x(box, im_w, d_image, dy, 
             beta_max=camera_beta_max, carW=carW)
     if verbose:
-        print("bottom obounding box, dy:", dy, "dx:", dx) 
+        print("bottom bounding box, dy:", dy, "dx:", dx) 
     return (dy, dx)
 
 # to get dx
@@ -219,11 +219,13 @@ def triangle_for_x(box, im_w, d_image, dy, verbose=False,
 
 def bottom_bounding_box_distance2(box, im_h, im_w, 
         camera_focal_len=1000, camera_height=1.0, 
-        carW=1.8, verbose=False):
+        carW=1.8, verbose=False,
+        pixels_to_milimeters=0.285):
     (left, right, top, bot) = box
     d_image = im_h - bot # distance from bottom of image
     if d_image == 0 or camera_focal_len == 0: return (0, 0)
-    dy = (camera_height * camera_focal_len) / d_image
+    d = bot * pixels_to_milimeters
+    dy = (camera_height * camera_focal_len) / d
     distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
     dx -= carW / 2
