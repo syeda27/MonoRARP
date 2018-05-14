@@ -10,9 +10,9 @@ YOLO=false #comment to use yolo model
 START_LOC=$(pwd)
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
-SOURCE=${START_LOC}/videos/Untitled2.mov
+SOURCE=${START_LOC}/videos/test_2.avi
 
-SOURCE=0
+#SOURCE=0
 #SOURCE=1
 
 SAVE='true'

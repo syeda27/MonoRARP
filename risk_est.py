@@ -29,7 +29,8 @@ collision tolerance in meteres
 
 returns None if no collicion detected
 '''
-def calculate_ttc(state, step = 0.01, H = 10, col_tolerance = 2):
+def calculate_ttc(state, step = 0.01, H = 10, col_tolerance = 2,
+        verbose=True):
     t = 0
     while (t < H):
         t += step
@@ -46,7 +47,11 @@ def calculate_ttc(state, step = 0.01, H = 10, col_tolerance = 2):
 
             if (new_pos_x is not None and \
                     abs(new_pos_x - ego_pos_x) <= col_tolerance) \
-                    or (new_pos_y is not None and \
+                    and (new_pos_y is not None and \
                     abs(new_pos_y - ego_pos_y) <= col_tolerance):
+                if verbose:
+                    print(new_pos_x, ego_pos_x)
+                    print(new_pos_y, ego_pos_y)
+                    print("veh id", veh_id, "colliding in", t, "seconds")
                 return t
     return None
