@@ -64,7 +64,9 @@ assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
 ## FOR IMPORTING FILES FROM OBJECT_DETECTION_MONO_VIDEO_REPO ##
 sys.path.append(args.extra_import_path)
 import obj_det_state
+STATE = obj_det_state.state()
 import risk_est
+RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.2, col_x=2, col_y=2)
 
 #### FLAGS ####
 SAVE_VIDEO = args.save
@@ -84,7 +86,6 @@ if 'kitti' in PATH_TO_LABELS:
 else: #Coco?
     NUM_CLASSES = 90
 
-STATE = obj_det_state.state()
 ####
 
 
@@ -99,6 +100,7 @@ with detection_graph.as_default():
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
+
 
 # ymin, xmin, ymax, xmax  ===> left, right, top, bot
 def convert(im_height, im_width, b):
@@ -160,7 +162,8 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
-    ttc = risk_est.calculate_ttc(STATE, step=0.01, H=10, col_tolerance=2.0)
+    ttc = risk_est.calculate_ttc(STATE, step=0.01, H=100, col_tolerance=2.0)
+    risk = RISK_ESTIMATOR.get_risk(STATE, risk_type="online", n_sims=10, verbose=True)
     if ttc is not None:
         outline_text(imgcv, "TTC: {0:.2f}".format(ttc), 
                 left_margin + 4 * space, im_height - space, im_height, 

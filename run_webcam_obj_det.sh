@@ -10,7 +10,8 @@ YOLO=false #comment to use yolo model
 START_LOC=$(pwd)
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
-SOURCE=${START_LOC}/videos/test_2.avi
+SOURCE=${START_LOC}/videos/test_1.avi
+SOURCE=${START_LOC}/videos/Untitled2.mov
 
 #SOURCE=0
 #SOURCE=1
@@ -34,7 +35,7 @@ CAR_WIDTH=1.8               # meters
 CAMERA_HEIGHT=1.1           # meters
 MIN_CAMERA_ANGLE=54.5       # degrees
 MAX_CAMERA_ANGLE_HORIZ=90.0 # degrees, aka FOV
-RELATIVE_HORIZON=0.5       # between 0 and 1
+RELATIVE_HORIZON=0.4       # between 0 and 1
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
