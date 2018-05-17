@@ -43,7 +43,7 @@ class idm_model:
             v,   # own_speed
             s,   # bumper_to_bumber_fore_gap
             dV,  # relative speed (positive when approaching)
-            verbose=True):
+            verbose=False):
         if verbose:
             print(v, s, dV)
             print(self.s0, self.v0)

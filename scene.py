@@ -46,10 +46,18 @@ class scene:
             self.scene[vehid].rel_vx = self.scene[vehid].rel_vx + dvx*step
             self.scene[vehid].rel_vy = self.scene[vehid].rel_vy + dvy*step
 
+    '''
+    Runs N simulations using the IDM driver model
+    
+    returns paths (aka rollouts)
+    paths are a list of N path objects, (length N)
+    a path object is a list of a a dictionary of the vehicles in a scene
+        length (H / step)
+    '''
     def simulate(self, N=100, H=5, step = 0.2, verbose=False):
         paths = [] # list of N paths, which are snapshots of the scenes
         for i in range(N):
-            path = [] # TODO what is this
+            path = [] # a path is a list of scenes
             t = 0
             self.reset_scene(self.states, self.ego_speed, self.ego_accel)
             for vehid in self.scene.keys():
@@ -69,7 +77,7 @@ class scene:
         return paths
 
     def get_fore_vehicle(self, current_scene, object_id, lane_width=1,
-            verbose=True):
+            verbose=False):
         best = None
         closest_y = 1000
         me = current_scene[object_id]
@@ -78,7 +86,7 @@ class scene:
             them = current_scene[vehid]
             if abs(them.rel_x - me.rel_x) <= lane_width:
                 gap = them.rel_y - me.rel_y
-                if gap < closest_y and gap >= 0:
+                if gap < closest_y and gap > 0:
                     closest_y = gap
                     best = them
         if best is None:

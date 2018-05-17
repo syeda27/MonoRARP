@@ -46,6 +46,8 @@ class vehicle:
     def get_action(self, fore_vehicle, ego_vehicle):
         lateral_accel = 0 # TODO lateral
         gap_y = fore_vehicle.rel_y - self.rel_y
+        if gap_y <= 0:
+            return (0,0) # don't react
         assert gap_y > 0
         vy = self.rel_vy
         if self.veh_id is not "ego":

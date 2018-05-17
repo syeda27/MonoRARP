@@ -47,7 +47,7 @@ class risk_estimator:
                     ego_speed=(0,state.ego_speed), ego_accel=(0,0))
             rollouts = this_scene.simulate(n_sims, self.H, self.step, verbose)
             return calculate_risk(rollouts, self.col_tolerance_x, 
-                    self.col_tolerance_y)
+                    self.col_tolerance_y, verbose)
         return None
 
 
@@ -88,6 +88,32 @@ def calculate_ttc(state, H = 10, step = 0.1, col_tolerance_x=2,
                     and (new_pos_y is not None and \
                     abs(new_pos_y - ego_pos_y) <= col_tolerance_y):
                 if verbose:
+                    print("calculate_ttc")
+                    print(new_pos_x, ego_pos_x)
+                    print(new_pos_y, ego_pos_y)
+                    print("veh id", veh_id, "colliding in", t, "seconds")
+                return t
+    return None
+
+''' the same but with vehicles ''' 
+def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2, 
+        col_tolerance_y=2, verbose=True, col_tolerance=None):
+    if col_tolerance is not None:
+        col_tolerance_x = col_tolerance
+        col_tolerance_y = col_tolerance
+    t = 0
+    while (t < H):
+        t += step
+        ego_pos_x = 0 # for now, assume no lateral motion. 
+        ego_pos_y = veh_dict["ego"].rel_vy * t
+        for veh_id in veh_dict.keys():
+            if veh_id == "ego": continue
+            new_pos_x = veh_dict[veh_id].rel_x + veh_dict[veh_id].rel_vx
+            new_pos_y = veh_dict[veh_id].rel_y + veh_dict[veh_id].rel_vy
+            if abs(new_pos_x - ego_pos_x) <= col_tolerance_x \
+                and abs(new_pos_y - ego_pos_y) <= col_tolerance_y:
+                if verbose:
+                    print("calculate_ttc")
                     print(new_pos_x, ego_pos_x)
                     print(new_pos_y, ego_pos_y)
                     print("veh id", veh_id, "colliding in", t, "seconds")
@@ -98,8 +124,21 @@ def calculate_ttc(state, H = 10, step = 0.1, col_tolerance_x=2,
 '''
 Calculates automotive risk from a series of rollouts. 
 '''
-def calculate_risk(rollouts, tol_x, tol_y):
+def calculate_risk(rollouts, tol_x, tol_y, verbose=False):
     # TODO
     # count low ttc events
     # count collisions
-    return 0
+    risk = 0.0
+    lowest_ttc = 10000
+    for path in rollouts:
+        for curr_scene in path:
+            ttc = calculate_ttc_veh(curr_scene, 2, 0.2, tol_x, tol_y, verbose)
+            if ttc:
+                risk += (1/ttc)
+                if ttc < lowest_ttc:
+                    lowest_ttc = ttc
+    if verbose:
+        if risk > 0:
+            print("lowest ttc:", lowest_ttc)
+            print("risk:", risk)
+    return risk
