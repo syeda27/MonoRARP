@@ -225,6 +225,7 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
     d_image = im_h - bot # distance from bottom of image
     if d_image == 0 or camera_focal_len == 0: return (0, 0)
     d = bot * millimeters_per_pixel
+    d += 1e-10                      # so no division by 0
     dy = (camera_height * camera_focal_len) / d
     distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
