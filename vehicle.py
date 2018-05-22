@@ -28,12 +28,8 @@ class vehicle:
     def set_values(self, state_dict):         
         if "distance_x" in state_dict:
             self.rel_x = state_dict['distance_x']
-        else:
-            self.rel_x = 0
         if "distance_y" in state_dict:
             self.rel_y = state_dict['distance_y']
-        else:
-            self.rel_y = 0
         if "speed_x" in state_dict:
             self.rel_vx = state_dict['speed_x']
         if "speed_y" in state_dict:
@@ -43,15 +39,14 @@ class vehicle:
         if "accel_y" in state_dict:
             self.rel_ay = state_dict['accel_y']
 
-    def get_action(self, fore_vehicle, ego_vehicle):
+    # wrapper around both longitudinal and lateral accel
+    def get_action(self, fore_vehicle, ego_speed=(0,15)):
         lateral_accel = 0 # TODO lateral
         gap_y = fore_vehicle.rel_y - self.rel_y
         if gap_y <= 0:
             return (0,0) # don't react
         assert gap_y > 0
-        vy = self.rel_vy
-        if self.veh_id is not "ego":
-            vy += ego_vehicle.rel_vy
+        vy = self.rel_vy + ego_speed[1]
         longitudinal_accel = self.longitudinal_model.propagate(\
                 vy,                                 # own speed, absolute 
                 gap_y,                              # fore gap

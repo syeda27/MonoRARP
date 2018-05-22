@@ -12,31 +12,32 @@ risk = simulate(scene, 100, H=5)
 class scene:
     states = {}  # Passed in, actually state.states
     scene = {}  # current scene: dict of vehicle id to vehicle objects
-    ego_speed = (0,15)  # x, y
+    ego_speed = (0,15)  # x, y for the ego vehicle, everything in
+                        # a vehicle object is relative. this is not.
     ego_accel = (0,0)   # x, y
     means = {}      # mean of parameters for IDM 
     variances = {}  # variances of parameters for IDM
 
     def __init__(self, states, ego_speed=(15,0), ego_accel=(0,0)):
         self.states = states
-        self.ego_speed = ego_speed
-        self.ego_accel = ego_accel
         self.reset_scene(states, ego_speed, ego_accel)
 
     def clear_scene(self):
         self.scene = {}
+    
+    def set_ego(self, ego_speed=(0,15), ego_accel=(0,0)):
+        self.ego_speed = ego_speed
+        self.ego_accel = ego_accel
+        self.scene["ego"] = vehicle.vehicle("ego", dict()) # TODO params
+
 
     def reset_scene(self, states, ego_speed=(0,15), ego_accel=(0,0)):
         self.clear_scene()
+        self.set_ego(ego_speed, ego_accel)
         for object_key in states.keys():
             self.scene[object_key] = vehicle.vehicle(object_key,
                 states[object_key][-1])
-        self.scene["ego"] = vehicle.vehicle("ego",
-                {"speed_x": ego_speed[0], 
-                 "speed_y": ego_speed[1],
-                 "accel_x": ego_accel[0],
-                 "accel_y": ego_accel[1]})
-
+    
     def update_scene(self, actions, step=0.2):
         for vehid in actions.keys():
             dvx, dvy = actions[vehid]
@@ -70,7 +71,7 @@ class scene:
                 for vehid in self.scene.keys():
                     fore_veh = self.get_fore_vehicle(self.scene, vehid)
                     actions[vehid] = self.scene[vehid].get_action(fore_veh,\
-                            self.scene["ego"]) # dvxdt, dvydt
+                            self.ego_speed) # dvxdt, dvydt
                 self.update_scene(actions, step)
                 path.append(copy.copy(self.scene))
             paths.append(path)
@@ -98,4 +99,10 @@ class scene:
         if verbose:
             print("me: ", me.veh_id, "fore: ", best.veh_id)
         return best
+
+    def get_back_vehicle_left(self, veh_id):
+        return None
+
+    def get_back_vehicle_right(self, veh_id):
+        return None
 
