@@ -293,13 +293,16 @@ def camera_fast(args):
             buffer_pre.append(image_np)
 
             if elapsed % args.queue == 0:
-                net_out = sess.run(tensor_dict,
+                net_out = None
+                if tracker and init_tracker:
+                    net_out = sess.run(tensor_dict,
                                 feed_dict={image_tensor: buffer_pre})
                 for i in range(args.queue):
                     # Visualization of the results of a detection
                     do_convert = True
                     if tracker:
-                        boxes, init_tracker, do_convert, ok, labels[i] = handle_tracker(i, 
+                        boxes, init_tracker, do_convert, ok, labels[i] = \
+                                handle_tracker(i, 
                                 tracker, net_out, buffer_inp,
                                 im_height, im_width, init_tracker, 
                                 det_threshold, labels[i]) 
