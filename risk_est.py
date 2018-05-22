@@ -21,22 +21,15 @@ class risk_estimator:
     step = 0.1          # seconds to step by
     col_tolerance_x = 2 # tolerance to indicate a collision, laterally
     col_tolerance_y = 2 # tolerance to indicate a collision, longidtudinally
+    ttc_tolerance = 1.0 # if less than this, count as collision
 
-    def __init__(self, H=5, step=0.2, col_x = 2, col_y = 2):
+    def __init__(self, H=5, step=0.2, col_x = 2, col_y = 2,
+            ttc_tolerance = 1.0):
         self.H = H
         self.step = step
         self.col_tolerance_x = col_x
         self.col_tolerance_y = col_y
-
-    def set_h(self, H):
-        self.H = H
-
-    def set_step(self, step):
-        self.step = step
-
-    def set_col_tolerance(self, x, y):
-        self.col_tolerance_x = x
-        self.col_tolerance_y = y
+        self.ttc_tolerance = ttc_tolerance
 
     def get_risk(self, state, risk_type="ttc", n_sims=10, verbose=False):
         if risk_type.lower() == "ttc":
@@ -47,7 +40,7 @@ class risk_estimator:
                     ego_speed=(0,state.ego_speed), ego_accel=(0,0))
             rollouts = this_scene.simulate(n_sims, self.H, self.step, verbose)
             return calculate_risk(rollouts, self.col_tolerance_x, 
-                    self.col_tolerance_y, verbose)
+                    self.col_tolerance_y, self.ttc_tolerance, verbose)
         return None
 
 
@@ -104,39 +97,47 @@ def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2,
     t = 0
     while (t < H):
         t += step
-        ego_pos_x = 0 # for now, assume no lateral motion. 
-        ego_pos_y = veh_dict["ego"].rel_vy * t
-        for veh_id in veh_dict.keys():
-            if veh_id == "ego": continue
-            new_pos_x = veh_dict[veh_id].rel_x + veh_dict[veh_id].rel_vx
-            new_pos_y = veh_dict[veh_id].rel_y + veh_dict[veh_id].rel_vy
-            if abs(new_pos_x - ego_pos_x) <= col_tolerance_x \
-                and abs(new_pos_y - ego_pos_y) <= col_tolerance_y:
-                if verbose:
-                    print("calculate_ttc")
-                    print(new_pos_x, ego_pos_x)
-                    print(new_pos_y, ego_pos_y)
-                    print("veh id", veh_id, "colliding in", t, "seconds")
-                return t
+        collision, veh_id = check_collisions(veh_dict, t, 
+                col_tolerance_x, col_tolerance_y)
+        if collision:
+            if verbose:
+                print("calculate_ttc")
+                print("veh id", veh_id, "colliding in", t, "seconds")
+            return t
     return None
 
-
+def check_collisions(veh_dict, t, col_tol_x, col_tol_y):
+    ego_pos_x = 0 # for now, assume no lateral motion. 
+    ego_pos_y = veh_dict["ego"].rel_vy * t
+    for veh_id in veh_dict.keys():
+        if veh_id == "ego": continue
+        new_pos_x = veh_dict[veh_id].rel_x + veh_dict[veh_id].rel_vx*t
+        new_pos_y = veh_dict[veh_id].rel_y + veh_dict[veh_id].rel_vy*t
+        if abs(new_pos_x - ego_pos_x) <= col_tol_x \
+                and abs(new_pos_y - ego_pos_y) <= col_tol_y:
+            return True, veh_id
+    return False, "No collisions detected."
 '''
 Calculates automotive risk from a series of rollouts. 
 '''
-def calculate_risk(rollouts, tol_x, tol_y, verbose=False):
-    # TODO
-    # count low ttc events
-    # count collisions
+def calculate_risk(rollouts, tol_x, tol_y, tol_ttc, verbose=False):
     risk = 0.0
     lowest_ttc = 10000
     for path in rollouts:
+        rollout_risk = 0.0
         for curr_scene in path:
+            colliding, vehid = check_collisions(curr_scene, 0, tol_x, tol_y)
+            if colliding:
+                rollout_risk += 10
+                continue
             ttc = calculate_ttc_veh(curr_scene, 2, 0.2, tol_x, tol_y, verbose)
             if ttc:
-                risk += (1/ttc)
                 if ttc < lowest_ttc:
                     lowest_ttc = ttc
+                if ttc < tol_ttc:
+                    rollout_risk += 1
+        risk += rollout_risk / len(path)
+    risk = risk / len(rollouts)
     if verbose:
         if risk > 0:
             print("lowest ttc:", lowest_ttc)
