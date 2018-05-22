@@ -112,8 +112,9 @@ def convert(im_height, im_width, b):
 def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
         left_margin=12, top_margin=36, space=36):
     if type(im) is not np.ndarray:
-                imgcv = cv2.imread(im)
-    else: imgcv = im
+        imgcv = cv2.imread(im)
+    else: 
+        imgcv = im
     im_height, im_width, _ = imgcv.shape
     thick = int((im_height + im_width) // 300)
     color = (0,50,255) # BGR
@@ -242,6 +243,12 @@ def handle_tracker(i, tracker, net_out, buffer_inp,
     else:
         do_convert=False
         ok, boxes = tracker.update(buffer_inp[i])
+        '''
+        print("shape:", buffer_inp[i].shape)
+        print("val", buffer_inp[i])
+        print("len", len(buffer_inp), " ", i)
+        print(ok)
+        '''
     return boxes, init_tracker, do_convert, ok, labels
 
 def camera_fast(args):
@@ -257,7 +264,7 @@ def camera_fast(args):
         # Buffers to allow for batch demo
         buffer_inp = list()
         buffer_pre = list()
-        elapsed = int()
+        elapsed = 0
         start = time.time()
         fps = 1
 
@@ -279,7 +286,7 @@ def camera_fast(args):
             if tracker and init_tracker: 
                 #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
-                labels = defaultdict(list) # i -> list of labels
+                labels = list()
                 STATE.clear()
 
             _, image_np = camera.read()
@@ -301,20 +308,22 @@ def camera_fast(args):
                     # Visualization of the results of a detection
                     do_convert = True
                     if tracker:
-                        boxes, init_tracker, do_convert, ok, labels[i] = \
+                        boxes, init_tracker, do_convert, ok, labels = \
                                 handle_tracker(i, 
                                 tracker, net_out, buffer_inp,
                                 im_height, im_width, init_tracker, 
-                                det_threshold, labels[i]) 
+                                det_threshold, labels)
+                        if ok is False: # lost tracking
+                            init_tracker = True
                     else:
                         boxes = net_out['detection_boxes'][i][np.where(\
                                 net_out['detection_scores'][i] >= det_threshold)]
-                        labels[i] = [category_index[key]['name'] for key in \
+                        labels = [category_index[key]['name'] for key in \
                                 net_out['detection_classes'][i][np.where(\
                                     net_out['detection_scores'][i] >= det_threshold)]
                                 ]
                     img = display(args, buffer_inp[i], boxes, do_convert, 
-                            labels[i], fps=fps)
+                            labels, fps=fps)
                     if args.save:
                         videoWriter.write(img)
                     cv2.imshow('', img)
@@ -350,6 +359,6 @@ def check_aspect_ratio(box):
     (left, right, top, bot) = box
     width = right - left
     height = bot - top
-    return width > 2 * height or height > 3 * width
+    return width > 3 * height or height > 2 * width
 
 camera_fast(args)
