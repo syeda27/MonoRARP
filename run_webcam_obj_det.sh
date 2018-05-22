@@ -18,17 +18,20 @@ SOURCE=${START_LOC}/videos/Untitled2.mov
 
 SAVE='true'
 SAVE='false'
-SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'${YOLO}'.avi'
+SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'${YOLO}'.mp4'
 
-TEST=6
-#SOURCE=${START_LOC}/videos/test_${TEST}.avi
-SAVE_PATH='/home/derek/object_detection_mono_video/test_'${TEST}'_marked.avi'
+
+# TODO THIS IS WHERE I CHANGE THINGS FOR GETTING RAW VIDEO
+RUN=1
+SOURCE='/scratch/derek/video_captures/FullFOVandHD/video'${RUN}'.mov'
+SAVE_PATH='/scratch/derek/video_captures/FullFOVandHD/video'${RUN}'_marked.mp4'
+
 
 QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=15
-DET_THRESH=0.5
-ACCEPT_SPEED='true' # enter ego vehicle speed (currently mph)
+DET_THRESH=0.25       # above 1 means nothing will get marked.
+ACCEPT_SPEED='false' # enter ego vehicle speed (currently mph)
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
