@@ -47,23 +47,23 @@ class mobil_model:
 
     def incentive_criterion(self, this_vehicle, back_vehicle, fore_vehicle,
             back_vehicles_fore_vehicle, ego_vy = 15):
-        back_accel_if_change = get_accel(this_vehicle, back_vehicle, 
+        back_accel_if_change = get_accel_y(this_vehicle, back_vehicle, 
                 ego_vy, this_vehicle.longitudinal_model)
-        back_accel_no_change = get_accel(back_vehicles_fore_vehicle,
+        back_accel_no_change = get_accel_y(back_vehicles_fore_vehicle,
                 back_vehicle, ego_vy, this_vehicle.longitudinal_model)
 
-        my_accel_if_change = get_accel(back_vehicles_fore_vehicle,
+        my_accel_if_change = get_accel_y(back_vehicles_fore_vehicle,
                 this_vehicle, ego_vy, this_vehicle.longditudinal_model)
-        my_accel_no_change - get_accel(fore_vehicle, this_vehicle, 
+        my_accel_no_change - get_accel_y(fore_vehicle, this_vehicle, 
                 ego_vy, this_vehicle.longitudinal_model)
         
         return (my_accel_if_change - my_accel_no_change > self.p * (back_accel_no_change - back_accel_if_change) + self.a_thr)
 
 '''
-wrapper around IDM, gets accel for back_vehicle
+wrapper around IDM, gets longitudinal accel for back_vehicle
 idm_model allows choice between using back or fore vehicle driver model
 '''
-def get_accel(fore_veh, back_veh, ego_vy, idm_model):
+def get_accel_y(fore_veh, back_veh, ego_vy, idm_model):
     v = back_veh.rel_vy + ego_vy
     gap = fore_veh.rel_y - back_veh.rel_y
     dV = back_veh.rel_vy - fore_veh.rel_vy # positive -> back veh approachin
