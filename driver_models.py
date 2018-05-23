@@ -3,7 +3,7 @@
 # http://traffic-simulation.de/MOBIL.ht
 import numpy as np
 
-# TODO MOBIL for latitudinal acceleration
+# MOBIL for latitudinal acceleration
 class mobil_model:
     p = 0.2
     b_safe = 3
@@ -79,12 +79,12 @@ class idm_model:
     s0 = 0
     a = 0
     b = 0
-    delta = 1 # TODO what is this
+    delta = 4 # Acceleration exponent, according to wikipedia
 
 
     # set initial values, defaults given
     def __init__(self, 
-            des_v = 120,    # km/h
+            des_v = 30,     # m/s
             hdwy_t = 1.5,   # s
             min_gap = 2.0,  # m
             accel = 0.3,    # m/s^2
@@ -100,6 +100,20 @@ class idm_model:
         keys are parameter names
     '''
     def randomize_parameters(self, means, variances):
+        for key in means.keys():
+            if key not in variances:
+                variances[key] = 0
+            if key is "des_v":
+                self.v0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "hdwy_t":
+                self.T = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "min_gap":
+                self.s0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "accel":
+                self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "deccel":
+                self.b = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+
         return
 
     # calculate the acceleration given current state info
