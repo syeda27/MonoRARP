@@ -3,5 +3,13 @@ videos/
 videos/*
 *.avi
 *.log
+calibrations
+calibrations/
+calibrations/*
+*.jpg
+*.mov
+*.mp4
+*.avi
+*.png
 
 __pycache__/*
