@@ -18,7 +18,7 @@ SOURCE=${START_LOC}/videos/test_1.avi
 
 SAVE='true'
 #SAVE='false'
-SAVE_PATH='/home/derek/object_detection_mono_video/video_yolo_'${YOLO}'.mp4'
+SAVE_PATH='/home/derek/driver_risk_estimation_mono_video/video_yolo_'${YOLO}'.mp4'
 
 
 # TODO THIS IS WHERE I CHANGE THINGS FOR GETTING RAW VIDEO
@@ -56,7 +56,7 @@ if ($YOLO); then
 else
     cd /home/derek/env_tf_models_research/object_detection
 
-    python $(echo $START_LOC)/run_webcam_obj_det.py \
+    python $(echo $START_LOC)/run_risk_estimation.py \
         --source $SOURCE \
         --save $SAVE --save_path $SAVE_PATH \
         --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
