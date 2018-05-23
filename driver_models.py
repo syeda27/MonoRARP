@@ -1,14 +1,14 @@
 # quick first pass at implementing IDM
 # http://traffic-simulation.de/IDM.html
-# http://traffic-simulation.de/MOBIL.ht
+# http://traffic-simulation.de/MOBIL.html
 import numpy as np
 
 # MOBIL for latitudinal acceleration
 class mobil_model:
-    p = 0.2
-    b_safe = 3
-    a_thr = 0.2
-    delta_b = 0
+    p = 0.2             # politeness
+    b_safe = 3          # negative safe brake accel
+    a_thr = 0.2         # acceleration threshold, below IDM.a
+    delta_b = 0         # bias towards right lane
 
     def __init__(self, p=0.2, b_safe=3, a_thr=0.2, delta_b=0):
         self.p = p
@@ -30,13 +30,18 @@ class mobil_model:
     backs_fore_veh is the vehicle that is currently in front of
         the back_vehicle
     ego_vy is the absolute longitudinal speed that everyting is relative to.
+
+    Returns a lateral acceleration that would have this_vehicle move to 
+        the lateral position of back_vehicle in 1 time step
     '''
-    def main_or_something(self, this_vehicle, fore_vehicle, back_vehicle,
-            backs_fore_veh, ego_vy=15):
-        should_change = self.safety_criterion(this_vehicle, back_vehicle, 
-                ego_vy) and \
-                self.incentive_criterion(this_vehicle, back_vehicle, 
+    def propagate(self, this_vehicle, fore_vehicle, back_vehicle,
+            backs_fore_veh, ego_vy=15, step=0.2):
+        lane_change = self.safety_criterion(this_vehicle, back_vehicle, \
+                ego_vy) and self.incentive_criterion(this_vehicle, back_vehicle, 
                       fore_vehicle, backs_fore_veh, ego_vy)
+        if not lane_change: 
+            return 0
+        return (back_vehicle.rel_x - this_vehicle.rel_x) / step
 
     def safety_criterion(self, this_vehicle, back_vehicle, ego_vy=15):
         v = back_vehicle.rel_vy + ego_vy
@@ -53,8 +58,8 @@ class mobil_model:
                 back_vehicle, ego_vy, this_vehicle.longitudinal_model)
 
         my_accel_if_change = get_accel_y(back_vehicles_fore_vehicle,
-                this_vehicle, ego_vy, this_vehicle.longditudinal_model)
-        my_accel_no_change - get_accel_y(fore_vehicle, this_vehicle, 
+                this_vehicle, ego_vy, this_vehicle.longitudinal_model)
+        my_accel_no_change = get_accel_y(fore_vehicle, this_vehicle, 
                 ego_vy, this_vehicle.longitudinal_model)
         
         return (my_accel_if_change - my_accel_no_change > self.p * (back_accel_no_change - back_accel_if_change) + self.a_thr)
@@ -67,7 +72,7 @@ def get_accel_y(fore_veh, back_veh, ego_vy, idm_model):
     v = back_veh.rel_vy + ego_vy
     gap = fore_veh.rel_y - back_veh.rel_y
     dV = back_veh.rel_vy - fore_veh.rel_vy # positive -> back veh approachin
-    return idm_model.propagate(v, gap, dv)
+    return idm_model.propagate(v, gap, dV)
 
 '''
 idm model does longitudinal acceleration
@@ -125,6 +130,10 @@ class idm_model:
         if verbose:
             print(v, s, dV)
             print(self.s0, self.v0)
+        if s <= 1e-2:
+            if verbose:
+                print("gap is:", s)
+            return -self.b
         s_star = self.s0+max(0,v*self.T + (v*dV)/(2*np.sqrt(self.a*self.b)))
         dv_dt = self.a * (1 \
                 - np.power(v/self.v0, self.delta) \

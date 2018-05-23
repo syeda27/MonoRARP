@@ -15,6 +15,9 @@ class scene:
     ego_speed = (0,15)  # x, y for the ego vehicle, everything in
                         # a vehicle object is relative. this is not.
     ego_accel = (0,0)   # x, y
+
+    lane_width = 3.7    # meters
+
     means = {}      # mean of parameters for IDM 
     variances = {}  # variances of parameters for IDM
 
@@ -43,7 +46,8 @@ class scene:
             dvx, dvy = actions[vehid]
             self.scene[vehid].rel_x += self.scene[vehid].rel_vx*step + 0.5*dvx*(step**2)
             self.scene[vehid].rel_y += self.scene[vehid].rel_vy*step + 0.5*dvy*(step**2)
-            
+           
+            self.scene[vehid].lateral_distance = dvx*step
             self.scene[vehid].rel_vx = self.scene[vehid].rel_vx + dvx*step
             self.scene[vehid].rel_vy = self.scene[vehid].rel_vy + dvy*step
 
@@ -69,23 +73,20 @@ class scene:
                 t += step
                 actions = {}
                 for vehid in self.scene.keys():
-                    fore_veh = self.get_fore_vehicle(self.scene, vehid)
-                    actions[vehid] = self.scene[vehid].get_action(fore_veh,\
-                            self.ego_speed) # dvxdt, dvydt
+                    actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
                 self.update_scene(actions, step)
                 path.append(copy.copy(self.scene))
             paths.append(path)
         return paths
 
-    def get_fore_vehicle(self, current_scene, object_id, lane_width=1,
-            verbose=False):
+    # me is a vehicle object
+    def get_fore_vehicle(self, current_scene, me, verbose=False):
         best = None
         closest_y = 1000
-        me = current_scene[object_id]
         for vehid in current_scene.keys():
-            if vehid == object_id: continue
+            if vehid == me.veh_id: continue
             them = current_scene[vehid]
-            if abs(them.rel_x - me.rel_x) <= lane_width:
+            if abs(them.rel_x - me.rel_x) <= (self.lane_width / 2):
                 gap = them.rel_y - me.rel_y
                 if gap < closest_y and gap > 0:
                     closest_y = gap
@@ -93,16 +94,32 @@ class scene:
         if best is None:
             best = vehicle.vehicle("fake_veh", 
                 {"speed_x": me.rel_vx,
-                 "speed_y": me.rel_vy, # same speed
-                 "distance_y": 1000,   # largest gap
-                 "distance_x": 10})    # unused
+                 "speed_y": me.rel_vy,          # same speed
+                 "distance_y": me.rel_y + 1000, # largest gap
+                 "distance_x": me.rel_x + 10})  # unused
         if verbose:
             print("me: ", me.veh_id, "fore: ", best.veh_id)
         return best
 
-    def get_back_vehicle_left(self, veh_id):
-        return None
+    # me is a vehicle object
+    def get_back_vehicle_left(self, current_scene, me, verbose=False): 
+        best = None
+        if best is None:
+            best = vehicle.vehicle("fake_veh", 
+                {"speed_x": me.rel_vx,
+                 "speed_y": me.rel_vy, # same speed
+                 "distance_y": 1000,   # largest gap
+                 "distance_x": 10})    # unused
+        return best
 
-    def get_back_vehicle_right(self, veh_id):
-        return None
+    # me is a vehicle object
+    def get_back_vehicle_right(self, current_scene, me, verbose=False): 
+        best = None
+        if best is None:
+            best = vehicle.vehicle("fake_veh", 
+                {"speed_x": me.rel_vx,
+                 "speed_y": me.rel_vy, # same speed
+                 "distance_y": 1000,   # largest gap
+                 "distance_x": 10})    # unused
+        return best
 
