@@ -101,25 +101,40 @@ class scene:
             print("me: ", me.veh_id, "fore: ", best.veh_id)
         return best
 
-    # me is a vehicle object
-    def get_back_vehicle_left(self, current_scene, me, verbose=False): 
+    # vehicle.rel_x is negative if left
+    def get_back_vehicle(self, current_scene, me, left=True, verbose=False):
         best = None
+        closest_y = 1000
+        for vehid in current_scene.keys():
+            if vehid == me.veh_id: continue
+            them = current_scene[vehid]
+            dx = them.rel_x - me.rel_x
+            if left:
+                if dx > 0: continue
+            else:
+                if dx < 0: continue
+            dx = abs(dx)
+            if dx > self.lane_width * 0.5 and dx < self.lane_width * 1.5:
+                gap = me.rel_y - them.rel_y # positive when me is in front
+                if gap < closest_y and gap > 0:
+                    closest_y = gap
+                    best = them
         if best is None:
+            lane_x = self.lane_width
+            if left:
+                lane_x = -lane_x
             best = vehicle.vehicle("fake_veh", 
                 {"speed_x": me.rel_vx,
-                 "speed_y": me.rel_vy, # same speed
-                 "distance_y": 1000,   # largest gap
-                 "distance_x": 10})    # unused
+                 "speed_y": me.rel_vy,              # same speed
+                 "distance_y": me.rel_y - 1000,     # largest gap
+                 "distance_x": me.rel_x - lane_x})  # in other lane
         return best
 
+    # TODO check negation is correct
     # me is a vehicle object
+    def get_back_vehicle_left(self, current_scene, me, verbose=False): 
+        return self.get_back_vehicle(current_scene, me, left=True, verbose=verbose)
     def get_back_vehicle_right(self, current_scene, me, verbose=False): 
-        best = None
-        if best is None:
-            best = vehicle.vehicle("fake_veh", 
-                {"speed_x": me.rel_vx,
-                 "speed_y": me.rel_vy, # same speed
-                 "distance_y": 1000,   # largest gap
-                 "distance_x": 10})    # unused
-        return best
+        return self.get_back_vehicle(current_scene, me, left=False, verbose=verbose)
+
 

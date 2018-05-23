@@ -67,7 +67,8 @@ class state:
                 bottom_bounding_box_distance2(box, im_h, im_w, 
                         camera_focal_len = args.focal,
                         camera_height = args.cameraH, carW=args.carW)
-        state["distance_x"] = np.mean([state[i] for i in state.keys() if "distance_x" in i])
+        state["distance_x"] = left_of_center(box, im_w) * \
+                np.mean([state[i] for i in state.keys() if "distance_x" in i])
         state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
         self.states[object_key].append(state)
         
@@ -230,6 +231,7 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
     distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
     dx -= carW / 2
+    
     if verbose:
         print("bot_box2: dy:", dy, "dx:", dx) 
     return (dy, dx)
@@ -256,6 +258,14 @@ def get_distance_far_box_edge(box, im_w):
     (left, right, top, bot) = box
     center_image = im_w / 2
     return max(abs(left - center_image), abs(right - center_image))
+
+# return -1 if left of center, 1 otherwise.
+def left_of_center(box, im_w):
+    (left, right, top, bot) = box
+    center_image = im_w / 2
+    if abs(left - center_image) > abs(right - center_image):
+        return -1
+    return 1
 
 # TODO probably just make a utils file
 def mph_to_mps(mph):
