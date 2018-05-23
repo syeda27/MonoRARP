@@ -24,6 +24,28 @@ class scene:
     def __init__(self, states, ego_speed=(15,0), ego_accel=(0,0)):
         self.states = states
         self.reset_scene(states, ego_speed, ego_accel)
+        self.means = {
+                "des_v": 30,    # first IDM
+                "hdwy_t": 1.5,
+                "min_gap": 2.0,
+                "accel": 0.5,
+                "deccel": 3.0,  # below are mobil
+                "p": 0.2,
+                "b_safe": 3.0,
+                "a_thr": 0.2,
+                "delta_b": 0
+                }
+        self.variances = {
+                "des_v": 5,    # first IDM
+                "hdwy_t": 0.25,
+                "min_gap": 0.25,
+                "accel": 0.2,
+                "deccel": 0.1,  # below are mobil
+                "p": 0.1,
+                "b_safe": 0.2,
+                "a_thr": 0.1,
+                "delta_b": 0
+                }
 
     def clear_scene(self):
         self.scene = {}
@@ -67,6 +89,8 @@ class scene:
             self.reset_scene(self.states, self.ego_speed, self.ego_accel)
             for vehid in self.scene.keys():
                 self.scene[vehid].longitudinal_model.randomize_parameters(
+                        self.means, self.variances)
+                self.scene[vehid].lateral_model.randomize_parameters(
                         self.means, self.variances)
             path.append(copy.copy(self.scene))
             while t < H:

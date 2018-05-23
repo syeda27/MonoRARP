@@ -30,8 +30,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--queue", type=int, default=1)
 parser.add_argument("--focal", type=int, default=1000)
 parser.add_argument("--carW", type=float, default=1.8)
+
 parser.add_argument("--tracker_refresh", type=int, default=25)
+parser.add_argument("--calc_risk_n", type=int, default=2)
 # 1 to update every frame
+
 parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--det_thresh", type=float, default=0.5)
 
@@ -66,7 +69,7 @@ sys.path.append(args.extra_import_path)
 import obj_det_state
 STATE = obj_det_state.state()
 import risk_est
-RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.2, col_x=2, col_y=2)
+RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
 
 #### FLAGS ####
 SAVE_VIDEO = args.save
@@ -110,7 +113,8 @@ def convert(im_height, im_width, b):
     return (left, right, top, bot)
 
 def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
-        left_margin=12, top_margin=36, space=36):
+        left_margin=12, top_margin=36, space=36,
+        calculate_risk=True):
     if type(im) is not np.ndarray:
         imgcv = cv2.imread(im)
     else: 
@@ -163,11 +167,13 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
-    ttc = risk_est.calculate_ttc(STATE, step=0.01, H=100, col_tolerance=2.0)
-    risk = RISK_ESTIMATOR.get_risk(STATE, risk_type="online", n_sims=10, verbose=True)
-    if ttc is not None:
-        outline_text(imgcv, "TTC: {0:.2f}".format(ttc), 
-                left_margin + 4 * space, im_height - space, im_height, 
+    if calculate_risk:
+        risk = RISK_ESTIMATOR.get_risk(STATE, risk_type="online", n_sims=50, verbose=False)
+    else:
+        risk = RISK_ESTIMATOR.prev_risk
+    outline_text(imgcv, "risk: {0:.2f}".format(risk), 
+                int(im_width / 2 - space), 
+                im_height - space, im_height, 
                 black, color, thick)
     return imgcv
 
@@ -323,7 +329,8 @@ def camera_fast(args):
                                     net_out['detection_scores'][i] >= det_threshold)]
                                 ]
                     img = display(args, buffer_inp[i], boxes, do_convert, 
-                            labels, fps=fps)
+                            labels, fps=fps, 
+                            calculate_risk = elapsed % args.calc_risk_n==1)
                     if args.save:
                         videoWriter.write(img)
                     cv2.imshow('', img)

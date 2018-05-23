@@ -22,6 +22,7 @@ class risk_estimator:
     col_tolerance_x = 2 # tolerance to indicate a collision, laterally
     col_tolerance_y = 2 # tolerance to indicate a collision, longidtudinally
     ttc_tolerance = 1.0 # if less than this, count as collision
+    prev_risk = 0       # TODO make list and smooth over time
 
     def __init__(self, H=5, step=0.2, col_x = 2, col_y = 2,
             ttc_tolerance = 1.0):
@@ -30,18 +31,20 @@ class risk_estimator:
         self.col_tolerance_x = col_x
         self.col_tolerance_y = col_y
         self.ttc_tolerance = ttc_tolerance
+        self.prev_risk = 0
 
     def get_risk(self, state, risk_type="ttc", n_sims=10, verbose=False):
         if risk_type.lower() == "ttc":
-            return calculate_ttc(state, self.H, self.step,
+            risk = calculate_ttc(state, self.H, self.step,
                     self.col_tolerance_x, self.col_tolerance_y, verbose)
         if risk_type.lower() == "online":
             this_scene = scene.scene(state.states, 
                     ego_speed=(0,state.ego_speed), ego_accel=(0,0))
             rollouts = this_scene.simulate(n_sims, self.H, self.step, verbose)
-            return calculate_risk(rollouts, self.col_tolerance_x, 
+            risk = calculate_risk(rollouts, self.col_tolerance_x, 
                     self.col_tolerance_y, self.ttc_tolerance, verbose)
-        return None
+        self.prev_risk = (risk + self.prev_risk) / 2
+        return self.prev_risk
 
 
 '''

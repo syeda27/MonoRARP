@@ -63,6 +63,24 @@ class mobil_model:
                 ego_vy, this_vehicle.longitudinal_model)
         
         return (my_accel_if_change - my_accel_no_change > self.p * (back_accel_no_change - back_accel_if_change) + self.a_thr)
+    
+    '''
+    pass in dictionary of means and variances:
+        keys are parameter names
+    '''
+    def randomize_parameters(self, means, variances):
+        for key in means.keys():
+            if key not in variances:
+                variances[key] = 0
+            if key is "p":
+                self.p = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "b_safe":
+                self.T = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "a_thr":
+                self.s0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+            if key is "delta_b":
+                self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+        return
 
 '''
 wrapper around IDM, gets longitudinal accel for back_vehicle
@@ -118,7 +136,6 @@ class idm_model:
                 self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
             if key is "deccel":
                 self.b = means[key] + np.random.normal(0, np.sqrt(variances[key]))
-
         return
 
     # calculate the acceleration given current state info
