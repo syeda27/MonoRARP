@@ -39,7 +39,7 @@ class risk_estimator:
                     self.col_tolerance_x, self.col_tolerance_y, verbose)
         if risk_type.lower() == "online":
             this_scene = scene.scene(state.states, 
-                    ego_speed=(0,state.ego_speed), ego_accel=(0,0))
+                    ego_speed=(0,state.get_ego_speed()), ego_accel=(0,0))
             rollouts = this_scene.simulate(n_sims, self.H, self.step, verbose)
             risk = calculate_risk(rollouts, self.col_tolerance_x, 
                     self.col_tolerance_y, self.ttc_tolerance, verbose)

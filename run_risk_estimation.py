@@ -68,6 +68,7 @@ assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
 sys.path.append(args.extra_import_path)
 import obj_det_state
 STATE = obj_det_state.state()
+STATE.set_ego_speed_mph(35)
 import risk_est
 RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
 
@@ -174,6 +175,10 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
     outline_text(imgcv, "risk: {0:.2f}".format(risk), 
                 int(im_width / 2 - space), 
                 im_height - space, im_height, 
+                black, color, thick)
+    outline_text(imgcv, "ego speed: {0:.2f} mph".format(STATE.get_ego_speed_mph()), 
+                int(im_width / 2 - space), 
+                im_height - space - space, im_height, 
                 black, color, thick)
     return imgcv
 

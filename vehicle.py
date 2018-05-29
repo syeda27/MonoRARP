@@ -62,7 +62,7 @@ class vehicle:
                 back_vehicle_right, backs_fore_vehicle_right, 
                 scene.ego_speed[1], step)
         if change_lanes > 0:
-            return change_lanes 
+            return change_lanes
         
         # check move left
         back_vehicle_left = scene.get_back_vehicle_left(\

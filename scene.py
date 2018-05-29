@@ -92,14 +92,16 @@ class scene:
                         self.means, self.variances)
                 self.scene[vehid].lateral_model.randomize_parameters(
                         self.means, self.variances)
-            path.append(copy.copy(self.scene))
+            path.append(copy.deepcopy(self.scene))
             while t < H:
                 t += step
                 actions = {}
                 for vehid in self.scene.keys():
                     actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
+                    if verbose:
+                        print("action for", vehid, ":", actions[vehid])
                 self.update_scene(actions, step)
-                path.append(copy.copy(self.scene))
+                path.append(copy.deepcopy(self.scene))
             paths.append(path)
         return paths
 

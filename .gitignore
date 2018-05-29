@@ -12,4 +12,5 @@ calibrations/*
 *.avi
 *.png
 
+tests/plots
 __pycache__/*

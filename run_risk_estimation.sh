@@ -31,7 +31,7 @@ QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=5
 DET_THRESH=0.01      # above 1 means nothing will get marked.
-ACCEPT_SPEED='false' # enter ego vehicle speed (currently mph)
+ACCEPT_SPEED='true' # enter ego vehicle speed (currently mph)
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters

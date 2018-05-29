@@ -1,3 +1,5 @@
+# not really sure the best way to test besides just visualizing some 
+# simulations and seeing if they make sense.
 
 import numpy as np
 import sys
@@ -5,10 +7,9 @@ import sys
 sys.path.append("..")
 import obj_det_state
 import risk_est
+import scene
 
 STATE = obj_det_state.state()
-
-assert risk_est.calculate_ttc(STATE) is None
 
 # for argparsing
 def str2bool(v):
@@ -44,5 +45,29 @@ box = (left, right, top, bot)
 STATE.update_state(box, im_h, im_w, args, test=True, object_key=1)
 
 STATE.set_ego_speed(25)
+this_scene = scene.scene(STATE.states, ego_speed=(0,STATE.get_ego_speed()), ego_accel=(0,0))
+rollouts = this_scene.simulate(1,   # n_sims
+                               50, # H
+                               0.1, # step
+                               False)# verbose
+from matplotlib import pyplot as plt
 
-print(risk_est.calculate_ttc(STATE))
+for path in rollouts:
+    t = 0
+    for curr_scene in path:
+        t += 0.1
+        for veh_id in curr_scene.keys():
+            new_pos_x = curr_scene[veh_id].rel_x
+            new_pos_y = curr_scene[veh_id].rel_y 
+            if veh_id == "ego":
+                plt.plot(new_pos_x, new_pos_y, 'go', label=veh_id)
+            else:
+                plt.plot(new_pos_x, new_pos_y, 'bo', label=veh_id)
+            print(veh_id, new_pos_x, new_pos_y)
+        plt.legend()
+        plt.title("{0:.2f}".format(t))
+        plt.ylim(-100,100)
+        plt.xlim(-100,100)
+        plt.savefig("tests/plots/T: {0:.2f}.png".format(t))
+        plt.close()
+

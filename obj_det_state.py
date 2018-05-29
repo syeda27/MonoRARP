@@ -16,9 +16,7 @@ the closest bounding box at query time.
 We store a maximum amount of information at any given time.
 '''
 class state:
-    states = defaultdict(list)
     MAX_HISTORY = 100
-    ego_speed = 0
 
     '''
     states is the main component here.
@@ -49,8 +47,7 @@ class state:
     def set_ego_speed_mph(self, speed_mph):
         self.ego_speed = mph_to_mps(speed_mph)
 
-    def update_distance(self, args, box, im_h, im_w, object_key,
-            verbose=False):
+    def update_distance(self, args, box, im_h, im_w, object_key):
         state = dict()
         if get_distance_far_box_edge(box, im_w) < im_w / 10:
             # when further off center than this, we do not trust this distance.
@@ -72,8 +69,8 @@ class state:
         state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
         self.states[object_key].append(state)
         
-    def update_speed(self, object_key, verbose=False):
-        S = calc_speed(self.states[object_key], verbose)
+    def update_speed(self, object_key):
+        S = calc_speed(self.states[object_key])
         Sy = None
         Sx = None
         if S is not None:
@@ -103,6 +100,7 @@ class state:
                 args.cameraH, carW=args.carW, verbose=True)
         print("Average distance y:", self.states[object_key][-1]["distance_y"])
         print("Average distance x:", self.states[object_key][-1]["distance_x"])
+        calc_speed(self.states[object_key], verbose=True)
         print("==================================")
 
 
@@ -117,9 +115,8 @@ class state:
         state_len = len(self.states[object_key])
         if state_len >= self.MAX_HISTORY:
             self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
-        self.update_distance(args, box, im_h, im_w, object_key, 
-                verbose=test)
-        self.update_speed(object_key, verbose=test)
+        self.update_distance(args, box, im_h, im_w, object_key)
+        self.update_speed(object_key)
         
         if do_calibrate:
             calibrate(box, im_h, im_w)
@@ -136,7 +133,10 @@ class state:
 # Also, average with the previous calculated speed, if it exists.
 def calc_speed(state_for_object, TO_USE=5, verbose=False):
     if (len(state_for_object)) <= 1:
-        return None
+        if verbose:
+            print("Speed")
+            print("state not long enough")
+        return None, None
     to_consider = state_for_object[-TO_USE:]
     Dx = 0
     nx = 0
@@ -158,7 +158,7 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
     if nx > 0:
         Sx = Dx / nx
     if verbose:
-        print("speed")
+        print("Speed")
         print("dy:", Dy, "ny:", ny)
         print("dx:", Dx, "nx:", nx)
         print("Sy:", Sy, "Sx:", Sx)
