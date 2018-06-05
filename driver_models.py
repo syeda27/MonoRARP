@@ -151,7 +151,7 @@ class idm_model:
             if verbose:
                 print("gap is:", s)
             return -self.b
-        s_star = self.s0+max(0,v*self.T + (v*dV)/(2*np.sqrt(self.a*self.b)))
+        s_star = self.s0+max(0,v*self.T + (v*dV)/(2*np.sqrt(np.abs(self.a*self.b))))
         dv_dt = self.a * (1 \
                 - np.power(v/self.v0, self.delta) \
                 - np.power(s_star / s, 2))

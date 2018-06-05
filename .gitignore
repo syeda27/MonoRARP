@@ -12,5 +12,7 @@ calibrations/*
 *.avi
 *.png
 
+gps_logging.txt
+
 tests/plots
 __pycache__/*

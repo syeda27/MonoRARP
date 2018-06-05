@@ -94,7 +94,11 @@ class gps_interface:
                     print("Unsupported format")
                     return ""
 
-    def parse_line(self, line):
+    def parse_line(self, line, verbose = False):
+        if line is None: 
+            if verbose:
+                print("no line passed to parse_line()")
+            return (-1,-1,-1)
         if self.format == "NMEA":
             splits = line.split(",")
             active = splits[2] == "A"

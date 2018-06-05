@@ -38,7 +38,9 @@ parser.add_argument("--calc_risk_n", type=int, default=2)
 parser.add_argument("--track", type=str2bool, default="True")
 parser.add_argument("--det_thresh", type=float, default=0.5)
 
-parser.add_argument("--accept_speed", type=str2bool, default="True")
+parser.add_argument("--use_gps", type=str2bool, default="True")
+parser.add_argument("--gps_source", type=str, default="gps_logging.txt")
+parser.add_argument("--accept_speed", type=str2bool, default="False")
 
 parser.add_argument("--cameraH", type=float, default=1.0)
 parser.add_argument("--cameraMinAngle", type=float, default=55.0) #degrees
@@ -90,6 +92,10 @@ if 'kitti' in PATH_TO_LABELS:
 else: #Coco?
     NUM_CLASSES = 90
 
+import use_gps
+GPS_INTERFACE = None
+if args.use_gps:
+    GPS_INTERFACE = use_gps.gps_interface(args.gps_source)
 ####
 
 
@@ -341,6 +347,8 @@ def camera_fast(args):
                     cv2.imshow('', img)
                 buffer_inp = list()
                 buffer_pre = list()
+            if args.use_gps:
+                STATE.set_ego_speed(GPS_INTERFACE.get_reading())
             choice = cv2.waitKey(1)
             if choice == 27: 
                 break
@@ -371,6 +379,6 @@ def check_aspect_ratio(box):
     (left, right, top, bot) = box
     width = right - left
     height = bot - top
-    return width > 3 * height or height > 2 * width
+    return width > 5 * height or height > 3 * width
 
 camera_fast(args)
