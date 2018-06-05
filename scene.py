@@ -21,11 +21,11 @@ class scene:
     means = {}      # mean of parameters for IDM 
     variances = {}  # variances of parameters for IDM
 
-    def __init__(self, states, ego_speed=(15,0), ego_accel=(0,0)):
+    def __init__(self, states, ego_speed=(0,15), ego_accel=(0,0)):
         self.states = states
         self.reset_scene(states, ego_speed, ego_accel)
         self.means = {
-                "des_v": 30,    # first IDM
+                "des_v": ego_speed[1],    # first IDM
                 "hdwy_t": 1.5,
                 "min_gap": 2.0,
                 "accel": 0.5,
@@ -36,7 +36,7 @@ class scene:
                 "delta_b": 0
                 }
         self.variances = {
-                "des_v": 5,    # first IDM
+                "des_v": 10,    # first IDM
                 "hdwy_t": 0.25,
                 "min_gap": 0.25,
                 "accel": 0.2,
