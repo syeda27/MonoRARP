@@ -13,6 +13,9 @@
 * If all you want to do is run it, the only file you need to care about is run_risk_estimation.sh
     - It is a bash script that handles numerous flags. 
 * YOLO currently does not support all of the flags. 
+    - https://pjreddie.com/darknet/yolo/
+    - this is where we need to run darkflow's pipeline instead of run_risk_estimation.py. 
+    - Preliminary tested showed it did not work as well, despite being much faster. It could have been due to some error or too high of a threshold, but reducing to 0.4 from 0.6 did not help,
 * Most of the flags in the script should be self-explanatory or explained in a comment. 
 * I recommend reading over the file before running it (as wil any script) so that you know what is going on.
 * A highlight is the SOURCE flag. It can point to a video file for openCV to read or to a webcam (marked 0 or 1...)
@@ -105,6 +108,7 @@ This work is currently just a litle bit more than a minimum viable product. To t
     - Would allow us to maintain state between tracker resets.
     - Simple approach is to track the box center between tracker resets and assume the closest together are the same object.
 * When calculating distance, extend state object to include time so that the speed calculation is more accurate.
+* Better incorporate yolo into the fold so its easier to do everything I do with non-yolo models with the yolo model as well. 
 * Better tests, as always
 
 
