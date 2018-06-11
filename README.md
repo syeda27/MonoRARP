@@ -89,6 +89,7 @@ This work is currently just a litle bit more than a minimum viable product. To t
 * Incorporate horizon detection for improved generality in some of the distance calculations
     - This could help us determine the angle of the camera, but if it is 0 like we assume, horizon should be directly in the middle. 
 * Improve the IDM and MOBIL parameters by basing it on the observed state for a vehicle instead of using general parameters for the entire scene
+    - Behavioral parameter estimation is an open area of research I believe
 * Improve IDM and MOBIL by adding an attentiveness parameter
 * Develop an offline risk predictor based on the results we have here. 
     - A lot of possibilities here, including creating our own video - to - risk dataset, or just using the state information as the input
@@ -99,4 +100,4 @@ This work is currently just a litle bit more than a minimum viable product. To t
 * Smarter identification of objects
     - Would allow us to maintain state between tracker resets.
     - Simple approach is to track the box center between tracker resets and assume the closest together are the same object.
-* When calculating distance, extend state object to include time so that the speed calculation is more accurate. 
+* When calculating distance, extend state object to include time so that the speed calculation is more accurate.
