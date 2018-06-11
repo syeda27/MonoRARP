@@ -106,3 +106,7 @@ This work is currently just a litle bit more than a minimum viable product. To t
     - Simple approach is to track the box center between tracker resets and assume the closest together are the same object.
 * When calculating distance, extend state object to include time so that the speed calculation is more accurate.
 * Better tests, as always
+
+
+
+*This research was funded by The Allstate Corporation.*
