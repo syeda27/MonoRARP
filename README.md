@@ -72,6 +72,10 @@ I should probably rename this file... However, its purpose is simple: read and p
 
 This module is called directly from the MAIN module I believe. That may not be optimal, but it seems to work so far.
 
+## Tests
+I have a *tests* folder which includes some test scripts. I would not call them entirely robust as of yet, but some of the modules are a lot harder to test than others. The GPS testing is probably the best one.
+
+For things like the STATE, instead of testing as its normally defined I have that *calibrations* folder, which is where I was printing out distance calculations in known setups. I do think I need to repeat this at some point with a better setup, the original test was in a parking lot that I do not think was entirely flat... 
 
 # Improvements to make
 This work is currently just a litle bit more than a minimum viable product. To that end, there are a lot of possible improvements to make. Below I have listed the ones I have thought of, in no particular order:
@@ -101,3 +105,4 @@ This work is currently just a litle bit more than a minimum viable product. To t
     - Would allow us to maintain state between tracker resets.
     - Simple approach is to track the box center between tracker resets and assume the closest together are the same object.
 * When calculating distance, extend state object to include time so that the speed calculation is more accurate.
+* Better tests, as always
