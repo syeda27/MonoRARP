@@ -7,6 +7,7 @@
     - see https://github.com/djp42/darkflow2
 * Need tensorflow/models/research/object_detection installed.
     - see https://github.com/tensorflow/models/tree/master/research/object_detection
+    - We currently use just the resnet101 faster RCNN trained on the Kitti dataset
 
 ## Running Guide
 * If all you want to do is run it, the only file you need to care about is run_risk_estimation.sh
@@ -31,6 +32,9 @@ I drew inspiration for this file from darkflow's demo file.
 This file holds what I call the *state* for the risk estimation (a class). The state includes the ego speed and a dictionary that attempts to maintain the state parameters (relative distance and speed, both laterally and longitudinally) as long as possible, until they are reset, or reach a defined maximum number of states.
 
 Another important component of this file is the state calculation. Not only does it store the state, but it also contains functions that calculate the relative distances and speed based on the bounding box inputs. 
+This process is pretty complicated and one of the todos is to do more testing to figure out how confident we are in these values. 
+We use a variety of methods to calculate the distances, averaging the results as a quick fix to get a more reliable result. 
+All I can say is, I am happy its within an order of magnitude right now. 
 
 It currently keys objects based on whatever is passed in, a number, but it could be extended to somehow make an ID of a vehicle based on the image bounding box. I think that should be handled in a different module though. 
 ### Module 3: VEHICLE (vehicle.py)
@@ -63,3 +67,36 @@ The class *risk_estimator* is designed to be maintained globally in the MAIN mod
 
 This risk value is calculated by taking evaluating each rollout for the number of collisions (risk score of 10) and low time-to-collision events (risk score of 1) that include the ego vehicle, which are averaged over all scenes and then we take the average risk over all rollouts. For details, see calculate_risk()
 
+## MODULE 7: GPS (use_gps.py)
+I should probably rename this file... However, its purpose is simple: read and parse the file the gps device is logging to in order to calculate the absolute speed of the ego vehicle over the last second. There are some details there about how to parse the file - it currently only supprots NMEA format - but the main idea is simple. 
+
+This module is called directly from the MAIN module I believe. That may not be optimal, but it seems to work so far.
+
+
+# Improvements to make
+This work is currently just a litle bit more than a minimum viable product. To that end, there are a lot of possible improvements to make. Below I have listed the ones I have thought of, in no particular order:
+* Prioritize these improvements
+* Incorporate Lane Information
+    - Helen Jiang did a great job of working on this, so we still have to incorporate it into this setup somehow.
+* Determine why OpenCV does not take in full FOV and quality input from the webcam
+* Improve the tracking
+    - It does bad on fast moving cars and some other cases.
+* Improve the object detection. 
+    - This can be done through improving either the speed or the performance. 
+    - Maybe a better model will come online, or one of the other TF models works better.
+    - We can also look into augmenting the pretrained model by fine tuning on another dataset.
+    - A simple posibility is to preprocess the image better, through de-glaring and things like that.
+* Incorporate horizon detection for improved generality in some of the distance calculations
+    - This could help us determine the angle of the camera, but if it is 0 like we assume, horizon should be directly in the middle. 
+* Improve the IDM and MOBIL parameters by basing it on the observed state for a vehicle instead of using general parameters for the entire scene
+* Improve IDM and MOBIL by adding an attentiveness parameter
+* Develop an offline risk predictor based on the results we have here. 
+    - A lot of possibilities here, including creating our own video - to - risk dataset, or just using the state information as the input
+* Smarter tracker reinitialization
+    - For example, when no cars are detected, no point using a tracker.
+* Build a camera stand that allows easy verification of angles
+    - Enlist one of my ME friends for this
+* Smarter identification of objects
+    - Would allow us to maintain state between tracker resets.
+    - Simple approach is to track the box center between tracker resets and assume the closest together are the same object.
+* When calculating distance, extend state object to include time so that the speed calculation is more accurate. 
