@@ -104,7 +104,6 @@ class idm_model:
     b = 0
     delta = 4 # Acceleration exponent, according to wikipedia
 
-
     # set initial values, defaults given
     def __init__(self, 
             des_v = 30,     # m/s

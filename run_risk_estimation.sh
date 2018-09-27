@@ -13,7 +13,7 @@ SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=${START_LOC}/videos/Untitled2.mov
 
-SOURCE=0
+#SOURCE=0
 #SOURCE=1
 
 SAVE='true'
@@ -32,7 +32,7 @@ QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=10
 DET_THRESH=0.01         # above 1 means nothing will get marked.
-USE_GPS='true'          # use speed readings from a GPS
+USE_GPS='false'          # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='true'     # enter ego vehicle speed (currently mph).
                         # Speeds input by the user overwrite the gps reading

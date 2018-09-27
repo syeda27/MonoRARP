@@ -82,6 +82,7 @@ class gps_interface:
                 else:
                     print("Unsupported format")
                     return ""
+    
     # also checks validity
     def get_last_valid_reading_line(self, new_file):
         with open(new_file, "r") as f:
@@ -94,7 +95,7 @@ class gps_interface:
                     print("Unsupported format")
                     return ""
 
-    def parse_line(self, line, verbose = False):
+    def parse_line(self, line, verbose=False):
         if line is None: 
             if verbose:
                 print("no line passed to parse_line()")
@@ -144,6 +145,7 @@ class gps_interface:
 
 # use the Haversine formula to determine the "great-circle" distance
 # between multiple longitude points
+# Return meters
 def calc_distance(lat1, lon1, lat2, lon2):
     rad_earth = 6378.137 # radius of earth in km
     lat1_ = np.deg2rad(lat1)

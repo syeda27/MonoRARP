@@ -112,6 +112,8 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
 category_index = label_map_util.create_category_index(categories)
 
 
+# TODO move all display functions to another file
+
 # ymin, xmin, ymax, xmax  ===> left, right, top, bot
 def convert(im_height, im_width, b):
     (ymin, xmin, ymax, xmax) = b
@@ -190,7 +192,7 @@ def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
 
 def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
     cv2.putText(imgcv, text,
-            (left, top-12), 
+            (left, top-12),  # TODO make these values parameters 
             0, 1e-3*imh, color1, int(2*thick/3))
     cv2.putText(imgcv, text,
             (left, top-12), 
@@ -376,6 +378,7 @@ def get_fps(start, frames):
     return frames / elapsed_time
 
 def check_aspect_ratio(box):
+    # TODO add parameters
     (left, right, top, bot) = box
     width = right - left
     height = bot - top

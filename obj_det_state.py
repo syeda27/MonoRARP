@@ -144,11 +144,9 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
     ny = 0
     for i in range(len(to_consider) - 1):
         if "distance_y" in to_consider[i+1] and "distance_y" in to_consider[i]:
-
             Dy += (to_consider[i+1]['distance_y'] - to_consider[i]['distance_y'])
             ny += 1
         if "distance_x" in to_consider[i+1] and "distance_x" in to_consider[i]:
-
             Dx += (to_consider[i+1]['distance_x'] - to_consider[i]['distance_x'])
             nx += 1
     Sy = None
