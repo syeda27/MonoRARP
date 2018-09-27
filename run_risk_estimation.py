@@ -1,10 +1,7 @@
 import numpy as np
 import os
-import six.moves.urllib as urllib
 import sys
-import tarfile
 import tensorflow as tf
-import zipfile
 import cv2
 import time
 
@@ -19,6 +16,9 @@ from utils import label_map_util
 from utils import visualization_utils as vis_util
 
 # Now importing custom packages
+# We want to add the directory that contains this file to the path list:
+sys.path.append(os.path.dirname(__file__))
+
 from driver_risk_utils import argument_utils
 args = argument_utils.parse_args()
 
@@ -32,16 +32,9 @@ RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
 #### FLAGS ####
 SAVE_VIDEO = args.save
 SAVE_PATH = args.save_path
-
-# What model to use.
-#'faster_rcnn_resnet101_kitti_2018_01_28' 
-#'ssd_mobilenet_v1_coco_2017_11_17'
 MODEL_NAME = args.model
-#MODEL_FILE = MODEL_NAME + '.tar.gz'
-#DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
 PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
 PATH_TO_LABELS = args.labels
-#os.path.join('data', 'kitti_label_map.pbtxt')#'mscoco_label_map.pbtxt')
 if 'kitti' in PATH_TO_LABELS:
     NUM_CLASSES = 2
 else: #Coco?

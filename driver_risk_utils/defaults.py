@@ -18,7 +18,7 @@ DETECTION_THRESHOLD = 0.5
 MODEL = 'faster_rcnn_resnet101_kitti_2018_01_28' 
 LABELS = 'data/kitti_label_map.pbtxt'
 CAR_WIDTH_m = 1.8
-CALK_RISK_EVERY_N_FRAMES = 2
+CALC_RISK_EVERY_N_FRAMES = 2
 
 ## GPS DEFAULTS ##
 USE_GPS = "True"
@@ -33,5 +33,4 @@ DO_TRACKING = "True"
 SOURCE = "0"
 SAVE = "TRUE"
 SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
-EXTRA_IMPORT_PATH = '/home/derek/object_detection_mono_video/'
 

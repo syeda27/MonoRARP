@@ -11,8 +11,12 @@ calibrations/*
 *.mp4
 *.avi
 *.png
+*.pyc
 
 gps_logging.txt
 
 tests/plots
 __pycache__/*
+*__pycache__*
+
+driver_risk_utils/__pycache__/*

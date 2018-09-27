@@ -77,8 +77,7 @@ else
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
-        --accept_speed $ACCEPT_SPEED \
-        --extra_import_path $START_LOC
+        --accept_speed $ACCEPT_SPEED
     cd $START_LOC
     for job in $JOBS
     do
