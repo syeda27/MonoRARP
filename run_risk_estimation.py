@@ -14,18 +14,12 @@ from io import StringIO
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
 from object_detection.utils import ops as utils_ops
-
 #session_config.gpu_options.per_process_gpu_memory_fraction = 0.6
-
 from utils import label_map_util
-
 from utils import visualization_utils as vis_util
 
-## FOR IMPORTING FILES FROM OBJECT_DETECTION_MONO_VIDEO_REPO ##
-# TODO Figure out a better way of doing this
-sys.path.append('/home/derek/object_detection_mono_video/')
-
-from utilities import argument_utils
+# Now importing custom packages
+from driver_risk_utils import argument_utils
 args = argument_utils.parse_args()
 
 import obj_det_state
