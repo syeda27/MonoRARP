@@ -21,56 +21,17 @@ from utils import label_map_util
 
 from utils import visualization_utils as vis_util
 
-# for argparsing
-def str2bool(v):
-    return v.lower() == "true"
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--queue", type=int, default=1)
-parser.add_argument("--focal", type=int, default=1000)
-parser.add_argument("--carW", type=float, default=1.8)
-
-parser.add_argument("--tracker_refresh", type=int, default=25)
-parser.add_argument("--calc_risk_n", type=int, default=2)
-# 1 to update every frame
-
-parser.add_argument("--track", type=str2bool, default="True")
-parser.add_argument("--det_thresh", type=float, default=0.5)
-
-parser.add_argument("--use_gps", type=str2bool, default="True")
-parser.add_argument("--gps_source", type=str, default="gps_logging.txt")
-parser.add_argument("--accept_speed", type=str2bool, default="False")
-
-parser.add_argument("--cameraH", type=float, default=1.0)
-parser.add_argument("--cameraMinAngle", type=float, default=55.0) #degrees
-parser.add_argument("--cameraMaxHorizAngle", type=float, default=90.0) #degrees
-parser.add_argument("--horizon", type=float, default=0.5) # 0 - 1
-
-parser.add_argument("--source", type=str, default="0")
-parser.add_argument("--save", type=str2bool, default="True")
-parser.add_argument("--save_path", type=str, \
-        default='/home/derek/object_detection_mono_video/video.avi')
-
-parser.add_argument("--model", type=str, \
-        default='faster_rcnn_resnet101_kitti_2018_01_28')
-parser.add_argument("--labels", type=str, \
-        default=os.path.join('data', 'kitti_label_map.pbtxt'))
-parser.add_argument("--extra_import_path", type=str, \
-        default='/home/derek/object_detection_mono_video/')
-
-
-args = parser.parse_args()
-if args.source == "0" or args.source == "1": 
-    args.source = int(args.source)
-assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
-        'Must pass in a relative horizon position, between 0 and 1'
-
 ## FOR IMPORTING FILES FROM OBJECT_DETECTION_MONO_VIDEO_REPO ##
-sys.path.append(args.extra_import_path)
+# TODO Figure out a better way of doing this
+sys.path.append('/home/derek/object_detection_mono_video/')
+
+from utilities import argument_utils
+args = argument_utils.parse_args()
+
 import obj_det_state
 STATE = obj_det_state.state()
 STATE.set_ego_speed_mph(35)
+
 import risk_est
 RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
 
