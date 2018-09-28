@@ -1,5 +1,8 @@
 import argparse
-from driver_risk_utils import defaults
+try:
+    from driver_risk_utils import defaults
+except ImportError:  # For testing
+    import defaults
 
 # for argparsing
 def str2bool(v):
@@ -14,21 +17,6 @@ def add_camera_args(parser):
             default=defaults.CAMERA_MAX_HORIZONTAL_ANGLE_deg)
     parser.add_argument("--horizon", type=float, \
             default=defaults.HORIZON)
-
-def add_general_args(parser):
-    parser.add_argument("--queue", type=int, default=defaults.QUEUE)
-    parser.add_argument("--det_thresh", type=float, \
-            default=defaults.DETECTION_THRESHOLD)
-    parser.add_argument("--model", type=str, \
-            default=defaults.MODEL)
-    parser.add_argument("--labels", type=str, \
-            default=defaults.LABELS)
-
-    parser.add_argument("--carW", type=float, \
-            default=defaults.CAR_WIDTH_m)
-    parser.add_argument("--calc_risk_n", type=int, \
-            default=defaults.CALC_RISK_EVERY_N_FRAMES)
-    # 1 to update every frame
 
 def add_gps_args(parser):
     parser.add_argument("--use_gps", type=str2bool, \
@@ -52,6 +40,21 @@ def add_input_output_args(parser):
     parser.add_argument("--save_path", type=str, \
                     default=defaults.SAVE_PATH)
 
+def add_general_args(parser):
+    parser.add_argument("--queue", type=int, default=defaults.QUEUE)
+    parser.add_argument("--det_thresh", type=float, \
+            default=defaults.DETECTION_THRESHOLD)
+    parser.add_argument("--model", type=str, \
+            default=defaults.MODEL)
+    parser.add_argument("--labels", type=str, \
+            default=defaults.LABELS)
+
+    parser.add_argument("--carW", type=float, \
+            default=defaults.CAR_WIDTH_m)
+    parser.add_argument("--calc_risk_n", type=int, \
+            default=defaults.CALC_RISK_EVERY_N_FRAMES)
+    # 1 to update every frame
+
 '''
 parse_args creates a parser object, adds the arguments and default arguments, 
   and concludes by returning the parsed arugments.
@@ -64,9 +67,9 @@ def parse_args():
     parser = argparse.ArgumentParser()
     add_camera_args(parser)
     add_tracker_args(parser)
-    add_general_args(parser)
     add_gps_args(parser)
     add_input_output_args(parser)
+    add_general_args(parser)
     args = parser.parse_args()
 
     return do_arg_checks(args)
