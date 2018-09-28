@@ -19,7 +19,7 @@ from utils import visualization_utils as vis_util
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-from driver_risk_utils import argument_utils
+from driver_risk_utils import argument_utils, display_utils, general_utils
 args = argument_utils.parse_args()
 
 import obj_det_state
@@ -27,9 +27,11 @@ STATE = obj_det_state.state()
 STATE.set_ego_speed_mph(35)
 
 import risk_est
+# TODO move these to the args
 RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
 
 #### FLAGS ####
+# TODO make this stuff not just floating in global space, but modularized.
 SAVE_VIDEO = args.save
 SAVE_PATH = args.save_path
 MODEL_NAME = args.model
@@ -58,93 +60,6 @@ with detection_graph.as_default():
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
-
-
-# TODO move all display functions to another file
-
-# ymin, xmin, ymax, xmax  ===> left, right, top, bot
-def convert(im_height, im_width, b):
-    (ymin, xmin, ymax, xmax) = b
-    (left, right, top, bot) = (int(xmin * im_width), int(xmax * im_width),
-                              int(ymin * im_height), int(ymax * im_height))
-    return (left, right, top, bot)
-
-def display(args, im, boxes, do_convert=True, labels=[], fps=6.0,
-        left_margin=12, top_margin=36, space=36,
-        calculate_risk=True):
-    if type(im) is not np.ndarray:
-        imgcv = cv2.imread(im)
-    else: 
-        imgcv = im
-    im_height, im_width, _ = imgcv.shape
-    thick = int((im_height + im_width) // 300)
-    color = (0,50,255) # BGR
-    black = (0, 0 ,0)
-    if len(labels) < len(boxes):
-        labels.extend([""] * (len(boxes) - len(labels)))
-    for i,b in enumerate(boxes):
-        if do_convert:
-            (left, right, top, bot) = convert(im_height, im_width, b)
-        else:
-            (left, right, top, bot) = b
-        aspect_ratio_off = check_aspect_ratio(b)
-        if labels[i] != "car" or aspect_ratio_off:
-            cv2.rectangle(imgcv,
-                        (int(left), int(top)), (int(right), int(bot)),
-                        (0,0,50), int(thick/3))
-            continue
-        this_state = STATE.update_state((left, right, top, bot), 
-                im_height, im_width, args, object_key=i)
-        text = ""
-        text2 = ""
-        object_label = "obj: " + str(i)
-        if this_state is not None:
-            if "distance_x" in this_state:
-                text += "dx: {0:.2f}, ".format(this_state['distance_x'])
-            if "distance_y" in this_state:
-                text += "dy: {0:.2f}".format(this_state['distance_y'])
-            if 'speed_x' in this_state:
-                text2 += "sx: {0:.2f}, ".format(\
-                        this_state['speed_x']*fps)
-            if 'speed_y' in this_state:
-                text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
-            # state info in top left:
-            outline_text(imgcv, object_label, left_margin, 
-                    top_margin+space*(3*i), 
-                    im_height, black, color, thick)
-            outline_text(imgcv, text, left_margin, 
-                    top_margin+space*(3*i+1), 
-                    im_height, black, color, thick)
-            outline_text(imgcv, text2, left_margin, 
-                    top_margin+space*(3*i+2),
-                    im_height, black, color, thick)
-            
-        # object id on box:
-        outline_text(imgcv, object_label, int(left), int(top), im_height, black, color, thick)
-        cv2.rectangle(imgcv,
-                        (int(left), int(top)), (int(right), int(bot)),
-                        color, int(thick/3))
-    if calculate_risk:
-        risk = RISK_ESTIMATOR.get_risk(STATE, risk_type="online", n_sims=50, verbose=False)
-    else:
-        risk = RISK_ESTIMATOR.prev_risk
-    outline_text(imgcv, "risk: {0:.2f}".format(risk), 
-                int(im_width / 2 - space), 
-                im_height - space, im_height, 
-                black, color, thick)
-    outline_text(imgcv, "ego speed: {0:.2f} mph".format(STATE.get_ego_speed_mph()), 
-                int(im_width / 2 - space), 
-                im_height - space - space, im_height, 
-                black, color, thick)
-    return imgcv
-
-def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
-    cv2.putText(imgcv, text,
-            (left, top-12),  # TODO make these values parameters 
-            0, 1e-3*imh, color1, int(2*thick/3))
-    cv2.putText(imgcv, text,
-            (left, top-12), 
-            0, 1e-3*imh, color2, int(1*thick/4))
 
 
 def framework(sess):
@@ -205,7 +120,7 @@ def handle_tracker(i, tracker, net_out, buffer_inp,
                 ]
         for b in boxes:
             tracker.add(cv2.TrackerKCF_create(), buffer_inp[i],\
-                    convert(im_height, im_width, b))
+                    general_utils.convert(im_height, im_width, b))
         ok = None
     else:
         do_convert=False
@@ -249,7 +164,7 @@ def camera_fast(args):
         while camera.isOpened():
             elapsed += 1
             init_tracker = elapsed % args.tracker_refresh == 1
-            fps = get_fps(start, elapsed)
+            fps = general_utils.get_fps(start, elapsed)
             if tracker and init_tracker: 
                 #reinitialize all individual trackers by clearing
                 tracker = cv2.MultiTracker_create()
@@ -289,9 +204,9 @@ def camera_fast(args):
                                 net_out['detection_classes'][i][np.where(\
                                     net_out['detection_scores'][i] >= det_threshold)]
                                 ]
-                    img = display(args, buffer_inp[i], boxes, do_convert, 
-                            labels, fps=fps, 
-                            calculate_risk = elapsed % args.calc_risk_n==1)
+                    img = display_utils.display(args, STATE, RISK_ESTIMATOR,
+                            buffer_inp[i], boxes, do_convert, 
+                            labels, fps=fps, calculate_risk = elapsed % args.calc_risk_n==1)
                     if args.save:
                         videoWriter.write(img)
                     cv2.imshow('', img)
@@ -318,18 +233,5 @@ def camera_fast(args):
         camera.release()
         if using_camera:
             cv2.destroyAllWindows()
-
-def get_fps(start, frames):
-    if frames < 5:
-        return 1
-    elapsed_time = time.time() - start
-    return frames / elapsed_time
-
-def check_aspect_ratio(box):
-    # TODO add parameters
-    (left, right, top, bot) = box
-    width = right - left
-    height = bot - top
-    return width > 5 * height or height > 3 * width
 
 camera_fast(args)
