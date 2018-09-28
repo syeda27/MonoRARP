@@ -62,7 +62,7 @@ A driver model takes in a current vehicle and other necessary neighbor vehicles 
 At the time of writing, the current models supported are IDM[http://traffic-simulation.de/IDM.html] for longitudinal acceleration and MOBIL[http://traffic-simulation.de/MOBIL.html] for lateral acceleration and lane changes (MOBIL actually depends on the IDM acceleration).
 
 The driver models crucially support randomizing their parameters given a dictionary of means and variances. 
-## MODULE 6: RISK (risk_est.py)
+### MODULE 6: RISK (risk_est.py)
 This is where we finally get some interesting numbers for the driver.
 Here, we use all of the previous modules to run N simulations given the initial STATE extracted from the image/video by creating a SCENE which allows us to simulate forward based on the DRIVER MODELS and VEHICLES. 
 
@@ -70,7 +70,7 @@ The class *risk_estimator* is designed to be maintained globally in the MAIN mod
 
 This risk value is calculated by taking evaluating each rollout for the number of collisions (risk score of 10) and low time-to-collision events (risk score of 1) that include the ego vehicle, which are averaged over all scenes and then we take the average risk over all rollouts. For details, see calculate_risk()
 
-## MODULE 7: GPS (use_gps.py)
+### MODULE 7: GPS (use_gps.py)
 I should probably rename this file... However, its purpose is simple: read and parse the file the gps device is logging to in order to calculate the absolute speed of the ego vehicle over the last second. There are some details there about how to parse the file - it currently only supprots NMEA format - but the main idea is simple. 
 
 This module is called directly from the MAIN module I believe. That may not be optimal, but it seems to work so far.
