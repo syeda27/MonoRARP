@@ -11,7 +11,29 @@ from driver_risk_utils import general_utils
 
 
 class tracker:
-    
+    '''
+    Tracker class that serves as the interface between our system and openCV or other
+    trackers that we have implemented.
+
+    Initialize with: 
+      `args`, that contains:
+        det_thresh
+        tracker_refresh
+        track
+      tracker_type:
+        Currently just supports "KCF". A string.
+      image_height:
+        Height of the image in pixels. Integer.
+      image_width:
+        Width of the image in pixels. Integer.
+      category_index:
+        Dictionary for what categories are which from the model.
+
+    Main function is `update_one`:
+        It updates one of the trackers with the output from a network,
+            the input image queue, and an index for the image.
+    '''
+
     def __init__(self,
                  args,
                  tracker_type,
@@ -58,33 +80,32 @@ class tracker:
     def raise_undefined_tracker_type(self):
         raise ValueError("Invalid tracker type: {}".format(self.tracker_type))
 
-    def update_one(self, object_index, net_out, buffer_input): 
+    def update_one(self, image_index, net_out, buffer_input): 
         do_convert = True
         if self.init_tracker:
             self.init_tracker = False
-            boxes = net_out['detection_boxes'][object_index][np.where(\
-                    net_out['detection_scores'][object_index] >= self.det_thresh)]
+            boxes = net_out['detection_boxes'][image_index][np.where(\
+                    net_out['detection_scores'][image_index] >= self.det_thresh)]
             self.labels = [self.category_index[key]['name'] for key in \
-                    net_out['detection_classes'][object_index][np.where(\
-                    net_out['detection_scores'][object_index] >= self.det_thresh)]
+                    net_out['detection_classes'][image_index][np.where(\
+                    net_out['detection_scores'][image_index] >= self.det_thresh)]
                     ]
             for box in boxes:
                 if self.tracker_type == "KCF":
-                    self.multi_tracker.add(cv2.TrackerKCF_create(), buffer_input[object_index],\
+                    self.multi_tracker.add(cv2.TrackerKCF_create(), buffer_input[image_index],\
                         general_utils.convert(self.im_height, self.im_width, box))
                 else:
                     self.raise_undefined_tracker_type()
-            ok = None
         else:
             do_convert = False
-            ok, boxes = self.multi_tracker.update(buffer_input[object_index])
+            ok, boxes = self.multi_tracker.update(buffer_input[image_index])
             '''
-            print("shape:", buffer_inp[object_index].shape)
-            print("val", buffer_inp[object_index])
+            print("shape:", buffer_inp[image_index].shape)
+            print("val", buffer_inp[image_index])
             print("len", len(buffer_inp), " ", i)
             print(ok)
             '''
-        if ok is False: # lost tracking
-            self.init_tracker = True
+            if ok is False: # lost tracking
+                self.init_tracker = True
         return boxes, do_convert, self.labels
 
