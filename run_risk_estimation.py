@@ -30,6 +30,8 @@ import risk_est
 # TODO move these to the args
 RISK_ESTIMATOR = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
 
+import tracker
+
 #### FLAGS ####
 # TODO make this stuff not just floating in global space, but modularized.
 SAVE_VIDEO = args.save
@@ -106,33 +108,6 @@ def init_video_write(camera, using_camera, height, width, FPS=6):
             SAVE_PATH, fourcc, fps, (width, height))
     return videoWriter
 
-def handle_tracker(i, tracker, net_out, buffer_inp, 
-        im_height, im_width,
-        init_tracker, det_threshold, labels):
-    do_convert = True
-    if init_tracker:
-        init_tracker = False
-        boxes = net_out['detection_boxes'][i][np.where(\
-                net_out['detection_scores'][i] >= det_threshold)]
-        labels = [category_index[key]['name'] for key in \
-                net_out['detection_classes'][i][np.where(\
-                    net_out['detection_scores'][i] >= det_threshold)]
-                ]
-        for b in boxes:
-            tracker.add(cv2.TrackerKCF_create(), buffer_inp[i],\
-                    general_utils.convert(im_height, im_width, b))
-        ok = None
-    else:
-        do_convert=False
-        ok, boxes = tracker.update(buffer_inp[i])
-        '''
-        print("shape:", buffer_inp[i].shape)
-        print("val", buffer_inp[i])
-        print("len", len(buffer_inp), " ", i)
-        print(ok)
-        '''
-    return boxes, init_tracker, do_convert, ok, labels
-
 def camera_fast(args):
     det_threshold=args.det_thresh
     with tf.device('/gpu:0'):
@@ -153,23 +128,16 @@ def camera_fast(args):
         tensor_dict = framework(sess)
         image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         # Tracker
-        if args.track:
-            tracker = cv2.MultiTracker_create()
-        else:
-            tracker = None
-        labels = defaultdict(list) # i -> list of labels
+        tracker_obj = tracker.tracker(args, "KCF", height, width, category_index)
         
         if args.accept_speed:
             print("Press 's' to enter speed.")
         while camera.isOpened():
             elapsed += 1
-            init_tracker = elapsed % args.tracker_refresh == 1
+            tracker_obj.update_if_init(elapsed)
             fps = general_utils.get_fps(start, elapsed)
-            if tracker and init_tracker: 
-                #reinitialize all individual trackers by clearing
-                tracker = cv2.MultiTracker_create()
-                labels = list()
-                STATE.clear()
+
+            tracker_obj.check_and_reset_multitracker(STATE)
 
             _, image_np = camera.read()
             if image_np is None:
@@ -180,23 +148,18 @@ def camera_fast(args):
             im_height, im_width, _ = image_np.shape
             buffer_inp.append(image_np)
             buffer_pre.append(image_np)
+            tracker_obj.update_im_shape(height, width)
 
             if elapsed % args.queue == 0:
                 net_out = None
-                if tracker and init_tracker:
+                if tracker_obj.should_reset():
                     net_out = sess.run(tensor_dict,
-                                feed_dict={image_tensor: buffer_pre})
+                                       feed_dict={image_tensor: buffer_pre})
                 for i in range(args.queue):
                     # Visualization of the results of a detection
                     do_convert = True
-                    if tracker:
-                        boxes, init_tracker, do_convert, ok, labels = \
-                                handle_tracker(i, 
-                                tracker, net_out, buffer_inp,
-                                im_height, im_width, init_tracker, 
-                                det_threshold, labels)
-                        if ok is False: # lost tracking
-                            init_tracker = True
+                    if tracker_obj.use_tracker:
+                        boxes, do_convert, labels = tracker_obj.update_one(i, net_out, buffer_inp)
                     else:
                         boxes = net_out['detection_boxes'][i][np.where(\
                                 net_out['detection_scores'][i] >= det_threshold)]
