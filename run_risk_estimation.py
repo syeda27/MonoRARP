@@ -34,6 +34,7 @@ import tracker
 
 #### FLAGS ####
 # TODO make this stuff not just floating in global space, but modularized.
+# Create a class called "launcher"?
 SAVE_VIDEO = args.save
 SAVE_PATH = args.save_path
 MODEL_NAME = args.model

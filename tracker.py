@@ -77,9 +77,6 @@ class tracker:
             self.lables = defaultdict(list)
             state_object.clear()
 
-    def raise_undefined_tracker_type(self):
-        raise ValueError("Invalid tracker type: {}".format(self.tracker_type))
-
     def update_one(self, image_index, net_out, buffer_input): 
         do_convert = True
         if self.init_tracker:
@@ -92,8 +89,11 @@ class tracker:
                     ]
             for box in boxes:
                 if self.tracker_type == "KCF":
-                    self.multi_tracker.add(cv2.TrackerKCF_create(), buffer_input[image_index],\
-                        general_utils.convert(self.im_height, self.im_width, box))
+                    self.multi_tracker.add(
+                        cv2.TrackerKCF_create(), 
+                        buffer_input[image_index],
+                        general_utils.convert(self.im_height, self.im_width, box)
+                    )
                 else:
                     self.raise_undefined_tracker_type()
         else:
@@ -108,4 +108,7 @@ class tracker:
             if ok is False: # lost tracking
                 self.init_tracker = True
         return boxes, do_convert, self.labels
+
+    def raise_undefined_tracker_type(self):
+        raise ValueError("Invalid tracker type: {}".format(self.tracker_type))
 
