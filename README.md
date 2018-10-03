@@ -8,6 +8,7 @@
 * Need tensorflow/models/research/object_detection installed.
     - see https://github.com/tensorflow/models/tree/master/research/object_detection
     - We currently use just the resnet101 faster RCNN trained on the Kitti dataset
+        - You will need to download the pretrained model
 
 ## Running Guide
 * If all you want to do is run it, the only file you need to care about is run_risk_estimation.sh
@@ -17,7 +18,7 @@
     - this is where we need to run darkflow's pipeline instead of run_risk_estimation.py. 
     - Preliminary tested showed it did not work as well, despite being much faster. It could have been due to some error or too high of a threshold, but reducing to 0.4 from 0.6 did not help,
 * Most of the flags in the script should be self-explanatory or explained in a comment. 
-* I recommend reading over the file before running it (as wil any script) so that you know what is going on.
+* I recommend reading over the file before running it (as with any script) so that you know what is going on.
 * A highlight is the SOURCE flag. It can point to a video file for openCV to read or to a webcam (marked 0 or 1...)
 * Make sure to redirect the paths in the .sh script to the appropriate locations.
 * The script's main goal is to run run_risk_estimation.py with the appropriate flags. It als handles GPS logging and some other things. 

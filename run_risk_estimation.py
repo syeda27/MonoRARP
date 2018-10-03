@@ -19,7 +19,7 @@ from utils import visualization_utils as vis_util
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-from driver_risk_utils import argument_utils, display_utils, general_utils
+from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
 args = argument_utils.parse_args()
 
 import obj_det_state
@@ -45,10 +45,6 @@ if 'kitti' in PATH_TO_LABELS:
 else: #Coco?
     NUM_CLASSES = 90
 
-import use_gps
-GPS_INTERFACE = None
-if args.use_gps:
-    GPS_INTERFACE = use_gps.gps_interface(args.gps_source)
 ####
 
 
@@ -118,6 +114,10 @@ def camera_fast(args):
         
         if args.save:
             videoWriter = init_video_write(camera, using_camera, height, width)
+        
+        gps_interface = None
+        if args.use_gps:
+            gps_interface = gps_utils.gps_interface(args.gps_source)
 
         # Buffers to allow for batch demo
         buffer_inp = list()
@@ -177,7 +177,7 @@ def camera_fast(args):
                 buffer_inp = list()
                 buffer_pre = list()
             if args.use_gps:
-                STATE.set_ego_speed(GPS_INTERFACE.get_reading())
+                STATE.set_ego_speed(gps_interface.get_reading())
             choice = cv2.waitKey(1)
             if choice == 27: 
                 break
