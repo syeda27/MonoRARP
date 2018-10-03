@@ -19,16 +19,11 @@ from utils import visualization_utils as vis_util
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
-args = argument_utils.parse_args()
-
 import obj_det_state
-
 import risk_est
-
 import tracker
+from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
 
-#### FLAGS ####
 
 class launcher:
 
@@ -213,5 +208,9 @@ class launcher:
             if using_camera:
                 cv2.destroyAllWindows()
 
-launcher_obj = launcher(args)
-launcher_obj.camera_fast()
+
+if __name__ == "__main__":
+    args = argument_utils.parse_args()
+    launcher_obj = launcher(args)
+    launcher_obj.camera_fast()
+
