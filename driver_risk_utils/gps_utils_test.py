@@ -3,15 +3,15 @@ import numpy as np
 import sys
 
 sys.path.append("..")
-import use_gps
+import gps_utils
 
-GPS_INTERFACE = use_gps.gps_interface("gps_attempt2.log",
+GPS_INTERFACE = gps_utils.gps_interface("logs_gps/gps_attempt2.log",
         readings_for_speed=2,
         gps_format='NMEA')
 
 new_file = GPS_INTERFACE.copy_file()
 print(new_file)
-assert new_file == "gps_attempt2_last_100.log"
+assert new_file == "logs_gps/gps_attempt2_last_100.log"
 
 with open(new_file, "r") as f:
     lines = f.readlines()
@@ -40,12 +40,15 @@ assert lon[1] == "10.4042"
 assert lon[2] == "W"
 
 # now test speed
-GPS_INTERFACE = use_gps.gps_interface("gps_attempt2_first.log",
+GPS_INTERFACE = gps_utils.gps_interface("logs_gps/gps_attempt2_first.log",
         readings_for_speed=2,
         gps_format='NMEA')
 speed = GPS_INTERFACE.get_reading(True)
 print(speed)
-GPS_INTERFACE.change_file("gps_attempt2.log")
+GPS_INTERFACE.change_file("logs_gps/gps_attempt2.log")
 print(GPS_INTERFACE.last_readings)
 speed = GPS_INTERFACE.get_reading(True)
 print(speed)
+
+
+print("GPS Utils test succeeded!")
