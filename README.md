@@ -11,22 +11,22 @@
         - You will need to download the pretrained model
 
 ## Running Guide
-* If all you want to do is run it, the only file you need to care about is run_risk_estimation.sh
+* If all you want to do is run it, the only file you need to care about is run_risk_prediction.sh
     - It is a bash script that handles numerous flags. 
 * YOLO currently does not support all of the flags. 
     - https://pjreddie.com/darknet/yolo/
-    - this is where we need to run darkflow's pipeline instead of run_risk_estimation.py. 
+    - this is where we need to run darkflow's pipeline instead of run_risk_prediction.py. 
     - Preliminary tested showed it did not work as well, despite being much faster. It could have been due to some error or too high of a threshold, but reducing to 0.4 from 0.6 did not help,
 * Most of the flags in the script should be self-explanatory or explained in a comment. 
 * I recommend reading over the file before running it (as with any script) so that you know what is going on.
 * A highlight is the SOURCE flag. It can point to a video file for openCV to read or to a webcam (marked 0 or 1...)
 * Make sure to redirect the paths in the .sh script to the appropriate locations.
-* The script's main goal is to run run_risk_estimation.py with the appropriate flags. It als handles GPS logging and some other things. 
+* The script's main goal is to run run_risk_prediction.py with the appropriate flags. It als handles GPS logging and some other things. 
 
 ## File Breakdown
 The repo is broken down into a variety of sub-components that I will call modules.
 
-### Module 1: MAIN (run_risk_estimation.py)
+### Module 1: MAIN (run_risk_prediction.py)
 This file is what I refer to as the main module. It handles all of the high level tasks such as reading in the image frames through openCV and displaying input, but for almost everything else it calls other modules. 
 
 It does handle some of the object detection things, but I try to limit that to the absolutely necessary.
@@ -63,11 +63,11 @@ A driver model takes in a current vehicle and other necessary neighbor vehicles 
 At the time of writing, the current models supported are IDM[http://traffic-simulation.de/IDM.html] for longitudinal acceleration and MOBIL[http://traffic-simulation.de/MOBIL.html] for lateral acceleration and lane changes (MOBIL actually depends on the IDM acceleration).
 
 The driver models crucially support randomizing their parameters given a dictionary of means and variances. 
-### MODULE 6: RISK (risk_est.py)
+### MODULE 6: RISK (risk_pred.py)
 This is where we finally get some interesting numbers for the driver.
 Here, we use all of the previous modules to run N simulations given the initial STATE extracted from the image/video by creating a SCENE which allows us to simulate forward based on the DRIVER MODELS and VEHICLES. 
 
-The class *risk_estimator* is designed to be maintained globally in the MAIN module. With each update to the STATE, we can call get_risk(), which will return a number (between 0 and 10) that we call our automotive risk.
+The class *risk_predictor* is designed to be maintained globally in the MAIN module. With each update to the STATE, we can call get_risk(), which will return a number (between 0 and 10) that we call our automotive risk.
 
 This risk value is calculated by taking evaluating each rollout for the number of collisions (risk score of 10) and low time-to-collision events (risk score of 1) that include the ego vehicle, which are averaged over all scenes and then we take the average risk over all rollouts. For details, see calculate_risk()
 
