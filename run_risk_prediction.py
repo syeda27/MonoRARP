@@ -20,7 +20,7 @@ from utils import visualization_utils as vis_util
 sys.path.append(os.path.dirname(__file__))
 
 import obj_det_state
-import risk_est
+import risk_pred
 import tracker
 from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
 
@@ -47,7 +47,7 @@ class launcher:
         self.state.set_ego_speed_mph(35)
 
         # TODO move these to the self.all_args
-        self.risk_estimator = risk_est.risk_estimator(H=5, step=0.25, col_x=2, col_y=2)
+        self.risk_predictor = risk_pred.risk_predictor(H=5, step=0.25, col_x=2, col_y=2)
         ####
 
         self.detection_graph = tf.Graph()
@@ -173,7 +173,7 @@ class launcher:
                         img = display_utils.display(
                                 self.all_args, 
                                 self.state, 
-                                self.risk_estimator,
+                                self.risk_predictor,
                                 buffer_inp[i], 
                                 boxes, 
                                 do_convert, 

@@ -4,11 +4,11 @@ import sys
 
 sys.path.append("..")
 import obj_det_state
-import risk_est
+import risk_pred
 
 STATE = obj_det_state.state()
 
-assert risk_est.calculate_ttc(STATE) is None
+assert risk_pred.calculate_ttc(STATE) is None
 
 # for argparsing
 def str2bool(v):
@@ -45,4 +45,4 @@ STATE.update_state(box, im_h, im_w, args, test=True, object_key=1)
 
 STATE.set_ego_speed(25)
 
-print(risk_est.calculate_ttc(STATE))
+print(risk_pred.calculate_ttc(STATE))

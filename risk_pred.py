@@ -16,7 +16,7 @@ import sys
 sys.stdout.flush()
 import scene
 
-class risk_estimator:
+class risk_predictor:
     H = 1               # seconds for simulation horizon
     step = 0.1          # seconds to step by
     col_tolerance_x = 2 # tolerance to indicate a collision, laterally

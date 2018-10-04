@@ -1,12 +1,12 @@
 # not really sure the best way to test besides just visualizing some 
 # simulations and seeing if they make sense.
+# TODO update and validate.
 
 import numpy as np
 import sys
 
 sys.path.append("..")
 import obj_det_state
-import risk_est
 import scene
 
 STATE = obj_det_state.state()

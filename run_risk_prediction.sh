@@ -68,7 +68,7 @@ else
     fi
     cd /home/derek/env_tf_models_research/object_detection
 
-    python $(echo $START_LOC)/run_risk_estimation.py \
+    python $(echo $START_LOC)/run_risk_prediction.py \
         --source $SOURCE \
         --save $SAVE --save_path $SAVE_PATH \
         --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
