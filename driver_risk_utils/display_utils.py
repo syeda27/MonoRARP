@@ -10,18 +10,17 @@ try:
 except ImportError:  # For testing
     import general_utils
 
-# TODO modularize
-def display(args, STATE, RISK_ESTIMATOR, im, boxes, do_convert=True, labels=[], fps=6.0,
-        left_margin=12, top_margin=36, space=36,
-        calculate_risk=True):
+# TODO modularize, comment
+def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
+        left_margin=12, top_margin=36, space=36):
     if type(im) is not np.ndarray:
         imgcv = cv2.imread(im)
     else: 
         imgcv = im
     im_height, im_width, _ = imgcv.shape
     thick = int((im_height + im_width) // 300)
-    color = (0,50,255) # BGR
-    black = (0, 0 ,0)
+    color = (0, 50, 255) # BGR
+    black = (0, 0, 0)
     if len(labels) < len(boxes):
         labels.extend([""] * (len(boxes) - len(labels)))
     for i,b in enumerate(boxes):
@@ -66,10 +65,6 @@ def display(args, STATE, RISK_ESTIMATOR, im, boxes, do_convert=True, labels=[], 
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
-    if calculate_risk:
-        risk = RISK_ESTIMATOR.get_risk(STATE, risk_type="online", n_sims=50, verbose=False)
-    else:
-        risk = RISK_ESTIMATOR.prev_risk
     outline_text(imgcv, "risk: {0:.2f}".format(risk), 
                 int(im_width / 2 - space), 
                 im_height - space, im_height, 

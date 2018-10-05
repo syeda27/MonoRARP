@@ -55,6 +55,13 @@ def add_general_args(parser):
             default=defaults.CALC_RISK_EVERY_N_FRAMES)
     # 1 to update every frame
 
+def add_risk_args(parser):
+    parser.add_argument("--risk_H", type=int, default=defaults.RISK_HORIZON)
+    parser.add_argument("--risk_step", type=float, default=defaults.RISK_STEP)
+    parser.add_argument("--col_tol_x", type=float, default=defaults.COLLISION_TOL_X_m)
+    parser.add_argument("--col_tol_y", type=float, default=defaults.COLLISION_TOL_Y_m)
+    parser.add_argument("--ttc_tol", type=float, default=defaults.TTC_TOL)
+
 '''
 parse_args creates a parser object, adds the arguments and default arguments, 
   and concludes by returning the parsed arugments.
@@ -70,6 +77,7 @@ def parse_args():
     add_gps_args(parser)
     add_input_output_args(parser)
     add_general_args(parser)
+    add_risk_args(parser)
     args = parser.parse_args()
 
     return do_arg_checks(args)

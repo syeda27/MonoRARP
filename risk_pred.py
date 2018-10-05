@@ -17,15 +17,17 @@ sys.stdout.flush()
 import scene
 
 class risk_predictor:
-    H = 1               # seconds for simulation horizon
-    step = 0.1          # seconds to step by
-    col_tolerance_x = 2 # tolerance to indicate a collision, laterally
-    col_tolerance_y = 2 # tolerance to indicate a collision, longidtudinally
-    ttc_tolerance = 1.0 # if less than this, count as collision
+    # TODO should the functions be moved into the class?
+
     prev_risk = 0       # TODO make list and smooth over time
 
-    def __init__(self, H=5, step=0.2, col_x = 2, col_y = 2,
-            ttc_tolerance = 1.0):
+    def __init__(self, 
+                 H=5,               # seconds for simulation horizon
+                 step=0.2,          # seconds to step by
+                 col_x=2,           # tolerance (meters) to indicate a collision, laterally
+                 col_y=2,           # tolerance (meters) to indicate a collision, longitudinally
+                 ttc_tolerance=1.0  # A ttc of less than this 
+                ):
         self.H = H
         self.step = step
         self.col_tolerance_x = col_x
@@ -35,14 +37,31 @@ class risk_predictor:
 
     def get_risk(self, state, risk_type="ttc", n_sims=10, verbose=False):
         if risk_type.lower() == "ttc":
-            risk = calculate_ttc(state, self.H, self.step,
-                    self.col_tolerance_x, self.col_tolerance_y, verbose)
+            risk = calculate_ttc(
+                    state, 
+                    self.H, 
+                    self.step,
+                    self.col_tolerance_x, 
+                    self.col_tolerance_y, 
+                    verbose
+                )
         if risk_type.lower() == "online":
             this_scene = scene.scene(state.states, 
-                    ego_speed=(0,state.get_ego_speed()), ego_accel=(0,0))
-            rollouts = this_scene.simulate(n_sims, self.H, self.step, verbose)
-            risk = calculate_risk(rollouts, self.col_tolerance_x, 
-                    self.col_tolerance_y, self.ttc_tolerance, verbose)
+                    ego_speed=(0,state.get_ego_speed()), 
+                    ego_accel=(0,0)
+                )
+            rollouts = this_scene.simulate(
+                    n_sims, 
+                    self.H, 
+                    self.step, 
+                    verbose
+                )
+            risk = calculate_risk(
+                    rollouts, 
+                    self.col_tolerance_x, 
+                    self.col_tolerance_y, 
+                    self.ttc_tolerance, 
+            verbose)
         self.prev_risk = (risk + self.prev_risk) / 2
         return self.prev_risk
 

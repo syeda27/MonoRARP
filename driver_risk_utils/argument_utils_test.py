@@ -33,6 +33,12 @@ def test_default_args():
     assert args.carW == defaults.CAR_WIDTH_m
     assert args.calc_risk_n == defaults.CALC_RISK_EVERY_N_FRAMES
 
+    assert args.risk_H == defaults.RISK_HORIZON
+    assert args.risk_step == defaults.RISK_STEP
+    assert args.col_tol_x == defaults.COLLISION_TOL_X_m
+    assert args.col_tol_y == defaults.COLLISION_TOL_Y_m
+    assert args.ttc_tol == defaults.TTC_TOL
+
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 
 if __name__ == "__main__":

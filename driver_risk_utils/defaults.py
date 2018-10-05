@@ -34,3 +34,11 @@ SOURCE = "0"
 SAVE = "TRUE"
 SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
 
+## RISK DEFAULTS ##
+RISK_HORIZON = 5 # seconds, not frames
+RISK_STEP = 0.2  # seconds to step by
+COLLISION_TOL_X_m = 2
+COLLISION_TOL_Y_m = 2
+TTC_TOL = 1.0
+
+

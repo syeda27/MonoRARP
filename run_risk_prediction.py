@@ -46,8 +46,13 @@ class launcher:
         self.state = obj_det_state.state()
         self.state.set_ego_speed_mph(35)
 
-        # TODO move these to the self.all_args
-        self.risk_predictor = risk_pred.risk_predictor(H=5, step=0.25, col_x=2, col_y=2)
+        self.risk_predictor = risk_pred.risk_predictor(
+            args.risk_H, 
+            step=args.risk_step, 
+            col_x=args.col_tol_x, 
+            col_y=args.col_tol_y,
+            ttc_tolerance=args.ttc_tol
+        )
         ####
 
         self.detection_graph = tf.Graph()
@@ -170,16 +175,19 @@ class launcher:
                                     net_out['detection_classes'][i][np.where(\
                                         net_out['detection_scores'][i] >= det_threshold)]
                                     ]
+                        risk = self.risk_predictor.prev_risk
+                        calculate_risk = elapsed % self.all_args.calc_risk_n==1
+                        if calculate_risk:
+                            risk = self.risk_predictor.get_risk(self.state, risk_type="online", n_sims=50, verbose=False)
                         img = display_utils.display(
                                 self.all_args, 
                                 self.state, 
-                                self.risk_predictor,
+                                risk,
                                 buffer_inp[i], 
                                 boxes, 
                                 do_convert, 
                                 labels, 
-                                fps=fps, 
-                                calculate_risk = elapsed % self.all_args.calc_risk_n==1
+                                fps=fps 
                             )
                         if self.all_args.save:
                             videoWriter.write(img)
