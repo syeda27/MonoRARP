@@ -9,6 +9,8 @@
     - see https://github.com/tensorflow/models/tree/master/research/object_detection
     - We currently use just the resnet101 faster RCNN trained on the Kitti dataset
         - You will need to download the pretrained model
+* Need openCV, numpy, etc. for python3
+    - By the way, the repo is built using python3 because it is about time we all made the switch...
 
 ## Running Guide
 * If all you want to do is run it, the only file you need to care about is run_risk_prediction.sh
