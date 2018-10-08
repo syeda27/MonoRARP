@@ -1,6 +1,6 @@
 # Just a small script to run the webcam.py script by moving into the proper directory
 
-# Be in the virtualenv b
+# Be in the virtualenv b, if you want yolo
 #source `which virtualenvwrapper.sh`
 #workon tf-py3
 
@@ -8,7 +8,7 @@ YOLO=true
 YOLO=false #comment to use yolo model
 
 START_LOC=$(pwd)
-# TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the name here)
+# TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
 TF_LOC='/home/derek/env_tf_models_research/object_detection'
 if [ "$1" != "" ]; then
     TF_LOC=$1
@@ -28,7 +28,7 @@ SAVE='false'
 SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 
-# TODO THIS IS WHERE I CHANGE THINGS FOR GETTING RAW VIDEO
+# TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
 #RUN='11a'
 #FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
@@ -38,11 +38,11 @@ SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=10
-DET_THRESH=0.01         # above 1 means nothing will get marked.
-USE_GPS='false'          # use speed readings from a GPS
+DET_THRESH=0.01             # above 1 means nothing will get marked.
+USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
-ACCEPT_SPEED='true'     # enter ego vehicle speed (currently mph).
-                        # Speeds input by the user overwrite the gps reading
+ACCEPT_SPEED='true'         # enter ego vehicle speed (currently mph).
+                            # Speeds input by the user overwrite the gps reading
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
