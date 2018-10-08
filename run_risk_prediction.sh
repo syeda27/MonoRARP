@@ -1,11 +1,15 @@
-# Just a small script to run the webcam.py script by moving into the proper directory
+# This file is the bash script to help make running the python
+# risk predictor a little more manageable to run.
+# Ideally, this will eventually be transformed into a configuration
+# file that is just called by the python script, because who would
+# make a script to call another script, that just seems unnecessary...
+# But alas, I did just that, and it works pretty well.
 
 # Be in the virtualenv b, if you want yolo
 #source `which virtualenvwrapper.sh`
 #workon tf-py3
 
-YOLO=true
-YOLO=false #comment to use yolo model
+YOLO=true # true or false
 
 START_LOC=$(pwd)
 # TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
@@ -15,18 +19,17 @@ if [ "$1" != "" ]; then
 fi
 echo $TF_LOC
 
-
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=${START_LOC}/videos/Untitled2.mov
 
+# FOR WEBCAMS:
 #SOURCE=0
 #SOURCE=1
 
 SAVE='true'
 SAVE='false'
 SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
-
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
 #RUN='11a'
@@ -80,7 +83,7 @@ else
         sleep 1
         # TODO if you need to, change this command
     fi
-    cd $TF_LOC 
+    cd $TF_LOC
 
     python $(echo $START_LOC)/run_risk_prediction.py \
         --source $SOURCE \
@@ -101,6 +104,5 @@ else
         kill $job
     done
 
-    #deactivate 
+    #deactivate
 fi
-
