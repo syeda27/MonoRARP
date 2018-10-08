@@ -139,7 +139,43 @@ def calculate_ttc(
                 return t
     return None
 
-''' the same but with vehicles ''' 
+'''
+This second method to calculate ttc (time-to-collision) is just brute force. 
+It is the same as calculate_ttc, but with vehicles instead of states.
+
+Propagate the scene forward by tenths of a second until a collision
+is detected, or the maximum horizon is reached.
+
+Assume horizontal speed for the ego car is 0.
+Assume all accelerations are 0.
+
+Arguments:
+    veh_dict: 
+      A dictionary of all of the vehicles in the scene, with their information. 
+    H: 
+      Default = 10 seconds
+      Float, the horizon to compute to, in seconds.
+    step: 
+      Default = 0.1 seconds
+      Float, the granularity of the state propagation, in seconds.
+    col_tolerance_x:
+      Default = 2 meters
+      Float, the collision tolerance, laterally, in meters. 
+      A distance less than this to another object will be considered a collision.
+    col_tolerance_y:
+      Default = 2 meters
+      Float, the collision tolerance, longitudinally (forward and back), in meters.
+    verbose:
+      Default = True
+      Bool, whether or not to print logging messages.
+    col_tolerance:
+      Default = None
+      Float, the collision tolerance for both lateral and longitudinal directions. 
+
+Returns:
+  Time to collision, or None if no collision within the given H.
+
+'''
 def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2, 
         col_tolerance_y=2, verbose=True, col_tolerance=None):
     if col_tolerance is not None:
