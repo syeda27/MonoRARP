@@ -67,20 +67,49 @@ class risk_predictor:
 
 
 '''
-This first method  for ttc is just brute force. 
+This first method to calculate ttc (time-to-collision) is just brute force. 
 
-Propagate the scene forward by hundredths of a second until a colision
+Propagate the scene forward by tenths of a second until a collision
 is detected, or the maximum horizon is reached.
 
 Assume horizontal speed for the ego car is 0.
 Assume all accelerations are 0.
 
-collision tolerance in meteres
+Arguments:
+    state: 
+      the State object that is used to get current positions / speeds for vehicles.
+    H: 
+      Default = 10 seconds
+      Float, the horizon to compute to, in seconds.
+    step: 
+      Default = 0.1 seconds
+      Float, the granularity of the state propagation, in seconds.
+    col_tolerance_x:
+      Default = 2 meters
+      Float, the collision tolerance, laterally, in meters. 
+      A distance less than this to another object will be considered a collision.
+    col_tolerance_y:
+      Default = 2 meters
+      Float, the collision tolerance, longitudinally (forward and back), in meters.
+    verbose:
+      Default = True
+      Bool, whether or not to print logging messages.
+    col_tolerance:
+      Default = None
+      Float, the collision tolerance for both lateral and longitudinal directions. 
 
-returns None if no collicion detected
+Returns:
+  Time to collision, or None if no collision within the given H.
+
 '''
-def calculate_ttc(state, H = 10, step = 0.1, col_tolerance_x=2, 
-        col_tolerance_y=2, verbose=True, col_tolerance=None):
+def calculate_ttc(
+            state,
+            H=10.0,
+            step=0.1,
+            col_tolerance_x=2,
+            col_tolerance_y=2,
+            verbose=True,
+            col_tolerance=None):
     if col_tolerance is not None:
         col_tolerance_x = col_tolerance
         col_tolerance_y = col_tolerance
@@ -139,6 +168,7 @@ def check_collisions(veh_dict, t, col_tol_x, col_tol_y):
                 and abs(new_pos_y - ego_pos_y) <= col_tol_y:
             return True, veh_id
     return False, "No collisions detected."
+
 '''
 Calculates automotive risk from a series of rollouts. 
 '''
