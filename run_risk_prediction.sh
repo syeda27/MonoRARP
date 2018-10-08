@@ -8,6 +8,13 @@ YOLO=true
 YOLO=false #comment to use yolo model
 
 START_LOC=$(pwd)
+# TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the name here)
+TF_LOC='/home/derek/env_tf_models_research/object_detection'
+if [ "$1" != "" ]; then
+    TF_LOC=$1
+fi
+echo $TF_LOC
+
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
@@ -18,7 +25,7 @@ SOURCE=${START_LOC}/videos/test_1.avi
 
 SAVE='true'
 SAVE='false'
-SAVE_PATH='/home/derek/driver_risk_estimation_mono_video/video_yolo_'${YOLO}'.mp4'
+SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 
 # TODO THIS IS WHERE I CHANGE THINGS FOR GETTING RAW VIDEO
@@ -73,7 +80,7 @@ else
         sleep 1
         # TODO if you need to, change this command
     fi
-    cd /home/derek/env_tf_models_research/object_detection
+    cd $TF_LOC 
 
     python $(echo $START_LOC)/run_risk_prediction.py \
         --source $SOURCE \

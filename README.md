@@ -21,6 +21,7 @@
 * I recommend reading over the file before running it (as with any script) so that you know what is going on.
 * A highlight is the SOURCE flag. It can point to a video file for openCV to read or to a webcam (marked 0 or 1...)
 * Make sure to redirect the paths in the .sh script to the appropriate locations.
+    - pass in the path to your local tensorflow object detection api location as the first positional argument to the bash script.
 * The script's main goal is to run run_risk_prediction.py with the appropriate flags. It als handles GPS logging and some other things. 
 
 ## File Breakdown
