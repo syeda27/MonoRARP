@@ -165,13 +165,7 @@ class runner:
         self.videoWriter = cv2.VideoWriter(
                 self.save_path, fourcc, fps, (self.width, self.height))
 
-    def process_frame(self):
-        self.elapsed += 1
-        self.tracker_obj.update_if_init(self.elapsed)
-        self.fps = general_utils.get_fps(self.start, self.elapsed)
-
-        self.tracker_obj.check_and_reset_multitracker(self.launcher.state)
-
+    def read_image(self):
         _, image_np = self.camera.read()
         if image_np is None:
             print('\nEnd of Video')
@@ -184,42 +178,69 @@ class runner:
         self.buffer_pre.append(image_np)
         self.tracker_obj.update_im_shape(im_height, im_width)
 
+    def detect_objects(self, i, net_out):
+        do_convert = True
+        if self.tracker_obj.use_tracker:
+            boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, self.buffer_inp)
+        else:
+            boxes = net_out['detection_boxes'][i][np.where(\
+                    net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
+            labels = [self.launcher.category_index[key]['name'] for key in \
+                    net_out['detection_classes'][i][np.where(\
+                        net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
+                    ]
+        return do_convert, boxes, labels
+
+    def get_risk(self):
+        calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
+        if calculate_risk:
+            return self.launcher.risk_predictor.get_risk(
+                self.launcher.state,
+                risk_type="online",  # TODO make these args
+                n_sims=50,
+                verbose=False)
+        return self.launcher.risk_predictor.prev_risk
+
+    def process_queue(self):
+        # Iterate over all images in queue to calculate and display everything.
+        net_out = None
+        if self.tracker_obj.should_reset():
+            net_out = self.sess.run(self.tensor_dict,
+                                    feed_dict={self.image_tensor: self.buffer_pre})
+        for i in range(self.launcher.all_args.queue):
+            # Visualization of the results of a detection
+            do_convert, boxes, labels = self.detect_objects(i, net_out)
+            risk = self.get_risk()
+
+            img = display_utils.display(
+                    self.launcher.all_args,
+                    self.launcher.state,
+                    risk,
+                    self.buffer_inp[i],
+                    boxes,
+                    do_convert,
+                    labels,
+                    fps=self.fps
+                )
+            if self.launcher.all_args.save:
+                self.videoWriter.write(img)
+            cv2.imshow('', img)
+        self.buffer_inp = list()
+        self.buffer_pre = list()
+
+    def process_frame(self):
+        self.elapsed += 1
+        self.tracker_obj.update_if_init(self.elapsed)
+        self.fps = general_utils.get_fps(self.start, self.elapsed)
+
+        self.tracker_obj.check_and_reset_multitracker(self.launcher.state)
+
+        self.read_image()
+        if self.done: return
+
         if self.elapsed % self.launcher.all_args.queue == 0:
-            net_out = None
-            if self.tracker_obj.should_reset():
-                net_out = self.sess.run(self.tensor_dict,
-                                        feed_dict={self.image_tensor: self.buffer_pre})
-            for i in range(self.launcher.all_args.queue):
-                # Visualization of the results of a detection
-                do_convert = True
-                if self.tracker_obj.use_tracker:
-                    boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, self.buffer_inp)
-                else:
-                    boxes = net_out['detection_boxes'][i][np.where(\
-                            net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
-                    labels = [self.launcher.category_index[key]['name'] for key in \
-                            net_out['detection_classes'][i][np.where(\
-                                net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
-                            ]
-                risk = self.launcher.risk_predictor.prev_risk
-                calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
-                if calculate_risk:
-                    risk = self.launcher.risk_predictor.get_risk(self.launcher.state, risk_type="online", n_sims=50, verbose=False)
-                img = display_utils.display(
-                        self.launcher.all_args,
-                        self.launcher.state,
-                        risk,
-                        self.buffer_inp[i],
-                        boxes,
-                        do_convert,
-                        labels,
-                        fps=self.fps
-                    )
-                if self.launcher.all_args.save:
-                    self.videoWriter.write(img)
-                cv2.imshow('', img)
-            self.buffer_inp = list()
-            self.buffer_pre = list()
+            self.process_queue()
+
         if self.launcher.all_args.use_gps:
             self.launcher.state.set_ego_speed(self.launcher.gps_interface.get_reading())
         choice = cv2.waitKey(1)
