@@ -76,8 +76,8 @@ if ($YOLO); then
     cd $START_LOC
 else
     JOBS=`jobs -p`
-    if (($USE_GPS=='true')); then
-        echo "running gps command to $GPS_SOURCE"
+    if [ '$USE_GPS' = 'true' ]; then
+        echo "Running gps command to $GPS_SOURCE"
         gpsd -S 2949 -n -N -D 5 -b /dev/ttyUSB0 &> $GPS_SOURCE &
         JOBS=`jobs -p`
         sleep 1

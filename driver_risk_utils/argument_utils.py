@@ -54,6 +54,8 @@ def add_general_args(parser):
     parser.add_argument("--calc_risk_n", type=int, \
             default=defaults.CALC_RISK_EVERY_N_FRAMES)
     # 1 to update every frame
+    parser.add_argument("--device", type=str, \
+            default=defaults.DEVICE)
 
 def add_risk_args(parser):
     parser.add_argument("--risk_H", type=int, default=defaults.RISK_HORIZON)
@@ -63,7 +65,7 @@ def add_risk_args(parser):
     parser.add_argument("--ttc_tol", type=float, default=defaults.TTC_TOL)
 
 '''
-parse_args creates a parser object, adds the arguments and default arguments, 
+parse_args creates a parser object, adds the arguments and default arguments,
   and concludes by returning the parsed arugments.
   Additionally, it performs some simple initial checks
 
@@ -91,10 +93,9 @@ Raises:
     AssertionError: if there is an invalid horizon argument
 '''
 def do_arg_checks(args):
-    if args.source == "0" or args.source == "1": 
+    if args.source == "0" or args.source == "1":
         args.source = int(args.source)
         assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
             'Must pass in a relative horizon position, between 0 and 1'
 
     return args
-

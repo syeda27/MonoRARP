@@ -32,6 +32,7 @@ def test_default_args():
     assert args.labels == defaults.LABELS
     assert args.carW == defaults.CAR_WIDTH_m
     assert args.calc_risk_n == defaults.CALC_RISK_EVERY_N_FRAMES
+    assert args.device == defaults.DEVICE
 
     assert args.risk_H == defaults.RISK_HORIZON
     assert args.risk_step == defaults.RISK_STEP

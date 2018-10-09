@@ -69,16 +69,15 @@ class launcher:
                 max_num_classes=self.num_classes,
                 use_display_name=True)
         self.category_index = label_map_util.create_category_index(categories)
-
         self.all_args = args
 
-
     def launch(self):
-        with tf.device('/gpu:0'): # TODO make device an argument
+        with tf.device(self.all_args.device):
          with self.detection_graph.as_default():
           with tf.Session() as sess:
             one_time_runner = runner(self, sess)
             one_time_runner.run()
+
 
 class runner:
     # this class is tasked with just running one instantiation.

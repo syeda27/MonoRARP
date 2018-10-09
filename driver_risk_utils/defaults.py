@@ -15,10 +15,11 @@ HORIZON = 0.5                           # must be between 0 and 1
 ## GENERAL DEFAULTS ##
 QUEUE = 1
 DETECTION_THRESHOLD = 0.5
-MODEL = 'faster_rcnn_resnet101_kitti_2018_01_28' 
+MODEL = 'faster_rcnn_resnet101_kitti_2018_01_28'
 LABELS = 'data/kitti_label_map.pbtxt'
 CAR_WIDTH_m = 1.8
 CALC_RISK_EVERY_N_FRAMES = 2
+DEVICE = '/gpu:0'
 
 ## GPS DEFAULTS ##
 USE_GPS = "True"
@@ -40,5 +41,3 @@ RISK_STEP = 0.2  # seconds to step by
 COLLISION_TOL_X_m = 2
 COLLISION_TOL_Y_m = 2
 TTC_TOL = 1.0
-
-
