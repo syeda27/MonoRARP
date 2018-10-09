@@ -9,7 +9,7 @@
 #source `which virtualenvwrapper.sh`
 #workon tf-py3
 
-YOLO=true # true or false
+YOLO=false # true or false
 
 START_LOC=$(pwd)
 # TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
