@@ -9,10 +9,10 @@ def calculate_ttc(
             state,
             H=10.0,
             step=0.1,
-            col_tolerance_x=2.0,
-            col_tolerance_y=2.0,
+            collision_tolerance_x=2.0,
+            collision_tolerance_y=2.0,
             verbose=True,
-            col_tolerance=None):
+            collision_tolerance=None):
     """
     This first method to calculate ttc (time-to-collision) is just brute force.
 
@@ -29,14 +29,14 @@ def calculate_ttc(
           Float, the horizon to compute to, in seconds.
         step:
           Float, the granularity of the state propagation, in seconds.
-        col_tolerance_x:
+        collision_tolerance_x:
           Float, the collision tolerance, laterally, in meters.
           A distance less than this to another object will be considered a collision.
-        col_tolerance_y:
+        collision_tolerance_y:
           Float, the collision tolerance, longitudinally (forward and back), in meters.
         verbose:
           Bool, whether or not to print logging messages.
-        col_tolerance:
+        collision_tolerance:
           Float (or None), the collision tolerance for both lateral and
           longitudinal directions.
 
@@ -44,9 +44,9 @@ def calculate_ttc(
       Time to collision, or None if no collision within the given H.
 
     """
-    if col_tolerance is not None:
-        col_tolerance_x = col_tolerance
-        col_tolerance_y = col_tolerance
+    if collision_tolerance is not None:
+        collision_tolerance_x = collision_tolerance
+        collision_tolerance_y = collision_tolerance
     t = 0
     while (t < H):
         t += step
@@ -62,9 +62,9 @@ def calculate_ttc(
                 new_pos_y = this_state["distance_y"] + this_state["speed_y"]*t
 
             if (new_pos_x is not None and \
-                    abs(new_pos_x - ego_pos_x) <= col_tolerance_x) \
+                    abs(new_pos_x - ego_pos_x) <= collision_tolerance_x) \
                     and (new_pos_y is not None and \
-                    abs(new_pos_y - ego_pos_y) <= col_tolerance_y):
+                    abs(new_pos_y - ego_pos_y) <= collision_tolerance_y):
                 if verbose:
                     print("calculate_ttc")
                     print(new_pos_x, ego_pos_x)
@@ -77,10 +77,10 @@ def calculate_ttc(
 def calculate_ttc_veh(veh_dict,
         H=10,
         step=0.1,
-        col_tolerance_x=2,
-        col_tolerance_y=2,
+        collision_tolerance_x=2,
+        collision_tolerance_y=2,
         verbose=True,
-        col_tolerance=None):
+        collision_tolerance=None):
     """
     This second method to calculate ttc (time-to-collision) is just brute force.
     It is the same as calculate_ttc, but with vehicles instead of states.
@@ -95,39 +95,34 @@ def calculate_ttc_veh(veh_dict,
         veh_dict:
           A dictionary of all of the vehicles in the scene, with their information.
         H:
-          Default = 10 seconds
           Float, the horizon to compute to, in seconds.
         step:
-          Default = 0.1 seconds
           Float, the granularity of the state propagation, in seconds.
-        col_tolerance_x:
-          Default = 2 meters
+        collision_tolerance_x:
           Float, the collision tolerance, laterally, in meters.
           A distance less than this to another object will be considered a collision.
-        col_tolerance_y:
-          Default = 2 meters
+        collision_tolerance_y:
           Float, the collision tolerance, longitudinally (forward and back), in meters.
         verbose:
-          Default = True
           Bool, whether or not to print logging messages.
-        col_tolerance:
-          Default = None
-          Float, the collision tolerance for both lateral and longitudinal directions.
+        collision_tolerance:
+          Float (or None), the collision tolerance for both lateral and
+          longitudinal directions.
 
     Returns:
       Time to collision, or None if no collision within the given H.
     """
-    if col_tolerance is not None:
-        col_tolerance_x = col_tolerance
-        col_tolerance_y = col_tolerance
+    if collision_tolerance is not None:
+        collision_tolerance_x = collision_tolerance
+        collision_tolerance_y = collision_tolerance
     t = 0
     while (t < H):
         t += step
         collision, veh_id = check_collisions(
             veh_dict,
             t,
-            col_tolerance_x,
-            col_tolerance_y)
+            collision_tolerance_x,
+            collision_tolerance_y)
         if collision:
             if verbose:
                 print("In calculate_ttc:")
@@ -135,11 +130,31 @@ def calculate_ttc_veh(veh_dict,
             return t
     return None
 
-def check_collisions(veh_dict, t, col_tol_x, col_tol_y):
+def check_collisions(veh_dict,
+                     t,
+                     collision_tolerance_x,
+                     collision_tolerance_y):
     """
     Simply check the vehicle positions after t time assuming constant
     velocity and given the initial veh_dict for any collisions
         (respecting the given collision tolerances).
+
+    Arguments
+      veh_dict:
+        A dictionary of all of the vehicles in the scene, with their information.
+      t:
+        Float, the time at which we want to check for collisions, forward in
+        time from where the veh_dict says every car is, in seconds.
+      collision_tolerance_x:
+        Float, the collision tolerance, laterally, in meters.
+        A distance less than this to another object will be considered a collision.
+      collision_tolerance_y:
+        Float, the collision tolerance, longitudinally (forward and back), in meters.
+
+    Returns
+      (collision, msg):
+         collision: Boolean, whether or not a collision occurred.
+         msg: String, the vehicle id or a message that no collision occurred.
     """
     ego_pos_x = 0 # for now, assume no lateral motion.
     ego_pos_y = veh_dict["ego"].rel_vy * t
@@ -147,30 +162,63 @@ def check_collisions(veh_dict, t, col_tol_x, col_tol_y):
         if veh_id == "ego": continue
         new_pos_x = veh_dict[veh_id].rel_x + veh_dict[veh_id].rel_vx*t
         new_pos_y = veh_dict[veh_id].rel_y + veh_dict[veh_id].rel_vy*t
-        if abs(new_pos_x - ego_pos_x) <= col_tol_x \
-                and abs(new_pos_y - ego_pos_y) <= col_tol_y:
+        if abs(new_pos_x - ego_pos_x) <= collision_tolerance_x \
+                and abs(new_pos_y - ego_pos_y) <= collision_tolerance_y:
             return True, veh_id
     return False, "No collisions detected."
 
-def calculate_risk(rollouts, tol_x, tol_y, tol_ttc, verbose=False):
+def calculate_risk(rollouts,
+                   collision_tolerance_x,
+                   collision_tolerance_y,
+                   tolerance_ttc,
+                   verbose=False):
     """
     Calculates automotive risk from a series of rollouts.
+
+    Arguments:
+        rollouts:
+          A list of paths that were simulated.
+          Each path is a list of scenes.
+          Each scene is the vehicle dictionary we see in previous functions.
+        collision_tolerance_x:
+          Float, the collision tolerance, laterally, in meters.
+          A distance less than this to another object will be considered a collision.
+        collision_tolerance_y:
+          Float, the collision tolerance, longitudinally (forward and back), in meters.
+        tolerance_ttc:
+          Float, a time-to-collision less than this value is considered a "low
+            time to collision event" for the purposes of risk calculation.
+        verbose:
+          Bool, whether or not to print logging messages.
+
+    Returns:
+      Time to collision, or None if no collision within the given H.
     """
     risk = 0.0
     lowest_ttc = 10000
     for path in rollouts:
         rollout_risk = 0.0
         for curr_scene in path:
-            colliding, vehid = check_collisions(curr_scene, 0, tol_x, tol_y)
+            colliding, vehid = check_collisions(
+                curr_scene,
+                0,
+                collision_tolerance_x,
+                collision_tolerance_y)
             if colliding:
-                rollout_risk += 10
+                rollout_risk += 10          # TODO args
             else:
-                ttc = calculate_ttc_veh(curr_scene, 2, 0.2, tol_x, tol_y, verbose)
+                ttc = calculate_ttc_veh(
+                    curr_scene,
+                    2,                      # TODO args
+                    0.2,                    # TODO args
+                    collision_tolerance_x,
+                    collision_tolerance_y,
+                    verbose)
                 if ttc:
                     if ttc < lowest_ttc:
                         lowest_ttc = ttc
-                    if ttc < tol_ttc:
-                        rollout_risk += 1
+                    if ttc < tolerance_ttc:
+                        rollout_risk += 1   # TODO args
         risk += rollout_risk / len(path)
     risk = risk / len(rollouts)
     if verbose:

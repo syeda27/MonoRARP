@@ -107,8 +107,8 @@ class runner:
         self.risk_predictor = risk_predictor.risk_predictor(
             launcher.all_args.risk_H,
             step=launcher.all_args.risk_step,
-            col_x=launcher.all_args.col_tol_x,
-            col_y=launcher.all_args.col_tol_y,
+            collision_tolerance_x=launcher.all_args.col_tol_x,
+            collision_tolerance_y=launcher.all_args.col_tol_y,
             ttc_tolerance=launcher.all_args.ttc_tol
         )
         self.reset_vars()

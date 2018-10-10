@@ -50,21 +50,20 @@ class risk_predictor:
     prev_risk = 0       # TODO make list and smooth over time
 
     def __init__(self,
-                 H=5,               # seconds for simulation horizon
-                 step=0.2,          # seconds to step by
-                 col_x=2,           #
-                 col_y=2,           # tolerance (meters) to indicate a collision, longitudinally
-                 ttc_tolerance=1.0  # A ttc of less than this
-                ):
+                 H=5.0,
+                 step=0.2,
+                 collision_tolerance_x=2.0,
+                 collision_tolerance_y=2.0,
+                 ttc_tolerance=1.0):
         """
         Arguments
           H:
             Float, the simulation horizon (seconds)
           step:
             Float, the number of seconds for each step of the simulation.
-          col_x:
+          collision_tolerance_x:
             Float, tolerance (meters) to indicate a collision, laterally.
-          col_y:
+          collision_tolerance_y:
             Float, tolerance (meters) to indicate a collision, longitudinal
           ttc_tolerance:
             Float, a time-to-collision less than this value is considered a "low
@@ -72,8 +71,8 @@ class risk_predictor:
         """
         self.H = H
         self.step = step
-        self.col_tolerance_x = col_x
-        self.col_tolerance_y = col_y
+        self.collision_tolerance_x = collision_tolerance_x
+        self.collision_tolerance_y = collision_tolerance_y
         self.ttc_tolerance = ttc_tolerance
         self.prev_risk = 0
 
@@ -113,10 +112,9 @@ class risk_predictor:
                     state,
                     self.H,
                     self.step,
-                    self.col_tolerance_x,
-                    self.col_tolerance_y,
-                    verbose
-                )
+                    self.collision_tolerance_x,
+                    self.collision_tolerance_y,
+                    verbose)
         elif risk_type.lower() == "online":
             this_scene = scene.scene(state.states,
                     ego_speed=(0, state.get_ego_speed()),
@@ -128,8 +126,8 @@ class risk_predictor:
                     verbose)
             risk = risk_prediction_utils.calculate_risk(
                     rollouts,
-                    self.col_tolerance_x,
-                    self.col_tolerance_y,
+                    self.collision_tolerance_x,
+                    self.collision_tolerance_y,
                     self.ttc_tolerance,
                     verbose)
         else:
