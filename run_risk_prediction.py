@@ -20,7 +20,7 @@ from utils import visualization_utils as vis_util
 sys.path.append(os.path.dirname(__file__))
 
 import obj_det_state
-import risk_pred
+import risk_predictor
 import tracker
 from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
 
@@ -104,7 +104,7 @@ class runner:
         self.state = obj_det_state.state()
         self.state.set_ego_speed_mph(35)
 
-        self.risk_predictor = risk_pred.risk_predictor(
+        self.risk_predictor = risk_predictor.risk_predictor(
             launcher.all_args.risk_H,
             step=launcher.all_args.risk_step,
             col_x=launcher.all_args.col_tol_x,
