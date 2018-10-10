@@ -201,15 +201,15 @@ def calculate_risk(rollouts,
         for curr_scene in path:
             colliding, vehid = check_collisions(
                 curr_scene,
-                0,
+                0.0,
                 collision_tolerance_x,
                 collision_tolerance_y)
             if colliding:
-                rollout_risk += 10          # TODO args
+                rollout_risk += 10.0        # TODO args
             else:
                 ttc = calculate_ttc_veh(
                     curr_scene,
-                    2,                      # TODO args
+                    2.0,                    # TODO args
                     0.2,                    # TODO args
                     collision_tolerance_x,
                     collision_tolerance_y,
@@ -218,7 +218,7 @@ def calculate_risk(rollouts,
                     if ttc < lowest_ttc:
                         lowest_ttc = ttc
                     if ttc < tolerance_ttc:
-                        rollout_risk += 1   # TODO args
+                        rollout_risk += 1.0 # TODO args
         risk += rollout_risk / len(path)
     risk = risk / len(rollouts)
     if verbose:

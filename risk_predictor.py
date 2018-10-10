@@ -47,7 +47,7 @@ class risk_predictor:
     """
     Used to keep track of some important arguments and the previous risk.
     """
-    prev_risk = 0       # TODO make list and smooth over time
+    prev_risk = 0.0       # TODO make list and smooth over time
 
     def __init__(self,
                  H=5.0,
@@ -74,14 +74,14 @@ class risk_predictor:
         self.collision_tolerance_x = collision_tolerance_x
         self.collision_tolerance_y = collision_tolerance_y
         self.ttc_tolerance = ttc_tolerance
-        self.prev_risk = 0
+        self.prev_risk = 0.0
 
     def reset(self):
         """
         Not a lot to reset yet, except the previous risk tracking.
         This may change in the future.
         """
-        self.prev_risk = 0
+        self.prev_risk = 0.0
 
     def get_risk(self, state, risk_type="ttc", n_sims=10, verbose=False):
         """
@@ -117,8 +117,8 @@ class risk_predictor:
                     verbose)
         elif risk_type.lower() == "online":
             this_scene = scene.scene(state.states,
-                    ego_speed=(0, state.get_ego_speed()),
-                    ego_accel=(0, 0))  # TODO better initialization?
+                    ego_speed=(0.0, state.get_ego_speed()),
+                    ego_accel=(0.0, 0.0))  # TODO better initialization?
             rollouts = this_scene.simulate(
                     n_sims,
                     self.H,
@@ -132,5 +132,5 @@ class risk_predictor:
                     verbose)
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
-        self.prev_risk = (risk + self.prev_risk) / 2
+        self.prev_risk = (risk + self.prev_risk) / 2.0
         return self.prev_risk
