@@ -175,7 +175,7 @@ def calculate_risk(rollouts,
     """
     Calculates automotive risk from a series of rollouts.
 
-    Arguments:
+    Arguments
         rollouts:
           A list of paths that were simulated.
           Each path is a list of scenes.
@@ -191,8 +191,8 @@ def calculate_risk(rollouts,
         verbose:
           Bool, whether or not to print logging messages.
 
-    Returns:
-      Time to collision, or None if no collision within the given H.
+    Returns
+      Risk: float score for the estimated automotive risk in the give rollouts.
     """
     risk = 0.0
     lowest_ttc = 10000
