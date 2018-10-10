@@ -27,7 +27,6 @@ SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=0
 #SOURCE=1
 
-SAVE='true'
 SAVE='false'
 SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 

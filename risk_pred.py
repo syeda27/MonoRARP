@@ -4,8 +4,8 @@ This file works in conjunction with the STATE from obj_det_state.py.
 It uses the information from the state to calculate the automotive risk in
 the future.
 
-It will be built up over time to include a variety of methods. 
-Initially, it will use relative position and velocity to simply propagate 
+It will be built up over time to include a variety of methods.
+Initially, it will use relative position and velocity to simply propagate
   every car forward in time and determine if there are any collisions.
   If there are, it will return the time to the collision (TTC)
 
@@ -21,12 +21,12 @@ class risk_predictor:
 
     prev_risk = 0       # TODO make list and smooth over time
 
-    def __init__(self, 
+    def __init__(self,
                  H=5,               # seconds for simulation horizon
                  step=0.2,          # seconds to step by
                  col_x=2,           # tolerance (meters) to indicate a collision, laterally
                  col_y=2,           # tolerance (meters) to indicate a collision, longitudinally
-                 ttc_tolerance=1.0  # A ttc of less than this 
+                 ttc_tolerance=1.0  # A ttc of less than this
                 ):
         self.H = H
         self.step = step
@@ -35,39 +35,46 @@ class risk_predictor:
         self.ttc_tolerance = ttc_tolerance
         self.prev_risk = 0
 
+    def reset(self):
+        """
+        Not a lot to reset yet, except the previous risk tracking.
+        This may change in the future.
+        """
+        self.prev_risk = 0
+
     def get_risk(self, state, risk_type="ttc", n_sims=10, verbose=False):
         if risk_type.lower() == "ttc":
             risk = calculate_ttc(
-                    state, 
-                    self.H, 
+                    state,
+                    self.H,
                     self.step,
-                    self.col_tolerance_x, 
-                    self.col_tolerance_y, 
+                    self.col_tolerance_x,
+                    self.col_tolerance_y,
                     verbose
                 )
         if risk_type.lower() == "online":
-            this_scene = scene.scene(state.states, 
-                    ego_speed=(0,state.get_ego_speed()), 
+            this_scene = scene.scene(state.states,
+                    ego_speed=(0,state.get_ego_speed()),
                     ego_accel=(0,0)
                 )
             rollouts = this_scene.simulate(
-                    n_sims, 
-                    self.H, 
-                    self.step, 
+                    n_sims,
+                    self.H,
+                    self.step,
                     verbose
                 )
             risk = calculate_risk(
-                    rollouts, 
-                    self.col_tolerance_x, 
-                    self.col_tolerance_y, 
-                    self.ttc_tolerance, 
+                    rollouts,
+                    self.col_tolerance_x,
+                    self.col_tolerance_y,
+                    self.ttc_tolerance,
             verbose)
         self.prev_risk = (risk + self.prev_risk) / 2
         return self.prev_risk
 
 
 '''
-This first method to calculate ttc (time-to-collision) is just brute force. 
+This first method to calculate ttc (time-to-collision) is just brute force.
 
 Propagate the scene forward by tenths of a second until a collision
 is detected, or the maximum horizon is reached.
@@ -76,17 +83,17 @@ Assume horizontal speed for the ego car is 0.
 Assume all accelerations are 0.
 
 Arguments:
-    state: 
+    state:
       the State object that is used to get current positions / speeds for vehicles.
-    H: 
+    H:
       Default = 10 seconds
       Float, the horizon to compute to, in seconds.
-    step: 
+    step:
       Default = 0.1 seconds
       Float, the granularity of the state propagation, in seconds.
     col_tolerance_x:
       Default = 2 meters
-      Float, the collision tolerance, laterally, in meters. 
+      Float, the collision tolerance, laterally, in meters.
       A distance less than this to another object will be considered a collision.
     col_tolerance_y:
       Default = 2 meters
@@ -96,7 +103,7 @@ Arguments:
       Bool, whether or not to print logging messages.
     col_tolerance:
       Default = None
-      Float, the collision tolerance for both lateral and longitudinal directions. 
+      Float, the collision tolerance for both lateral and longitudinal directions.
 
 Returns:
   Time to collision, or None if no collision within the given H.
@@ -116,7 +123,7 @@ def calculate_ttc(
     t = 0
     while (t < H):
         t += step
-        ego_pos_x = 0 # for now, assume no lateral motion. 
+        ego_pos_x = 0 # for now, assume no lateral motion.
         ego_pos_y = state.get_ego_speed() * t
         for veh_id in state.states.keys():
             this_state = state.states[veh_id][-1]
@@ -140,7 +147,7 @@ def calculate_ttc(
     return None
 
 '''
-This second method to calculate ttc (time-to-collision) is just brute force. 
+This second method to calculate ttc (time-to-collision) is just brute force.
 It is the same as calculate_ttc, but with vehicles instead of states.
 
 Propagate the scene forward by tenths of a second until a collision
@@ -150,17 +157,17 @@ Assume horizontal speed for the ego car is 0.
 Assume all accelerations are 0.
 
 Arguments:
-    veh_dict: 
-      A dictionary of all of the vehicles in the scene, with their information. 
-    H: 
+    veh_dict:
+      A dictionary of all of the vehicles in the scene, with their information.
+    H:
       Default = 10 seconds
       Float, the horizon to compute to, in seconds.
-    step: 
+    step:
       Default = 0.1 seconds
       Float, the granularity of the state propagation, in seconds.
     col_tolerance_x:
       Default = 2 meters
-      Float, the collision tolerance, laterally, in meters. 
+      Float, the collision tolerance, laterally, in meters.
       A distance less than this to another object will be considered a collision.
     col_tolerance_y:
       Default = 2 meters
@@ -170,13 +177,13 @@ Arguments:
       Bool, whether or not to print logging messages.
     col_tolerance:
       Default = None
-      Float, the collision tolerance for both lateral and longitudinal directions. 
+      Float, the collision tolerance for both lateral and longitudinal directions.
 
 Returns:
   Time to collision, or None if no collision within the given H.
 
 '''
-def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2, 
+def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2,
         col_tolerance_y=2, verbose=True, col_tolerance=None):
     if col_tolerance is not None:
         col_tolerance_x = col_tolerance
@@ -184,7 +191,7 @@ def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2,
     t = 0
     while (t < H):
         t += step
-        collision, veh_id = check_collisions(veh_dict, t, 
+        collision, veh_id = check_collisions(veh_dict, t,
                 col_tolerance_x, col_tolerance_y)
         if collision:
             if verbose:
@@ -194,7 +201,7 @@ def calculate_ttc_veh(veh_dict, H = 10, step = 0.1, col_tolerance_x=2,
     return None
 
 def check_collisions(veh_dict, t, col_tol_x, col_tol_y):
-    ego_pos_x = 0 # for now, assume no lateral motion. 
+    ego_pos_x = 0 # for now, assume no lateral motion.
     ego_pos_y = veh_dict["ego"].rel_vy * t
     for veh_id in veh_dict.keys():
         if veh_id == "ego": continue
@@ -206,7 +213,7 @@ def check_collisions(veh_dict, t, col_tol_x, col_tol_y):
     return False, "No collisions detected."
 
 '''
-Calculates automotive risk from a series of rollouts. 
+Calculates automotive risk from a series of rollouts.
 '''
 def calculate_risk(rollouts, tol_x, tol_y, tol_ttc, verbose=False):
     risk = 0.0
