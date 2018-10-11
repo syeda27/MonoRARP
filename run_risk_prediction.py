@@ -20,14 +20,22 @@ from utils import visualization_utils as vis_util
 sys.path.append(os.path.dirname(__file__))
 
 import obj_det_state
-import risk_pred
+import risk_predictor
 import tracker
 from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
 
 
 class launcher:
+    """
+    Handles the args, which will eventually be a config file, and then
+    calls an instance of the `runner` class, which does everything interesting.
+    """
 
     def __init__(self, args):
+        """
+        Arguments
+          args: a parser object from the argparse library.
+        """
         self.save_video = args.save
         self.save_path = args.save_path
         self.model_name = args.model
@@ -38,21 +46,6 @@ class launcher:
         else: #Coco?
             self.num_classes = 90
         self.all_args = args # make a copy for future use to avoid always referencing.
-
-        self.gps_interface = None
-        if args.use_gps:
-            self.gps_interface = gps_utils.gps_interface(self.all_args.gps_source)
-            
-        self.state = obj_det_state.state()
-        self.state.set_ego_speed_mph(35)
-
-        self.risk_predictor = risk_pred.risk_predictor(
-            args.risk_H, 
-            step=args.risk_step, 
-            col_x=args.col_tol_x, 
-            col_y=args.col_tol_y,
-            ttc_tolerance=args.ttc_tol
-        )
         ####
 
         self.detection_graph = tf.Graph()
@@ -69,156 +62,325 @@ class launcher:
                 max_num_classes=self.num_classes,
                 use_display_name=True)
         self.category_index = label_map_util.create_category_index(categories)
+        self.all_args = args
+
+    def launch(self):
+        """
+        Picks the device, tensorflow graph, and creates the tf session, before
+        initializing and runner a runner.
+        """
+        with tf.device(self.all_args.device):
+         with self.detection_graph.as_default():
+          with tf.Session() as sess:
+            one_time_runner = runner(self, sess)
+            one_time_runner.run()
 
 
-    def framework(self, sess):
-        # Get handles to input and output tensors
+class runner:
+    """
+    This class is tasked with just running one instantiation.
+    it is called after tf.Session() is initialized, and is where the interesting
+    processing happens.
+    Notably, this initializes the object detection state, risk predictor, etc.
+
+    Important functions are:
+      run() -- the main function for a `runner`. Tracker is initialized here.
+      process_frame() and process_queue()
+      init_camera() and init_video_write()
+      detect_objects() and get_risk()
+    """
+    def __init__(self, launcher, sess):
+        """
+        Arguments
+          launcher: a launcher object that contains some key components, like the arguments.
+          sess: a TF session object.
+        """
+        self.launcher = launcher
+        self.sess = sess
+        self.gps_interface = None
+        if launcher.all_args.use_gps:
+            self.gps_interface = gps_utils.gps_interface(launcher.all_args.gps_source)
+
+        self.state = obj_det_state.state()
+        self.state.set_ego_speed_mph(35)
+
+        self.risk_predictor = risk_predictor.risk_predictor(
+            launcher.all_args.risk_H,
+            step=launcher.all_args.risk_step,
+            collision_tolerance_x=launcher.all_args.col_tol_x,
+            collision_tolerance_y=launcher.all_args.col_tol_y,
+            ttc_tolerance=launcher.all_args.ttc_tol
+        )
+        self.reset_vars()
+
+    def reset_vars(self):
+        """
+        reset some tracking variables used throughout the class.
+        """
+        # Buffers to allow for batch demo
+        self.buffer_inp = list()
+        self.buffer_pre = list()
+        self.elapsed = 0
+        self.start = time.time()
+        self.fps = 1
+        self.done = False # updated in process_frame()
+        self.risk_predictor.reset()
+
+    def init_camera(self, input):
+        """
+        Initializes everything needed to use the camera, if needed.
+        Othewise, sets up cv2.VideoCapture from the input file.
+
+        Sets internal variables for:
+          using_camera: whether the input is a camera or not
+            - if it is not a camera, then it is a file.
+          camera: the actual capture device returneed by cv2.VideoCapture()
+          self.height: the height of the capture device's frame.
+          self.width: the width of the capture device's frame.
+
+        Arguments
+          input: a string for the file to load from, or an int to specificy
+            which input camera source to use.
+
+        Raises
+          AssertionError if any of the below:
+            (1) input is a file_path that does not exist.
+            (2) opening the camera failed.
+        """
+        self.using_camera = (type(input) is not str)
+        if not self.using_camera:
+            assert os.path.isfile(input), \
+                    'file {} does not exist'.format(input)
+        else:
+            print('Press [ESC] to quit demo')
+        self.camera = cv2.VideoCapture(input)
+        assert self.camera.isOpened(), \
+                'Cannot capture source'
+        if self.using_camera:
+            cv2.namedWindow('', 0)
+            _, frame = self.camera.read()
+            self.height, self.width, _ = frame.shape
+            cv2.resizeWindow('', self.width, self.height)
+        else:
+            _, frame = self.camera.read()
+            self.height, self.width, _ = frame.shape
+
+    def init_video_write(self, FPS=6):
+        """
+        This function initializes the video writer. It should only be called
+        if it has been determined through the launcher args that we want to save
+        the output video (with all information overlaid onto it) to a file.
+
+        Sets internal variables for:
+          videoWriter: The object used to write the video, frame by frame.
+
+        Arguments
+          FPS: the target frames per second for the video writer.
+        """
+        # TODO better testing of FPS to make sure nothing breaks or anything like that
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        if self.using_camera:
+            fps=FPS
+        else:
+            fps = round(self.camera.get(cv2.CAP_PROP_FPS))
+        self.videoWriter = cv2.VideoWriter(
+                self.launcher.save_path,
+                fourcc,
+                fps,
+                (self.width, self.height))
+
+    def framework(self):
+        """
+        Get handles to input and output tensors.
+
+        Sets internal variables for:
+          tensor_dict: Keeps track of all tensor names for the important
+            (and currently hardcoded) outputs tensors.
+            This is very important for getting the output from the object
+            detection network.
+
+        """
         ops = tf.get_default_graph().get_operations()
         all_tensor_names = {output.name for op in ops for output in op.outputs}
-        tensor_dict = {}
+        self.tensor_dict = {}
         for key in ['num_detections', 'detection_boxes', 'detection_scores',
                     'detection_classes']:
             tensor_name = key + ':0'
             if tensor_name in all_tensor_names:
-                tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
-        return tensor_dict
+                self.tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
-    # source of 0 for webcam 0, 1 for webcam 1, a string for an actual file
-    def init_camera(self, INPUT_FILE):
-        using_camera = (type(INPUT_FILE) is not str)
-        if not using_camera:
-            assert os.path.isfile(INPUT_FILE), \
-                    'file {} does not exist'.format(INPUT_FILE)
+    def read_image(self):
+        """
+        Read an image from the camera into the internal variables.
+
+        Updates internal variables for:
+          buffer_inp and buffer_pre: appends this image.
+          tracker_obj: updates the shape based on this image.
+          done: Set to true when the video ends (only triggered on file sources)
+        """
+        _, image_np = self.camera.read()
+        if image_np is None:
+            print('\nEnd of Video')
+            self.done = True
+            return
+
+        #image_np_expanded = np.expand_dims(image_np, axis=0)
+        im_height, im_width, _ = image_np.shape
+        self.buffer_inp.append(image_np)
+        self.buffer_pre.append(image_np)
+        self.tracker_obj.update_im_shape(im_height, im_width)
+
+    def detect_objects(self, i, net_out):
+        """
+        Gets the detected objects either from the tracker or the network output,
+        depending on whether or not we are re-initializing the tracker.
+
+        Arguments
+          i: the index (int) within the queue that this funciton will process.
+          net_out: the dictionary containing the outputs from the object
+            detection network.
+            Will be None if we are not resetting the tracker.
+
+        Returns
+          do_convert: bool of whether the coordinates for the boxes need to
+            be converted. See display_utils.display() for use.
+          boxes: list of the detected object bounding boxes in this image.
+          labels: list of the corresponding class labels for each box.
+        """
+        # TODO the use of net_out can get somewhat confusing. That means it can
+        # be optimized somehow...
+        do_convert = True
+        if self.tracker_obj.use_tracker:
+            boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, self.buffer_inp)
         else:
-            print('Press [ESC] to quit demo')
-        camera = cv2.VideoCapture(INPUT_FILE)
-        assert camera.isOpened(), \
-                'Cannot capture source'
-        if using_camera:
-            cv2.namedWindow('', 0)
-            _, frame = camera.read()
-            height, width, _ = frame.shape
-            cv2.resizeWindow('', width, height)
-        else:
-            _, frame = camera.read()
-            height, width, _ = frame.shape
+            boxes = net_out['detection_boxes'][i][np.where(\
+                    net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
+            labels = [self.launcher.category_index[key]['name'] for key in \
+                    net_out['detection_classes'][i][np.where(\
+                        net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
+                    ]
+        return do_convert, boxes, labels
 
-        return camera, using_camera, height, width
+    def get_risk(self):
+        """
+        If we want to calculate the risk this frame, we make a wrapper around
+        the risk predictor. Otherwise we return the previous risk seen.
 
-    def init_video_write(self, camera, using_camera, height, width, FPS=6):
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        if using_camera:
-            fps=FPS
-        else:
-            fps = round(camera.get(cv2.CAP_PROP_FPS))
-        videoWriter = cv2.VideoWriter(
-                self.save_path, fourcc, fps, (width, height))
-        return videoWriter
+        Returns:
+          risk: a float as returned by self.risk_predictor.get_risk() indicating
+            the predicted danger towards the driver.
+        """
+        calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
+        if calculate_risk:
+            return self.risk_predictor.get_risk(
+                self.state,
+                risk_type="online",  # TODO make these args
+                n_sims=50,
+                verbose=False)
+        return self.risk_predictor.prev_risk
 
-    def camera_fast(self):
-        with tf.device('/gpu:0'): # TODO make device an argument
-         with self.detection_graph.as_default():
-          with tf.Session() as sess:
-            camera, using_camera, height, width = self.init_camera(self.all_args.source)
-            
-            if self.all_args.save:
-                videoWriter = self.init_video_write(camera, using_camera, height, width)
-            
+    def process_queue(self):
+        """
+        Iterate over all images in queue to calculate and display everything.
+        This function includes the call to run the object detection network,
+        the detection of the objects, the risk, and the display calls.
 
-            # Buffers to allow for batch demo
-            buffer_inp = list()
-            buffer_pre = list()
-            elapsed = 0
-            start = time.time()
-            fps = 1
+        Note: resets self.buffer_inp and self.buffer_pre to empty lists.
+        """
+        net_out = None
+        if self.tracker_obj.should_reset():
+            net_out = self.sess.run(self.tensor_dict,
+                                    feed_dict={self.image_tensor: self.buffer_pre})
+        for i in range(self.launcher.all_args.queue):
+            # Visualization of the results of a detection
+            do_convert, boxes, labels = self.detect_objects(i, net_out)
+            risk = self.get_risk()
 
-            tensor_dict = self.framework(sess)
-            image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
-            # Tracker
-            tracker_obj = tracker.tracker(self.all_args, "KCF", height, width, 
-                    self.category_index)
-            
-            if self.all_args.accept_speed:
-                print("Press 's' to enter speed.")
-            while camera.isOpened():
-                elapsed += 1
-                tracker_obj.update_if_init(elapsed)
-                fps = general_utils.get_fps(start, elapsed)
+            img = display_utils.display(
+                    self.launcher.all_args,
+                    self.state,
+                    risk,
+                    self.buffer_inp[i],
+                    boxes,
+                    do_convert,
+                    labels,
+                    fps=self.fps
+                )
+            if self.launcher.all_args.save:
+                self.videoWriter.write(img)
+            cv2.imshow('', img)
+        self.buffer_inp = list()
+        self.buffer_pre = list()
 
-                tracker_obj.check_and_reset_multitracker(self.state)
+    def process_frame(self):
+        """
+        This is basically called as often as possible. It is the main wrapper
+        function for an individual frame from the camera.
+        I will spare the details, but the main functionality is to read an
+        image and process the queue once it reaches the size specified in
+        self.launcher.all_args.queue.
+        It also handles the speed and all other user input.
+        """
+        self.elapsed += 1
+        self.tracker_obj.update_if_init(self.elapsed)
+        self.fps = general_utils.get_fps(self.start, self.elapsed)
 
-                _, image_np = camera.read()
-                if image_np is None:
-                    print('\nEnd of Video')
-                    break
+        self.tracker_obj.check_and_reset_multitracker(self.state)
 
-                #image_np_expanded = np.expand_dims(image_np, axis=0)
-                im_height, im_width, _ = image_np.shape
-                buffer_inp.append(image_np)
-                buffer_pre.append(image_np)
-                tracker_obj.update_im_shape(height, width)
+        self.read_image()
+        if self.done: return
 
-                if elapsed % self.all_args.queue == 0:
-                    net_out = None
-                    if tracker_obj.should_reset():
-                        net_out = sess.run(tensor_dict,
-                                           feed_dict={image_tensor: buffer_pre})
-                    for i in range(self.all_args.queue):
-                        # Visualization of the results of a detection
-                        do_convert = True
-                        if tracker_obj.use_tracker:
-                            boxes, do_convert, labels = tracker_obj.update_one(i, net_out, buffer_inp)
-                        else:
-                            boxes = net_out['detection_boxes'][i][np.where(\
-                                    net_out['detection_scores'][i] >= self.all_args.det_thresh)]
-                            labels = [self.category_index[key]['name'] for key in \
-                                    net_out['detection_classes'][i][np.where(\
-                                        net_out['detection_scores'][i] >= det_threshold)]
-                                    ]
-                        risk = self.risk_predictor.prev_risk
-                        calculate_risk = elapsed % self.all_args.calc_risk_n==1
-                        if calculate_risk:
-                            risk = self.risk_predictor.get_risk(self.state, risk_type="online", n_sims=50, verbose=False)
-                        img = display_utils.display(
-                                self.all_args, 
-                                self.state, 
-                                risk,
-                                buffer_inp[i], 
-                                boxes, 
-                                do_convert, 
-                                labels, 
-                                fps=fps 
-                            )
-                        if self.all_args.save:
-                            videoWriter.write(img)
-                        cv2.imshow('', img)
-                    buffer_inp = list()
-                    buffer_pre = list()
-                if self.all_args.use_gps:
-                    self.state.set_ego_speed(self.gps_interface.get_reading())
-                choice = cv2.waitKey(1)
-                if choice == 27: 
-                    break
-                elif self.all_args.accept_speed and choice == ord('s'):
-                    speed = input("Enter speed (mph): ")
-                    try:
-                        self.state.set_ego_speed_mph(float(speed))
-                    except ValueError:
-                        print("Please enter a float or integer.")
+        if self.elapsed % self.launcher.all_args.queue == 0:
+            self.process_queue()
 
-            end = time.time()
-            print("Total time: ", end - start)
-            print("Frames processed: ", elapsed)
-            print("Average FPS: ", elapsed/(end-start))
-            if self.all_args.save:
-                videoWriter.release()
-            camera.release()
-            if using_camera:
-                cv2.destroyAllWindows()
+        if self.launcher.all_args.use_gps:
+            self.state.set_ego_speed(self.launcher.gps_interface.get_reading())
+        choice = cv2.waitKey(1)
+        if choice == 27:
+            self.done = True
+            return
+        elif self.launcher.all_args.accept_speed and choice == ord('s'):
+            speed = input("Enter speed (mph): ")
+            try:
+                self.state.set_ego_speed_mph(float(speed))
+            except ValueError:
+                print("Please enter a float or integer.")
 
+    def run(self):
+        """
+        The main function for runner.
+        Responsible for initializing the camera, the video writer, the tracker,
+        and everything else.
+        It prints some summary statistics, and importantly handles destuction.
+        """
+        self.reset_vars()
+        self.init_camera(self.launcher.all_args.source)
+        if self.launcher.all_args.save:
+            self.init_video_write()
+
+        self.framework()
+        self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+
+        # Tracker
+        self.tracker_obj = tracker.tracker(
+            self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
+
+        if self.launcher.all_args.accept_speed:
+            print("Press 's' to enter speed.")
+        while self.camera.isOpened() and not self.done:
+            self.process_frame()
+
+        end = time.time()
+        print("Total time: ", end - self.start)
+        print("Frames processed: ", self.elapsed)
+        print("Average FPS: ", self.elapsed/(end - self.start))
+        if self.launcher.all_args.save:
+            self.videoWriter.release()
+        self.camera.release()
+        if self.using_camera:
+            cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     args = argument_utils.parse_args()
     launcher_obj = launcher(args)
-    launcher_obj.camera_fast()
-
+    launcher_obj.launch()

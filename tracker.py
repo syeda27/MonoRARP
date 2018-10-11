@@ -1,8 +1,7 @@
-'''
-This file will hold a tracker class, which itself will call some other trackers,
-such as the OpenCV or special trackers.
-It is essentially a wrapper class to make the main file have consistent API
-'''
+# This file will hold a tracker class, which itself will call some other trackers,
+# such as the OpenCV or special trackers.
+# It is essentially a wrapper class to make the main file have consistent API
+# '''
 
 import cv2
 import numpy as np
@@ -15,7 +14,7 @@ class tracker:
     Tracker class that serves as the interface between our system and openCV or other
     trackers that we have implemented.
 
-    Initialize with: 
+    Initialize with:
       `args`, that contains:
         det_thresh
         tracker_refresh
@@ -77,7 +76,7 @@ class tracker:
             self.lables = defaultdict(list)
             state_object.clear()
 
-    def update_one(self, image_index, net_out, buffer_input): 
+    def update_one(self, image_index, net_out, buffer_input):
         do_convert = True
         if self.init_tracker:
             self.init_tracker = False
@@ -90,7 +89,7 @@ class tracker:
             for box in boxes:
                 if self.tracker_type == "KCF":
                     self.multi_tracker.add(
-                        cv2.TrackerKCF_create(), 
+                        cv2.TrackerKCF_create(),
                         buffer_input[image_index],
                         general_utils.convert(self.im_height, self.im_width, box)
                     )
@@ -111,4 +110,3 @@ class tracker:
 
     def raise_undefined_tracker_type(self):
         raise ValueError("Invalid tracker type: {}".format(self.tracker_type))
-

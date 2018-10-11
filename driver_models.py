@@ -1,158 +1,286 @@
-# quick first pass at implementing IDM
-# http://traffic-simulation.de/IDM.html
-# http://traffic-simulation.de/MOBIL.html
+"""
+This file contains classes for the driver models used. In particular, for now
+it containes the idm_model for longitudinal acceleration, and the mobil_model
+for lateral acceleration.
+
+Sources:
+  http://traffic-simulation.de/IDM.html
+  http://traffic-simulation.de/MOBIL.html
+  And wikipedia, of course.
+"""
 import numpy as np
+from driver_risk_utils import driver_model_utils
+
+
+class idm_model:
+    """
+    The intelligent driver model (IDM) is used to model the longitudinal
+    acceleration for human drivers.
+    """
+    def __init__(self, des_v=30, hdwy_t=1.5, min_gap=2.0, accel=0.3, deccel=3.0):
+        """
+        Arguments
+          des_v:
+            Float, the desired velocity of this driver, if there was an
+            open road (m/s).
+          hdwy_t:
+            The desired time-headway of this driver (seconds).
+            This means the driver would like be able to cover the distance to
+            the leading vehicle in at least this amount of time, at constant
+            velocity.
+          min_gap:
+            The minimum distance between the driver and leading vehicle (m).
+            If the gap is smaller than this, the driver will engage in emergency
+            braking.
+          accel:
+            The maximum acceleration for this driver (m/s^2).
+          deccel:
+            The maximum braking deceleration, a positive number (m/s^2)
+        """
+        self.v0 = des_v
+        self.T = hdwy_t
+        self.s0 = min_gap
+        self.a = accel
+        self.b = deccel
+        self.delta = 4 # Acceleration exponent, according to wikipedia
+
+    def randomize_parameters(self, means, variances, debug=False):
+        """
+        Call to randomize the internal parameters of the driver model.
+        Omiting a parameter name in either the mean or variance dictionary will
+        simply result in the parameter not being randomized.
+        Extraneous keys will be ignored, but will be printed if in debug mode.
+
+
+        Arguments
+          means: dictionary of `parameter_name` : `mean` for all parameters of
+            the driver model that we would like to randomize. Omitting a
+            parameter means we will not randomize it.
+          variances: dictionary of `parameter_name` : `variance` for all parameters of
+            the driver model that we would like to randomize. Omitting a
+            parameter means we will not randomize it. As a reminder, standard
+            deviation is the square root of the variance.
+          debug: boolean for whether or not to print unusual situations.
+        """
+        for key in means.keys():
+            if key not in variances:
+                if debug:
+                    print("Key {} appears in means for IDM,"
+                          " but not variances.".format(key))
+                continue
+            elif key is "des_v":
+                self.v0 = np.random.normal(means[key], np.sqrt(variances[key]))
+            elif key is "hdwy_t":
+                self.T =  np.random.normal(means[key], np.sqrt(variances[key]))
+            elif key is "min_gap":
+                self.s0 = np.random.normal(means[key], np.sqrt(variances[key]))
+            elif key is "accel":
+                self.a = np.random.normal(means[key], np.sqrt(variances[key]))
+            elif key is "deccel":
+                self.b = np.random.normal(means[key], np.sqrt(variances[key]))
+            elif debug:
+                print("Invalid parameter to randomize (IDM): {}".format(key))
+
+    def propagate(self, v, s, dV, verbose=False):
+        """
+        Calculate the acceleration given current state info.
+        If the car is really close to the front car, engage in emergency
+        breaking by returning the maximum deceleration.
+
+        Arguments
+          v:
+            Float, the speed of the ego vehicle (m/s).
+          s:
+            Float, bumper - to - bumper - gap between the ego vehicle and
+            the leading vehicle (m).
+          dV:
+            Float, relative speed between ego vehicle and fore vehicle (m/s).
+            This value is positive when the ego vehicle is faster than the
+            leading vehicle.
+          verbose:
+            Boolean, whether or not to print extra information.
+
+        Returns
+          dv_dt:
+            The acceleration (an action) the driver should take according to
+            this model. (m/s^2)
+        """
+        if verbose:
+            print(v, s, dV)
+            print(self.s0, self.v0)
+        if s <= self.s0: # min gap
+            if verbose:
+                print("The gap is:", s)
+                if v < 0.0:
+                    print("Vehicle is travelling in reverse!")
+                    return 0.0
+            return -self.b # emergency braking.
+
+        denominator = 2.0 * np.sqrt(np.abs(self.a * self.b))
+        s_star = self.s0 + max(0.0, v * self.T + (v * dV) / denominator)
+
+        dv_dt_free_road = self.a * (1.0 - np.power(v / self.v0, self.delta))
+        dv_dt_interaction = -self.a * np.power(s_star / s, 2.0)
+        dv_dt = dv_dt_free_road + dv_dt_interaction
+
+        return dv_dt
+
 
 # MOBIL for latitudinal acceleration
 class mobil_model:
-    p = 0.2             # politeness
-    b_safe = 3          # negative safe brake accel
-    a_thr = 0.2         # acceleration threshold, below IDM.a
-    delta_b = 0         # bias towards right lane
+    """
+    The mobil model is used to model the lateral acceleration for human drivers.
 
+    Terminology:
+              <Target Lane>
+    |         |         |
+    |   ____  |         |
+    |  |    | |         |
+    |  | B  | |         |
+    |  |____| |         |      /|\
+    |         |   ____  |       |
+    |         |  |    | |       |
+    |         |  | D  | |       | Traffic flows from bottom to top
+    |   ____  |  |____| |       |
+    |  |    | |         |
+    |  | A* | |         |
+    |  |____| |         |
+    |         |   ____  |
+    |         |  |    | |
+    |         |  | C  | |
+    |         |  |____| |
+
+    Target Lane:
+      The lane we want to evaluate if we should move into.
+      Not determined within the model. We just get the vehicles.
+    A*:
+      `ego_vehicle`. The driver / car we want to find the acceleration for.
+    B:
+      `fore_vehicle`. The vehicle in front of the ego car, in our lane.
+      If this vehicle is going too slowly, we are incentivized to change lanes.
+    C:
+      `back_vehicle`. The vehicle behind the ego car, in the target lane.
+      This is the vehicle that would have to slow down if A changed lanes.
+    D:
+      `back_vehicles_fore_vehicle`. The vehicle in front of C. This vehicle is
+      in the the target lane. It is not necessarily guaranteed to be in front of
+      the ego vehicle (it could be on level with the ego vehicle).
+      We need this vehicle to know the current and projected gap that we would
+      want to move into if we changed lanes.
+
+    """
     def __init__(self, p=0.2, b_safe=3, a_thr=0.2, delta_b=0):
+        """
+        Arguments
+          p:
+            Float, the `politeness` factor for the driver. A more polite
+            driver is less likely to make aggressive lane changes.
+          b_safe:
+            Float, the safe braking acceleration (positive, m/s).
+          a_thr:
+            Float, acceleration threshold, below IDM.a. This is used to
+            calculate the `incentive_criterion` for changing lanes.
+          delta_b:
+            Float, the bias towards right lane.
+
+        """
         self.p = p
         self.b_safe = b_safe
         self.a_thr = a_thr
         self.delta_b = delta_b
-    
-    '''
-    Returns a boolean for whether this vehicle moving into the target lane
-        would satisfy the safety criterion, as determined by our IDM model.
-    We could use the back vehicle's IDM instead, but that is unknown to the
-        driver and I think it is more realistic to use our own model
 
+    """
     this_vehicle is the vehicle we are making a decision for
     fore_vehicle is the vehicle that is currently in front of us.
-    back_vehicle is the vehicle that is behind us in the target lane, 
+    back_vehicle is the vehicle that is behind us in the target lane,
         the one that would
         likely have to decelerate in the event of us moving over
     backs_fore_veh is the vehicle that is currently in front of
         the back_vehicle
     ego_vy is the absolute longitudinal speed that everyting is relative to.
 
-    Returns a lateral acceleration that would have this_vehicle move to 
+    Returns a lateral acceleration that would have this_vehicle move to
         the lateral position of back_vehicle in 1 time step
-    '''
-    def propagate(self, this_vehicle, fore_vehicle, back_vehicle,
-            backs_fore_veh, ego_vy=15, step=0.2):
-        lane_change = self.safety_criterion(this_vehicle, back_vehicle, \
-                ego_vy) and self.incentive_criterion(this_vehicle, back_vehicle, 
-                      fore_vehicle, backs_fore_veh, ego_vy)
-        if not lane_change: 
+    """
+    def propagate(self,
+                  this_vehicle,
+                  fore_vehicle,
+                  back_vehicle,
+                  backs_fore_veh,
+                  ego_vy=15,
+                  step=0.2):
+        will_change_lanes = self.safety_criterion(
+            this_vehicle,
+            back_vehicle,
+            ego_vy
+        ) and self.incentive_criterion(
+            this_vehicle,
+            back_vehicle,
+            fore_vehicle,
+            backs_fore_veh,
+            ego_vy
+        )
+        if not will_change_lanes:
             return 0
         return (back_vehicle.rel_x - this_vehicle.rel_x) / step
 
-    def safety_criterion(self, this_vehicle, back_vehicle, ego_vy=15):
+    def safety_criterion(self, this_vehicle, back_vehicle, ego_vy=15.0):
+        """
+        Returns a boolean for whether this vehicle moving into the target lane
+            would satisfy the safety criterion, as determined by our IDM model.
+        We could use the back vehicle's IDM instead, but that is unknown to the
+            driver and I think it is more realistic to use our own model
+
+        """
         v = back_vehicle.rel_vy + ego_vy
         new_gap = this_vehicle.rel_y - back_vehicle.rel_y
-        new_dV = this_vehicle.rel_vy - v 
+        new_dV = this_vehicle.rel_vy - v
         accel_if_change = this_vehicle.longitudinal_model.propagate(v, new_gap, new_dV)
         return accel_if_change > -self.b_safe
 
     def incentive_criterion(self, this_vehicle, back_vehicle, fore_vehicle,
-            back_vehicles_fore_vehicle, ego_vy = 15):
-        back_accel_if_change = get_accel_y(this_vehicle, back_vehicle, 
-                ego_vy, this_vehicle.longitudinal_model)
-        back_accel_no_change = get_accel_y(back_vehicles_fore_vehicle,
-                back_vehicle, ego_vy, this_vehicle.longitudinal_model)
+            back_vehicles_fore_vehicle, ego_vy=15.0):
+        back_accel_if_change = driver_model_utils.get_accel_y(
+            this_vehicle,
+            back_vehicle,
+            ego_vy,
+            this_vehicle.longitudinal_model)
+        back_accel_no_change = driver_model_utils.get_accel_y(
+            back_vehicles_fore_vehicle,
+            back_vehicle,
+            ego_vy,
+            this_vehicle.longitudinal_model)
 
-        my_accel_if_change = get_accel_y(back_vehicles_fore_vehicle,
-                this_vehicle, ego_vy, this_vehicle.longitudinal_model)
-        my_accel_no_change = get_accel_y(fore_vehicle, this_vehicle, 
-                ego_vy, this_vehicle.longitudinal_model)
-        
-        return (my_accel_if_change - my_accel_no_change > self.p * (back_accel_no_change - back_accel_if_change) + self.a_thr)
-    
-    '''
+        my_accel_if_change = driver_model_utils.get_accel_y(
+            back_vehicles_fore_vehicle,
+            this_vehicle,
+            ego_vy,
+            this_vehicle.longitudinal_model)
+        my_accel_no_change = driver_model_utils.get_accel_y(
+            fore_vehicle,
+            this_vehicle,
+            ego_vy,
+            this_vehicle.longitudinal_model)
+
+        back_delta = back_accel_no_change - back_accel_if_change
+        my_delta = my_accel_if_change - my_accel_no_change
+
+        return my_delta > self.p * back_delta + self.a_thr
+
+    """
     pass in dictionary of means and variances:
         keys are parameter names
-    '''
+    """
     def randomize_parameters(self, means, variances):
         for key in means.keys():
             if key not in variances:
                 variances[key] = 0
             if key is "p":
-                self.p = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.p = np.random.normal(means[key], np.sqrt(variances[key]))
             if key is "b_safe":
-                self.T = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.T = np.random.normal(means[key], np.sqrt(variances[key]))
             if key is "a_thr":
-                self.s0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.s0 = np.random.normal(means[key], np.sqrt(variances[key]))
             if key is "delta_b":
-                self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.a = np.random.normal(means[key], np.sqrt(variances[key]))
         return
-
-'''
-wrapper around IDM, gets longitudinal accel for back_vehicle
-idm_model allows choice between using back or fore vehicle driver model
-'''
-def get_accel_y(fore_veh, back_veh, ego_vy, idm_model):
-    v = back_veh.rel_vy + ego_vy
-    gap = fore_veh.rel_y - back_veh.rel_y
-    dV = back_veh.rel_vy - fore_veh.rel_vy # positive -> back veh approachin
-    return idm_model.propagate(v, gap, dV)
-
-'''
-idm model does longitudinal acceleration
-
-'''
-class idm_model:
-    v0 = 0
-    T = 0
-    s0 = 0
-    a = 0
-    b = 0
-    delta = 4 # Acceleration exponent, according to wikipedia
-
-    # set initial values, defaults given
-    def __init__(self, 
-            des_v = 30,     # m/s
-            hdwy_t = 1.5,   # s
-            min_gap = 2.0,  # m
-            accel = 0.3,    # m/s^2
-            deccel = 3.0):  # m/s^2
-        self.v0 = des_v
-        self.T = hdwy_t
-        self.s0 = min_gap
-        self.a = accel
-        self.b = deccel
-
-    '''
-    pass in dictionary of means and variances:
-        keys are parameter names
-    '''
-    def randomize_parameters(self, means, variances):
-        for key in means.keys():
-            if key not in variances:
-                variances[key] = 0
-            if key is "des_v":
-                self.v0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
-            if key is "hdwy_t":
-                self.T = means[key] + np.random.normal(0, np.sqrt(variances[key]))
-            if key is "min_gap":
-                self.s0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
-            if key is "accel":
-                self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
-            if key is "deccel":
-                self.b = means[key] + np.random.normal(0, np.sqrt(variances[key]))
-        return
-
-    # calculate the acceleration given current state info
-    def propagate(self, 
-            v,   # own_speed
-            s,   # bumper_to_bumber_fore_gap
-            dV,  # relative speed (positive when approaching)
-            verbose=False):
-        if verbose:
-            print(v, s, dV)
-            print(self.s0, self.v0)
-        if s <= 1e-2:
-            if verbose:
-                print("gap is:", s)
-            return -self.b
-        s_star = self.s0+max(0,v*self.T + (v*dV)/(2*np.sqrt(np.abs(self.a*self.b))))
-        dv_dt = self.a * (1 \
-                - np.power(v/self.v0, self.delta) \
-                - np.power(s_star / s, 2))
-        return dv_dt
-
