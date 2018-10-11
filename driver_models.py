@@ -108,7 +108,7 @@ class idm_model:
         if verbose:
             print(v, s, dV)
             print(self.s0, self.v0)
-        if s <= self.min_gap:
+        if s <= self.s0: # min gap
             if verbose:
                 print("The gap is:", s)
                 if v < 0.0:
