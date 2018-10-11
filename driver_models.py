@@ -71,13 +71,13 @@ class idm_model:
             elif key is "des_v":
                 self.v0 = np.random.normal(means[key], np.sqrt(variances[key]))
             elif key is "hdwy_t":
-                self.T = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.T =  np.random.normal(means[key], np.sqrt(variances[key]))
             elif key is "min_gap":
-                self.s0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.s0 = np.random.normal(means[key], np.sqrt(variances[key]))
             elif key is "accel":
-                self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.a = np.random.normal(means[key], np.sqrt(variances[key]))
             elif key is "deccel":
-                self.b = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.b = np.random.normal(means[key], np.sqrt(variances[key]))
             elif debug:
                 print("Invalid parameter to randomize (IDM): {}".format(key))
 
@@ -111,16 +111,16 @@ class idm_model:
         if s <= self.min_gap:
             if verbose:
                 print("The gap is:", s)
-                if v < 0:
+                if v < 0.0:
                     print("Vehicle is travelling in reverse!")
-                    return 0
+                    return 0.0
             return -self.b # emergency braking.
 
         denominator = 2.0 * np.sqrt(np.abs(self.a * self.b))
-        s_star = self.s0 + max(0, v * self.T + (v * dV) / denominator)
-        
+        s_star = self.s0 + max(0.0, v * self.T + (v * dV) / denominator)
+
         dv_dt_free_road = self.a * (1.0 - np.power(v / self.v0, self.delta))
-        dv_dt_interaction = -self.a * np.power(s_star / s, 2)
+        dv_dt_interaction = -self.a * np.power(s_star / s, 2.0)
         dv_dt = dv_dt_free_road + dv_dt_interaction
 
         return dv_dt
@@ -128,23 +128,68 @@ class idm_model:
 
 # MOBIL for latitudinal acceleration
 class mobil_model:
-    p = 0.2             # politeness
-    b_safe = 3          # negative safe brake accel
-    a_thr = 0.2         # acceleration threshold, below IDM.a
-    delta_b = 0         # bias towards right lane
+    """
+    The mobil model is used to model the lateral acceleration for human drivers.
 
+    Terminology:
+              <Target Lane>
+    |         |         |
+    |   ____  |         |
+    |  |    | |         |
+    |  | B  | |         |
+    |  |____| |         |      /|\
+    |         |   ____  |       |
+    |         |  |    | |       |
+    |         |  | D  | |       | Traffic flows from bottom to top
+    |   ____  |  |____| |       |
+    |  |    | |         |
+    |  | A* | |         |
+    |  |____| |         |
+    |         |   ____  |
+    |         |  |    | |
+    |         |  | C  | |
+    |         |  |____| |
+
+    Target Lane:
+      The lane we want to evaluate if we should move into.
+      Not determined within the model. We just get the vehicles.
+    A*:
+      `ego_vehicle`. The driver / car we want to find the acceleration for.
+    B:
+      `fore_vehicle`. The vehicle in front of the ego car, in our lane.
+      If this vehicle is going too slowly, we are incentivized to change lanes.
+    C:
+      `back_vehicle`. The vehicle behind the ego car, in the target lane.
+      This is the vehicle that would have to slow down if A changed lanes.
+    D:
+      `back_vehicles_fore_vehicle`. The vehicle in front of C. This vehicle is
+      in the the target lane. It is not necessarily guaranteed to be in front of
+      the ego vehicle (it could be on level with the ego vehicle).
+      We need this vehicle to know the current and projected gap that we would
+      want to move into if we changed lanes.
+
+    """
     def __init__(self, p=0.2, b_safe=3, a_thr=0.2, delta_b=0):
+        """
+        Arguments
+          p:
+            Float, the `politeness` factor for the driver. A more polite
+            driver is less likely to make aggressive lane changes.
+          b_safe:
+            Float, the safe braking acceleration (positive, m/s).
+          a_thr:
+            Float, acceleration threshold, below IDM.a. This is used to
+            calculate the `incentive_criterion` for changing lanes.
+          delta_b:
+            Float, the bias towards right lane.
+
+        """
         self.p = p
         self.b_safe = b_safe
         self.a_thr = a_thr
         self.delta_b = delta_b
 
     """
-    Returns a boolean for whether this vehicle moving into the target lane
-        would satisfy the safety criterion, as determined by our IDM model.
-    We could use the back vehicle's IDM instead, but that is unknown to the
-        driver and I think it is more realistic to use our own model
-
     this_vehicle is the vehicle we are making a decision for
     fore_vehicle is the vehicle that is currently in front of us.
     back_vehicle is the vehicle that is behind us in the target lane,
@@ -157,16 +202,36 @@ class mobil_model:
     Returns a lateral acceleration that would have this_vehicle move to
         the lateral position of back_vehicle in 1 time step
     """
-    def propagate(self, this_vehicle, fore_vehicle, back_vehicle,
-            backs_fore_veh, ego_vy=15, step=0.2):
-        lane_change = self.safety_criterion(this_vehicle, back_vehicle, \
-                ego_vy) and self.incentive_criterion(this_vehicle, back_vehicle,
-                      fore_vehicle, backs_fore_veh, ego_vy)
-        if not lane_change:
+    def propagate(self,
+                  this_vehicle,
+                  fore_vehicle,
+                  back_vehicle,
+                  backs_fore_veh,
+                  ego_vy=15,
+                  step=0.2):
+        will_change_lanes = self.safety_criterion(
+            this_vehicle,
+            back_vehicle,
+            ego_vy
+        ) and self.incentive_criterion(
+            this_vehicle,
+            back_vehicle,
+            fore_vehicle,
+            backs_fore_veh,
+            ego_vy
+        )
+        if not will_change_lanes:
             return 0
         return (back_vehicle.rel_x - this_vehicle.rel_x) / step
 
-    def safety_criterion(self, this_vehicle, back_vehicle, ego_vy=15):
+    def safety_criterion(self, this_vehicle, back_vehicle, ego_vy=15.0):
+        """
+        Returns a boolean for whether this vehicle moving into the target lane
+            would satisfy the safety criterion, as determined by our IDM model.
+        We could use the back vehicle's IDM instead, but that is unknown to the
+            driver and I think it is more realistic to use our own model
+
+        """
         v = back_vehicle.rel_vy + ego_vy
         new_gap = this_vehicle.rel_y - back_vehicle.rel_y
         new_dV = this_vehicle.rel_vy - v
@@ -174,7 +239,7 @@ class mobil_model:
         return accel_if_change > -self.b_safe
 
     def incentive_criterion(self, this_vehicle, back_vehicle, fore_vehicle,
-            back_vehicles_fore_vehicle, ego_vy = 15):
+            back_vehicles_fore_vehicle, ego_vy=15.0):
         back_accel_if_change = driver_model_utils.get_accel_y(
             this_vehicle,
             back_vehicle,
@@ -211,11 +276,11 @@ class mobil_model:
             if key not in variances:
                 variances[key] = 0
             if key is "p":
-                self.p = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.p = np.random.normal(means[key], np.sqrt(variances[key]))
             if key is "b_safe":
-                self.T = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.T = np.random.normal(means[key], np.sqrt(variances[key]))
             if key is "a_thr":
-                self.s0 = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.s0 = np.random.normal(means[key], np.sqrt(variances[key]))
             if key is "delta_b":
-                self.a = means[key] + np.random.normal(0, np.sqrt(variances[key]))
+                self.a = np.random.normal(means[key], np.sqrt(variances[key]))
         return
