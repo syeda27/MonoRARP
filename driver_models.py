@@ -11,6 +11,7 @@ Sources:
 import numpy as np
 from driver_risk_utils import driver_model_utils
 
+# TODO make an abstract class and have these extend them?
 
 class idm_model:
     """
@@ -141,7 +142,7 @@ class mobil_model:
     |         |   ____  |       |
     |         |  |    | |       |
     |         |  | D  | |       | Traffic flows from bottom to top
-    |   ____  |  |____| |       |
+    |   ____  |  |____| |       | in this example.
     |  |    | |         |
     |  | A* | |         |
     |  |____| |         |
@@ -228,9 +229,25 @@ class mobil_model:
         """
         Returns a boolean for whether this vehicle moving into the target lane
             would satisfy the safety criterion, as determined by our IDM model.
+            In other words, making sure we would not cause the other vehicle to
+            perform an emergency braking maneuver.
         We could use the back vehicle's IDM instead, but that is unknown to the
             driver and I think it is more realistic to use our own model
 
+        Arguments
+          this_vehicle:
+            A vehicle object, representing the vehicle that we want to check
+            if it should or should not change lanes.
+          back_vehicle:
+            A vehicle object, representing the vehicle that would be behind
+            the ego vehicle if it changed lanes.
+          ego_vy:
+            A float, indicating the absolute speed of the ego vehicle. This is
+            necessary because the vehicle objects only contain relative speeds.
+
+        Returns
+          Boolean: True if changing lanes would NOT cause the back_vehicle to
+            engage in emergency braking.
         """
         v = back_vehicle.rel_vy + ego_vy
         new_gap = this_vehicle.rel_y - back_vehicle.rel_y
@@ -238,8 +255,38 @@ class mobil_model:
         accel_if_change = this_vehicle.longitudinal_model.propagate(v, new_gap, new_dV)
         return accel_if_change > -self.b_safe
 
-    def incentive_criterion(self, this_vehicle, back_vehicle, fore_vehicle,
-            back_vehicles_fore_vehicle, ego_vy=15.0):
+    def incentive_criterion(
+            self,
+            this_vehicle,
+            back_vehicle,
+            fore_vehicle,
+            back_vehicles_fore_vehicle,
+            ego_vy=15.0):
+        """
+        Returns a boolean for whether this vehicle moving into the target lane
+            would satisfy the incentive criterion.
+            In other words, would changing lanes be desired for our vehicle?
+
+        Arguments
+          this_vehicle:
+            A vehicle object, representing the vehicle that we want to check
+            if it should or should not change lanes.
+          back_vehicle:
+            A vehicle object, representing the vehicle that would be behind
+            the ego vehicle if it changed lanes.
+          fore_vehicle:
+            A vehicle object, for the vehicle that is currently in front of our
+            ego vehicle.
+          back_vehicles_fore_vehicle:
+            A vehicle object, for the vehicle that is in front of the vehicle
+            that is behind us and in the target lane. See class-level comments.
+          ego_vy:
+            A float, indicating the absolute speed of the ego vehicle. This is
+            necessary because the vehicle objects only contain relative speeds.
+
+        Returns
+          Boolean: True if we would like to change lanes.
+        """
         back_accel_if_change = driver_model_utils.get_accel_y(
             this_vehicle,
             back_vehicle,
@@ -267,20 +314,37 @@ class mobil_model:
 
         return my_delta > self.p * back_delta + self.a_thr
 
-    """
-    pass in dictionary of means and variances:
-        keys are parameter names
-    """
-    def randomize_parameters(self, means, variances):
+    def randomize_parameters(self, means, variances, debug=False):
+        """
+        Call to randomize the internal parameters of the driver model.
+        Omiting a parameter name in either the mean or variance dictionary will
+        simply result in the parameter not being randomized.
+        Extraneous keys will be ignored, but will be printed if in debug mode.
+
+
+        Arguments
+          means: dictionary of `parameter_name` : `mean` for all parameters of
+            the driver model that we would like to randomize. Omitting a
+            parameter means we will not randomize it.
+          variances: dictionary of `parameter_name` : `variance` for all parameters of
+            the driver model that we would like to randomize. Omitting a
+            parameter means we will not randomize it. As a reminder, standard
+            deviation is the square root of the variance.
+          debug: boolean for whether or not to print unusual situations.
+        """
         for key in means.keys():
             if key not in variances:
-                variances[key] = 0
+                if debug:
+                    print("Key {} appears in means for IDM,"
+                          " but not variances.".format(key))
+                continue
             if key is "p":
                 self.p = np.random.normal(means[key], np.sqrt(variances[key]))
-            if key is "b_safe":
+            elif key is "b_safe":
                 self.T = np.random.normal(means[key], np.sqrt(variances[key]))
-            if key is "a_thr":
+            elif key is "a_thr":
                 self.s0 = np.random.normal(means[key], np.sqrt(variances[key]))
-            if key is "delta_b":
+            elif key is "delta_b":
                 self.a = np.random.normal(means[key], np.sqrt(variances[key]))
-        return
+            elif debug:
+                print("Invalid parameter to randomize (IDM): {}".format(key))
