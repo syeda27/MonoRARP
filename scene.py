@@ -6,7 +6,7 @@ import vehicle
 The scene maintains the driver models and coordinates with the state.
 It does not alter state, but rather maintains its own version for propagation
 
-usage pseudocode would be, scene = scene(State[-1]) 
+usage pseudocode would be, scene = scene(State[-1])
 risk = simulate(scene, 100, H=5)
 '''
 class scene:
@@ -18,7 +18,7 @@ class scene:
 
     lane_width = 3.7    # meters
 
-    means = {}      # mean of parameters for IDM 
+    means = {}      # mean of parameters for IDM
     variances = {}  # variances of parameters for IDM
 
     def __init__(self, states, ego_speed=(0,15), ego_accel=(0,0)):
@@ -49,7 +49,7 @@ class scene:
 
     def clear_scene(self):
         self.scene = {}
-    
+
     def set_ego(self, ego_speed=(0,15), ego_accel=(0,0)):
         self.ego_speed = ego_speed
         self.ego_accel = ego_accel
@@ -62,20 +62,20 @@ class scene:
         for object_key in states.keys():
             self.scene[object_key] = vehicle.vehicle(object_key,
                 states[object_key][-1])
-    
+
     def update_scene(self, actions, step=0.2):
         for vehid in actions.keys():
             dvx, dvy = actions[vehid]
             self.scene[vehid].rel_x += self.scene[vehid].rel_vx*step + 0.5*dvx*(step**2)
             self.scene[vehid].rel_y += self.scene[vehid].rel_vy*step + 0.5*dvy*(step**2)
-           
+
             self.scene[vehid].lateral_distance = dvx*step
             self.scene[vehid].rel_vx = self.scene[vehid].rel_vx + dvx*step
             self.scene[vehid].rel_vy = self.scene[vehid].rel_vy + dvy*step
 
     '''
     Runs N simulations using the IDM driver model
-    
+
     returns paths (aka rollouts)
     paths are a list of N path objects, (length N)
     a path object is a list of a a dictionary of the vehicles in a scene
@@ -118,7 +118,7 @@ class scene:
                     closest_y = gap
                     best = them
         if best is None:
-            best = vehicle.vehicle("fake_veh", 
+            best = vehicle.vehicle("fake_veh",
                 {"speed_x": me.rel_vx,
                  "speed_y": me.rel_vy,          # same speed
                  "distance_y": me.rel_y + 1000, # largest gap
@@ -149,7 +149,7 @@ class scene:
             lane_x = self.lane_width
             if left:
                 lane_x = -lane_x
-            best = vehicle.vehicle("fake_veh", 
+            best = vehicle.vehicle("fake_veh",
                 {"speed_x": me.rel_vx,
                  "speed_y": me.rel_vy,              # same speed
                  "distance_y": me.rel_y - 1000,     # largest gap
@@ -158,9 +158,7 @@ class scene:
 
     # TODO check negation is correct
     # me is a vehicle object
-    def get_back_vehicle_left(self, current_scene, me, verbose=False): 
+    def get_back_vehicle_left(self, current_scene, me, verbose=False):
         return self.get_back_vehicle(current_scene, me, left=True, verbose=verbose)
-    def get_back_vehicle_right(self, current_scene, me, verbose=False): 
+    def get_back_vehicle_right(self, current_scene, me, verbose=False):
         return self.get_back_vehicle(current_scene, me, left=False, verbose=verbose)
-
-
