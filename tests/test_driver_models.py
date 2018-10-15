@@ -1,4 +1,4 @@
-# not really sure the best way to test besides just visualizing some 
+# not really sure the best way to test besides just visualizing some
 # simulations and seeing if they make sense.
 # TODO update and validate.
 
@@ -9,7 +9,6 @@ sys.path.append("..")
 import obj_det_state
 import scene
 
-STATE = obj_det_state.state()
 
 # for argparsing
 def str2bool(v):
@@ -34,6 +33,7 @@ parser.add_argument("--horizon", type=float, default=0.5) # 0 - 1
 
 
 args = parser.parse_args()
+STATE = obj_det_state.state()
 
 im_h, im_w = (480, 640)
 left, right, top, bot = (245, 395, 300, 400)
@@ -58,7 +58,7 @@ for path in rollouts:
         t += 0.1
         for veh_id in curr_scene.keys():
             new_pos_x = curr_scene[veh_id].rel_x
-            new_pos_y = curr_scene[veh_id].rel_y 
+            new_pos_y = curr_scene[veh_id].rel_y
             if veh_id == "ego":
                 plt.plot(new_pos_x, new_pos_y, 'go', label=veh_id)
             else:
@@ -70,4 +70,3 @@ for path in rollouts:
         plt.xlim(-100,100)
         plt.savefig("tests/plots/T: {0:.2f}.png".format(t))
         plt.close()
-

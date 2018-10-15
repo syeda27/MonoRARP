@@ -51,7 +51,7 @@ CAR_WIDTH=1.8               # meters
 CAMERA_HEIGHT=1.15          # meters
 MIN_CAMERA_ANGLE=54.5       # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
-RELATIVE_HORIZON=0.45       # between 0 and 1
+RELATIVE_HORIZON=0.5        # between 0 and 1
 
 RISK_H=5      # seconds
 RISK_STEP=0.2 # seconds
