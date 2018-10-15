@@ -70,10 +70,10 @@ class launcher:
         initializing and runner a runner.
         """
         with tf.device(self.all_args.device):
-         with self.detection_graph.as_default():
-          with tf.Session() as sess:
-            one_time_runner = runner(self, sess)
-            one_time_runner.run()
+           with self.detection_graph.as_default():
+            with tf.Session() as sess:
+                one_time_runner = runner(self, sess)
+                one_time_runner.run()
 
 
 class runner:

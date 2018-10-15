@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 import vehicle
+import time
 
 '''
 The scene maintains the driver models and coordinates with the state.
@@ -81,8 +82,13 @@ class scene:
     a path object is a list of a a dictionary of the vehicles in a scene
         length (H / step)
     '''
-    def simulate(self, N=100, H=5, step = 0.2, verbose=False):
+    def simulate(self, N=100, H=5, step = 0.2, verbose=False, profile=False):
         paths = [] # list of N paths, which are snapshots of the scenes
+        if profile:
+            start = time.time()
+            deepcopy_time, n_deepcopy, sim_forward_time, n_sim = 0, 0, 0, 0
+            get_action_time, n_get_action, scene_update_time, n_scene_update = 0, 0, 0, 0
+
         for i in range(N):
             path = [] # a path is a list of scenes
             t = 0
@@ -92,17 +98,49 @@ class scene:
                         self.means, self.variances)
                 self.scene[vehid].lateral_model.randomize_parameters(
                         self.means, self.variances)
+            if profile:
+                start_dc = time.time()
+
             path.append(copy.deepcopy(self.scene))
+            if profile:
+                deepcopy_time += time.time() - start_dc
+                n_deepcopy += 1
+                start_sim_forward = time.time()
+
             while t < H:
                 t += step
+                if profile:
+                    start_get_action = time.time()
+
                 actions = {}
                 for vehid in self.scene.keys():
                     actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
                     if verbose:
                         print("action for", vehid, ":", actions[vehid])
+                if profile:
+                    get_action_time += time.time() - start_get_action
+                    n_get_action += 1
+                    start_scene_update = time.time()
                 self.update_scene(actions, step)
+                if profile:
+                    scene_update_time += time.time() - start_scene_update
+                    n_scene_update += 1
+                    start_dc = time.time()
                 path.append(copy.deepcopy(self.scene))
+                if profile:
+                    deepcopy_time += time.time() - start_dc
+                    n_deepcopy += 1
+
+            if profile:
+                sim_forward_time += time.time() - start_sim_forward
+                n_sim += 1
             paths.append(path)
+        if profile:
+            print("Simulating {} paths took: {}".format(N, time.time()-start))
+            print("Deepcopies {} took: {}".format(n_deepcopy, deepcopy_time))
+            print("SimForward {} took: {}".format(n_sim, sim_forward_time))
+            print("GetAction {} took: {}".format(n_get_action, get_action_time))
+            print("SceneUpdate {} took: {}".format(n_scene_update, scene_update_time))
         return paths
 
     # me is a vehicle object

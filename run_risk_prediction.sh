@@ -43,7 +43,7 @@ TRACK_REFRESH=10
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
-ACCEPT_SPEED='true'         # enter ego vehicle speed (currently mph).
+ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
 
 FOCAL=350
