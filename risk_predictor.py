@@ -40,6 +40,7 @@ import numpy as np
 import sys
 sys.stdout.flush()
 import scene
+import time
 
 from driver_risk_utils import risk_prediction_utils
 
@@ -83,7 +84,12 @@ class risk_predictor:
         """
         self.prev_risk = 0.0
 
-    def get_risk(self, state, risk_type="ttc", n_sims=10, verbose=False):
+    def get_risk(self,
+                 state,
+                 risk_type="ttc",
+                 n_sims=10,
+                 verbose=False,
+                 profile=False):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -98,6 +104,8 @@ class risk_predictor:
               rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
+          profile:
+            Boolean, whether or not to print timings of functions.
 
         Returns
           risk:
@@ -116,20 +124,30 @@ class risk_predictor:
                     self.collision_tolerance_y,
                     verbose)
         elif risk_type.lower() == "online":
+            if profile:
+                start = time.time()
             this_scene = scene.scene(state.states,
                     ego_speed=(0.0, state.get_ego_speed()),
                     ego_accel=(0.0, 0.0))  # TODO better initialization?
+            if profile:
+                print("SceneInit took: {}".format(time.time() - start))
+                start = time.time()
             rollouts = this_scene.simulate(
                     n_sims,
                     self.H,
                     self.step,
                     verbose)
+            if profile:
+                print("RiskSim took: {}".format(time.time() - start))
+                start = time.time()
             risk = risk_prediction_utils.calculate_risk(
                     rollouts,
                     self.collision_tolerance_x,
                     self.collision_tolerance_y,
                     self.ttc_tolerance,
                     verbose)
+            if profile:
+                print("CalculateRisk took: {}".format(time.time() - start))
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         self.prev_risk = (risk + self.prev_risk) / 2.0

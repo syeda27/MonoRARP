@@ -10,7 +10,7 @@ class timed_obj:
         self.wrapped_num += 1
         self.individual_num += num
 
-    def print_profile(self, total_object):
+    def print_profile(self, total_object=None):
         Output = """
 Key: {}
 Total time: {}
@@ -19,7 +19,6 @@ Total # individual calls: {}
 Seconds per aggregate call: {}
 Seconds per individual call: {}
 Inidividual calls per second: {}
-Portion of total time: {}
 """.format(
             self.key,
             self.total_time,
@@ -27,11 +26,12 @@ Portion of total time: {}
             self.individual_num,
             self.total_time / self.wrapped_num,
             self.total_time / self.individual_num,
-            self.individual_num / self.total_time,
-            self.total_time / total_object.total_time
+            self.individual_num / self.total_time
         )
         print(Output)
-
+        if total_object is not None:
+            print("Portion of total time: {}".format(
+                self.total_time / total_object.total_time))
 
 def check_valid_sim(tokens):
     return len(tokens) > 2
@@ -42,17 +42,23 @@ def average_logs(file_name,
                  is_valid_fn=None,
                  split_on=" ",
                  token_idx_key=0,
-                 keys = {"Simulating"},
-                 total_key = "Simulating"):
+                 keys={"Simulating"},
+                 total_key=None,
+                 all_total=False):
     """
-    Give a filename, the
+    Give a filename, the... TODO
     """
     timed_objects = {}
     for key in keys:
         timed_objects[key] = timed_obj(key)
-    if total_key not in keys:
+    if total_key is not None and total_key not in keys:
         raise ValueError("total_key must be one of the keys to parse.")
-
+    all_total = False
+    if total_key is None:
+        print("Aggregating all times as total")
+        total_key = "Total"
+        all_total = True
+        timed_objects[total_key] = timed_obj(total_key)
     with open(file_name, "r") as f:
         for line in f.readlines():
             tokens = line.split(split_on)
@@ -68,10 +74,17 @@ def average_logs(file_name,
             if token_idx_num is not None:
                 num = float(tokens[token_idx_num])
             timed_objects[key].update(time, num)
+            if all_total:
+                timed_objects[total_key].update(time, num)
 
     for key in keys:
         timed_objects[key].print_profile(timed_objects[total_key])
 
 f = "simulated_times.log"
 keys = {"SimForward", "Deepcopies", "GetAction", "SceneUpdate", "Simulating"}
-average_logs(f, 1, -1, check_valid_sim, keys=keys)
+average_logs(f, 1, -1, check_valid_sim, keys=keys, total_key="Simulating")
+print("\n\n\n")
+
+f = "risk_sim_times.log"
+keys = {"SceneInit", "RiskSim", "CalculateRisk"}
+average_logs(f, None, -1, check_valid_sim, keys=keys)
