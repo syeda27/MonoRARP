@@ -1,8 +1,14 @@
+/*
+ * I do not think we actually need this to be in cpp, python works fine.
+ * We should focus on putting the slower stuff to cpp first.
+ * Tracker and scene.simulate are the slow ones.
+ */
+
 # include <string>
 
 class RiskPredictor {
     public: // for now, later make things private
-        
+
         float horizon_s;
         float step_s;
         float col_tol_x_m;
@@ -21,5 +27,3 @@ class RiskPredictor {
             return 10;
         }
 };
-
-
