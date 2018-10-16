@@ -130,3 +130,6 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# C++ in atom
+compiling_error.txt
