@@ -26,6 +26,10 @@
     - pass in the path to your local tensorflow object detection api location as the first positional argument to the bash script.
 * The script's main goal is to run run_risk_prediction.py with the appropriate flags. It als handles GPS logging and some other things. 
 
+* To compile and run in C++ (IN PROGRESS):
+    - `./compile_cpp.sh`  <-- this cleans all of the exisiting CMake files and compiled binaries,and then runs `cmake` and `make` in the `Compile` directory.
+    - Then run the binaries in the `bin` file.
+
 ## File Breakdown
 The repo is broken down into a variety of sub-components that I will call modules.
 
