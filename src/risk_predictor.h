@@ -3,6 +3,7 @@
  * We should focus on putting the slower stuff to cpp first.
  * Tracker and scene.simulate are the slow ones.
  */
+# pragma once
 
 #include <string>
 #include "obj_det_state.h"

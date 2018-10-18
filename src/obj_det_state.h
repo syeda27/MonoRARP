@@ -3,8 +3,9 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include "types.cpp"
 #include <iostream>
+
+#include "types.cpp"
 
 namespace DRIVR {
 
