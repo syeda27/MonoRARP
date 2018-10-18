@@ -136,6 +136,7 @@ compiling_error.txt
 *.out
 *.o
 *.a
+*.gch
 
 # CMake -- we keep a CMakeLists.txt
 Compile/*
