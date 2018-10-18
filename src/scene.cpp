@@ -1,5 +1,11 @@
 #include "scene.h"
-#include <iostream>
+
+namespace DRIVR {
+
+Scene::Scene() {
+  ego_speed = std::make_pair(0.0, 15.0);
+  ego_accel = std::make_pair(0.0, 0.0);
+}
 
 Scene::Scene(std::unordered_map<std::string, Vehicle> * start_id_to_vehicle,
           std::pair<float, float> init_ego_speed,
@@ -19,11 +25,10 @@ Scene::Scene(std::unordered_map<std::string, Vehicle> * start_id_to_vehicle,
             {"a_thr", 0.2},
             {"delta_b", 0}
         });*/
-
 }
 
-int main() {
-    Vehicle vehicle;
-    vehicle.test();
-    return 0;
+void Scene::test() {
+  std::cout << "Tested Scene." << std::endl;
 }
+
+} // end DRIVR

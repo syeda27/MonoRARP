@@ -1,6 +1,9 @@
 #include "vehicle.h"
-#include <iostream>
+
+namespace DRIVR {
 
 void Vehicle::test() {
-  std::cout << "hello WORLD" << std::endl;
+  std::cout << "Tested Vehicle." << std::endl;
 }
+
+} // end DRIVR

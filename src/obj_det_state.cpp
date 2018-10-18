@@ -45,4 +45,8 @@ void State::update_distance(Args args, Box box, int image_height, int image_widt
     obj_key_to_state[object_key].update_distance(args, box, image_height, image_width);
 }
 
+void State::test() {
+    std::cout << "Tested State." << std::endl;
+}
+
 } // end DRIVR
