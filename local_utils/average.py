@@ -69,6 +69,8 @@ def average_logs(file_name,
             if key not in keys:
                 print("No valid key: {}".format(tokens))
                 continue
+            if ":" == tokens[token_idx_time][0]:
+                tokens[token_idx_time] = tokens[token_idx_time][1:]
             time = float(tokens[token_idx_time])
             num = 1
             if token_idx_num is not None:
@@ -87,4 +89,8 @@ print("\n\n\n")
 
 f = "risk_sim_times.log"
 keys = {"SceneInit", "RiskSim", "CalculateRisk"}
+average_logs(f, None, -1, check_valid_sim, keys=keys)
+
+f = "get_action_times.log"
+keys = {"GetFore", "GetLatAceel", "PropLongA"}
 average_logs(f, None, -1, check_valid_sim, keys=keys)
