@@ -7,11 +7,11 @@ import time
 The scene maintains the driver models and coordinates with the state.
 It does not alter state, but rather maintains its own version for propagation
 
-usage pseudocode would be, scene = scene(State[-1])
-risk = simulate(scene, 100, H=5)
 """
 class scene:
-    states = {}  # Passed in, actually state.states
+    vehicle_states = {}  # Used to initialize vehicle objects
+                         # VehicleID : state information for vehicle
+                                       # (distances, speeds, accels)
     scene = {}  # current scene: dict of vehicle id to vehicle objects
     ego_speed = (0,15)  # x, y for the ego vehicle, everything in
                         # a vehicle object is relative. this is not.
@@ -22,9 +22,9 @@ class scene:
     means = {}      # mean of parameters for IDM
     variances = {}  # variances of parameters for IDM
 
-    def __init__(self, states, ego_speed=(0,15), ego_accel=(0,0)):
-        self.states = states
-        self.reset_scene(states, ego_speed, ego_accel)
+    def __init__(self, vehicle_states, ego_speed=(0,15), ego_accel=(0,0)):
+        self.vehicle_states = vehicle_states
+        self.reset_scene(vehicle_states, ego_speed, ego_accel)
         self.means = {
                 "des_v": ego_speed[1],    # first IDM
                 "hdwy_t": 1.5,
@@ -51,17 +51,18 @@ class scene:
     def clear_scene(self):
         self.scene = {}
 
-    def set_ego(self, ego_speed=(0,15), ego_accel=(0,0)):
+    def set_ego(self, ego_speed, ego_accel):
         self.ego_speed = ego_speed
         self.ego_accel = ego_accel
         self.scene["ego"] = vehicle.vehicle("ego", dict()) # TODO params
 
-    def reset_scene(self, states, ego_speed=(0,15), ego_accel=(0,0)):
+    def reset_scene(self, vehicle_states, ego_speed=(0,15), ego_accel=(0,0)):
         self.clear_scene()
         self.set_ego(ego_speed, ego_accel)
-        for object_key in states.keys():
-            self.scene[object_key] = vehicle.vehicle(object_key,
-                states[object_key][-1])
+        for object_key in vehicle_states.keys():
+            self.scene[object_key] = vehicle.vehicle(
+                object_key,
+                vehicle_states[object_key])
 
     def update_scene(self, actions, step=0.2):
         for vehid in actions.keys():
@@ -86,12 +87,13 @@ class scene:
         if profile:
             start = time.time()
             deepcopy_time, n_deepcopy, sim_forward_time, n_sim = 0, 0, 0, 0
-            get_action_time, n_get_action, scene_update_time, n_scene_update = 0, 0, 0, 0
+            get_action_time, n_get_action, = 0, 0
+            scene_update_time, n_scene_update = 0, 0
 
-        for i in range(N):
+        for i in range(N):  # TODO modularize
             path = [] # a path is a list of scenes
             t = 0
-            self.reset_scene(self.states, self.ego_speed, self.ego_accel)
+            self.reset_scene(self.vehicle_states, self.ego_speed, self.ego_accel)
             for vehid in self.scene.keys():
                 self.scene[vehid].longitudinal_model.randomize_parameters(
                         self.means, self.variances)
@@ -106,7 +108,7 @@ class scene:
                 n_deepcopy += 1
                 start_sim_forward = time.time()
 
-            while t < H:
+            while t < H:  # TODO modularize
                 t += step
                 if profile:
                     start_get_action = time.time()

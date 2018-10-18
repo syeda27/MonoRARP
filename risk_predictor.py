@@ -126,7 +126,8 @@ class risk_predictor:
         elif risk_type.lower() == "online":
             if profile:
                 start = time.time()
-            this_scene = scene.scene(state.states,
+            this_scene = scene.scene(
+                    state.get_current_states(),
                     ego_speed=(0.0, state.get_ego_speed()),
                     ego_accel=(0.0, 0.0))  # TODO better initialization?
             if profile:

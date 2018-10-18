@@ -5,9 +5,9 @@ from collections import defaultdict
 
 
 '''
-Use the state to keep track of states associated with vehicles over time. 
+Use the state to keep track of states associated with vehicles over time.
 
-Simple use case is to store list of states, where bounding box index is 
+Simple use case is to store list of states, where bounding box index is
 the key to the stored state information.
 Then, we reset the stored information whever the tracker is reset.
 
@@ -26,17 +26,27 @@ class state:
     '''
 
     def __init__(self):
-        self.states = defaultdict(list)
+        self.state_histories = defaultdict(list)
+        # A dictionary of vehicle ID: list of vehicle state history
         self.ego_speed = 0
 
     # some helpers
     def clear(self):
-        self.states = defaultdict(list)
+        self.state_histories = defaultdict(list)
+
     def get_state(self, object_key=None):
         if object_key is not None:
-            return self.states[object_key]
-        return self.states
-    
+            return self.state_histories[object_key]
+        return self.state_histories
+
+    def get_current_states(self, object_key=None):
+        if object_key is not None:
+            return self.state_histories[object_key][-1]
+        current_state = {}
+        for vehicle_id, state_history in self.state_histories.items():
+            current_state[vehicle_id] = state_history[-1]
+        return current_state
+
     def get_ego_speed(self):
         return self.ego_speed
     def get_ego_speed_mph(self):
@@ -53,7 +63,7 @@ class state:
             # when further off center than this, we do not trust this distance.
             state["distance_y_t"] = triangle_similarity_distance(box, args.focal, args.carW)
         d_bbb = bottom_bounding_box_distance(box, im_h, im_w,
-                camera_height=args.cameraH, 
+                camera_height=args.cameraH,
                 camera_min_angle=args.cameraMinAngle,
                 camera_beta_max=args.cameraMaxHorizAngle,
                 carW = args.carW,
@@ -61,46 +71,46 @@ class state:
         if d_bbb is not None:
             state["distance_y_b"], state["distance_x_b"] = d_bbb
         state["distance_y_b2"], state["distance_x_b2"] = \
-                bottom_bounding_box_distance2(box, im_h, im_w, 
+                bottom_bounding_box_distance2(box, im_h, im_w,
                         camera_focal_len = args.focal,
                         camera_height = args.cameraH, carW=args.carW)
         state["distance_x"] = left_of_center(box, im_w) * \
                 np.mean([state[i] for i in state.keys() if "distance_x" in i])
         state["distance_y"] = np.mean([state[i] for i in state.keys() if "distance_y" in i])
-        self.states[object_key].append(state)
-        
+        self.state_histories[object_key].append(state)
+
     def update_speed(self, object_key):
-        S = calc_speed(self.states[object_key])
+        S = calc_speed(self.state_histories[object_key])
         Sy = None
         Sx = None
         if S is not None:
             Sy, Sx = S
         if Sy is not None:
-            self.states[object_key][-1]["speed_y"] = Sy
+            self.state_histories[object_key][-1]["speed_y"] = Sy
         if Sx is not None:
-            self.states[object_key][-1]["speed_x"] = Sx
+            self.state_histories[object_key][-1]["speed_x"] = Sx
 
     def log_test_output(self, args, box, im_h, im_w, object_key):
         print("==================================")
         print("Object:", object_key)
-        print("TRIANGLE")            
+        print("TRIANGLE")
         distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
         print("is centered?", distance_to_far_box_edge, im_w / 10)
         print(distance_to_far_box_edge < im_w / 10)
         print("dy:", triangle_similarity_distance(box, args.focal, args.carW))
         print("Bounding Box 1")
         bottom_bounding_box_distance(box, im_h, im_w,
-            camera_height=args.cameraH, 
-            camera_min_angle=args.cameraMinAngle, 
+            camera_height=args.cameraH,
+            camera_min_angle=args.cameraMinAngle,
             camera_beta_max=args.cameraMaxHorizAngle,
             carW = args.carW,
             rel_horizon=args.horizon, verbose=True)
         print("Bounding Box 2")
         bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
                 args.cameraH, carW=args.carW, verbose=True)
-        print("Average distance y:", self.states[object_key][-1]["distance_y"])
-        print("Average distance x:", self.states[object_key][-1]["distance_x"])
-        calc_speed(self.states[object_key], verbose=True)
+        print("Average distance y:", self.state_histories[object_key][-1]["distance_y"])
+        print("Average distance x:", self.state_histories[object_key][-1]["distance_x"])
+        calc_speed(self.state_histories[object_key], verbose=True)
         print("==================================")
 
 
@@ -110,23 +120,23 @@ class state:
     # box, im_h, im_w are pixels
     # car width in meters
     # TODO smooth distance
-    def update_state(self, box, im_h, im_w, args, object_key=1, 
+    def update_state(self, box, im_h, im_w, args, object_key=1,
             test=False, do_calibrate=False):
-        state_len = len(self.states[object_key])
+        state_len = len(self.state_histories[object_key])
         if state_len >= self.MAX_HISTORY:
-            self.states[object_key] = self.states[object_key][-(self.MAX_HISTORY-1):]
+            self.state_histories[object_key] = self.state_histories[object_key][-(self.MAX_HISTORY-1):]
         self.update_distance(args, box, im_h, im_w, object_key)
         self.update_speed(object_key)
-        
+
         if do_calibrate:
             calibrate(box, im_h, im_w)
         if test:
             self.log_test_output(args, box, im_h, im_w, object_key)
-        return self.states[object_key][-1]
+        return self.state_histories[object_key][-1]
 
 # TODO don't assume uniform frame rate - could record time
-# right now this function returns the average distance change per frame 
-#  from the last TO_USE  frames. 
+# right now this function returns the average distance change per frame
+#  from the last TO_USE  frames.
 # If there is no history, aka this is the first frame, it returns None so
 #  that it will be ignored.
 # state_for_object is the list of states (history) identified by an object.
@@ -180,7 +190,7 @@ rel_horizon is relative position of horizon in image. 0 <= x <= 1
 
 return dy (along centerline) and dx (perpendicular to that, aka horizontal)
 '''
-def bottom_bounding_box_distance(box, im_h, im_w, 
+def bottom_bounding_box_distance(box, im_h, im_w,
         rel_horizon=0.5, camera_min_angle=25.0, camera_height=1.0,
         camera_beta_max=90.0, carW=1.8, verbose=False):
     horizon_p = rel_horizon * im_h
@@ -192,10 +202,10 @@ def bottom_bounding_box_distance(box, im_h, im_w,
         return None
     phi = ((horizon_p - d_image) / horizon_p) * (90.0 - camera_min_angle)
     dy = camera_height / np.tan(np.deg2rad(phi))
-    dx = triangle_for_x(box, im_w, d_image, dy, 
+    dx = triangle_for_x(box, im_w, d_image, dy,
             beta_max=camera_beta_max, carW=carW)
     if verbose:
-        print("bottom bounding box, dy:", dy, "dx:", dx) 
+        print("bottom bounding box, dy:", dy, "dx:", dx)
     return (dy, dx)
 
 # to get dx
@@ -216,8 +226,8 @@ def triangle_for_x(box, im_w, d_image, dy, verbose=False,
     dx = dy * np.tan(np.deg2rad(beta)) - carW / 2
     return dx
 
-def bottom_bounding_box_distance2(box, im_h, im_w, 
-        camera_focal_len=1000, camera_height=1.0, 
+def bottom_bounding_box_distance2(box, im_h, im_w,
+        camera_focal_len=1000, camera_height=1.0,
         carW=1.8, verbose=False,
         millimeters_per_pixel=0.285):
     (left, right, top, bot) = box
@@ -229,15 +239,15 @@ def bottom_bounding_box_distance2(box, im_h, im_w,
     distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
     dx -= carW / 2
-    
+
     if verbose:
-        print("bot_box2: dy:", dy, "dx:", dx) 
+        print("bot_box2: dy:", dy, "dx:", dx)
     return (dy, dx)
 
 
 
 # 3/4" wide, 2.5" tall, 10 inches away, Focal of ~1000 for built in webcam
-def calibrate(box, im_h, im_w, object_width=0.18, 
+def calibrate(box, im_h, im_w, object_width=0.18,
         object_height=0.1325, distance=0.6096):
     (left, right, top, bot) = box
     object_width_pixels = right - left

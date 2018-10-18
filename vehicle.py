@@ -1,4 +1,5 @@
 import driver_models
+import time
 
 """
 A vehicle class to encapsulate features and driver models
@@ -20,15 +21,24 @@ class vehicle:
     lateral_model = None        # will be MOBIL, but need parameters
 
     # this state dict is for this car
-    def __init__(self, veh_id, state_dict,
-            des_v = 120, hdwy_t = 1.5, min_gap=2.0, accel=0.3, deccel=3.0,
-            p = 0.2, b_safe = 3, a_thr = 0.2, delta_b = 0):
+    def __init__(self,
+                 veh_id,
+                 state_dict,
+                 des_v=120,
+                 hdwy_t=1.5,
+                 min_gap=2.0,
+                 accel=0.3,
+                 deccel=3.0,
+                 p=0.2,
+                 b_safe=3,
+                 a_thr=0.2,
+                 delta_b=0):
         self.veh_id = veh_id
         self.set_values(state_dict)
-        self.longitudinal_model = driver_models.idm_model(des_v, hdwy_t,
-                min_gap, accel, deccel)
-        self.lateral_model = driver_models.mobil_model(p, b_safe, a_thr,
-                delta_b)
+        self.longitudinal_model = driver_models.idm_model(
+            des_v, hdwy_t, min_gap, accel, deccel)
+        self.lateral_model = driver_models.mobil_model(
+            p, b_safe, a_thr, delta_b)
 
     def set_values(self, state_dict):
         if "distance_x" in state_dict:
@@ -80,9 +90,16 @@ class vehicle:
     for lateral accel, we are accelerating without regard to physical
     limitations, in order to move lanes in 1 step.
     """
-    def get_action(self, scene, step=0.2):
+    def get_action(self, scene, step=0.2, profile=False):
+        if profile:
+            start = time.time()
         fore_vehicle = scene.get_fore_vehicle(scene.scene, self)
+        if profile:
+            get_fore_vehicle_time = time.time() - start
         lateral_accel = self.get_lateral_accel(fore_vehicle, scene, step)
+        if profile:
+            get_lat_accel_time = time.time() - (start + get_fore_vehicle_time)
+
         gap_y = fore_vehicle.rel_y - self.rel_y
         if gap_y <= 0:
             return (0,0) # don't react
@@ -91,4 +108,9 @@ class vehicle:
                 vy,                                 # own speed, absolute
                 gap_y,                              # fore gap
                 self.rel_vy - fore_vehicle.rel_vy)  # positive when approaching
+        if profile:
+            prop_time = time.time() - (start + get_fore_vehicle_time + get_lat_accel_time)
+            print("GetFore 1 vehicle took: {}".format(get_fore_vehicle_time))
+            print("GetLatAceel 1 vehicle took: {}".format(get_lat_accel_time))
+            print("PropLongA 1 vehicle took: {}".format(prop_time))
         return (lateral_accel, longitudinal_accel)
