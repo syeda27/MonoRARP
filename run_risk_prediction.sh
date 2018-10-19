@@ -84,7 +84,7 @@ else
     fi
     cd $TF_LOC
 
-    python $(echo $START_LOC)/run_risk_prediction.py \
+    python3 $(echo $START_LOC)/run_risk_prediction.py \
         --source $SOURCE \
         --save $SAVE --save_path $SAVE_PATH \
         --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
