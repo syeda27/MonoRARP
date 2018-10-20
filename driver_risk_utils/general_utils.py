@@ -1,5 +1,5 @@
 '''
-This file contains some general utility functions used in the driver risk 
+This file contains some general utility functions used in the driver risk
 estimation system.
 '''
 
@@ -25,3 +25,27 @@ def convert(im_height, im_width, b):
                               int(ymin * im_height), int(ymax * im_height))
     return (left, right, top, bot)
 
+
+class timing:
+    def __init__(self, keys):
+        self.start_times = {}
+        self.durations = {}
+        self.counts = {}
+
+        for key in keys:
+            self.start_times[key] = time.time()
+            self.durations[key] = 0
+            self.counts[key] = 0
+
+    def update_start(key):
+        self.start_times[key] = time.time()
+
+    def update_end(key, n=1):
+        self.counts[key] += n
+        self.durations[key] += time.time() - self.start_times[key]
+
+    def print_stats():
+        for key in keys:
+            print("{} {} took: {}".format(
+                key, self.counts[key], self.durations[key])
+            )

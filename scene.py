@@ -1,7 +1,10 @@
 import numpy as np
 import copy
 import vehicle
-import time
+
+from driver_risk_utils import scene_utils
+from driver_risk_utils import general_utils
+
 
 """
 The scene maintains the driver models and coordinates with the state.
@@ -126,131 +129,185 @@ class scene:
             self.scene[vehid].rel_vx = self.scene[vehid].rel_vx + dvx*step
             self.scene[vehid].rel_vy = self.scene[vehid].rel_vy + dvy*step
 
-    """
-    Runs N simulations using the IDM driver model
+    def simulate(self, N=100, H=5, step=0.2, verbose=False, profile=False):
+        """
+        Runs N simulations using the IDM driver model
 
-    returns paths (aka rollouts)
-    paths are a list of N path objects, (length N)
-    a path object is a list of a a dictionary of the vehicles in a scene
-        length (H / step)
-    """
-    def simulate(self, N=100, H=5, step = 0.2, verbose=False, profile=False):
+        Arguments:
+          N: integer
+            The number of paths to simulate.
+          H: float, seconds
+            The time horizon fo which to simulate to.
+          step: float, seconds
+            The step size to take, in seconds.
+          verbose: boolean
+            Whether or not to log various occurrences.
+          profile: boolean
+            Whether or not to print timings of functions.
+
+        Returns:
+          paths (aka rollouts)
+            A list of N path objects, (length N)
+            - a path object is a list of a dictionary of the vehicles in a
+                scene, of length (H / step)
+        """
+        timer = None # defines the variable in case not profiling.
         paths = [] # list of N paths, which are snapshots of the scenes
         if profile:
-            start = time.time()
-            deepcopy_time, n_deepcopy, sim_forward_time, n_sim = 0, 0, 0, 0
-            get_action_time, n_get_action, = 0, 0
-            scene_update_time, n_scene_update = 0, 0
+            timer = general_utils.timing(
+                ["Simulating", "Deepcopies", "SimForward", "GetAction", "SceneUpdate"])
+            timer.update_start("Simulating")
 
         for i in range(N):  # TODO modularize
-            path = [] # a path is a list of scenes
-            t = 0
-            self.reset_scene(self.vehicle_states, self.ego_vel, self.ego_accel)
-            for vehid in self.scene.keys():
-                self.scene[vehid].longitudinal_model.randomize_parameters(
-                        self.means, self.variances)
-                self.scene[vehid].lateral_model.randomize_parameters(
-                        self.means, self.variances)
-            if profile:
-                start_dc = time.time()
-
-            path.append(copy.deepcopy(self.scene))
-            if profile:
-                deepcopy_time += time.time() - start_dc
-                n_deepcopy += 1
-                start_sim_forward = time.time()
-
-            while t < H:  # TODO modularize
-                t += step
-                if profile:
-                    start_get_action = time.time()
-
-                actions = {}
-                for vehid in self.scene.keys():
-                    actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
-                    if verbose:
-                        print("action for", vehid, ":", actions[vehid])
-                if profile:
-                    get_action_time += time.time() - start_get_action
-                    n_get_action += 1
-                    start_scene_update = time.time()
-                self.update_scene(actions, step)
-                if profile:
-                    scene_update_time += time.time() - start_scene_update
-                    n_scene_update += 1
-                    start_dc = time.time()
-                path.append(copy.deepcopy(self.scene))
-                if profile:
-                    deepcopy_time += time.time() - start_dc
-                    n_deepcopy += 1
-
-            if profile:
-                sim_forward_time += time.time() - start_sim_forward
-                n_sim += 1
-            paths.append(path)
+            paths.append(self.simulate_one_path(H, step, verbose, profile, timer))
         if profile:
-            print("Simulating {} paths took: {}".format(N, time.time()-start))
-            print("Deepcopies {} took: {}".format(n_deepcopy, deepcopy_time))
-            print("SimForward {} took: {}".format(n_sim, sim_forward_time))
-            print("GetAction {} took: {}".format(n_get_action, get_action_time))
-            print("SceneUpdate {} took: {}".format(n_scene_update, scene_update_time))
+            timer.update_end("Simulating", N)
+            timer.print_stats()
         return paths
 
-    # me is a vehicle object
-    def get_fore_vehicle(self, current_scene, me, verbose=False):
-        best = None
-        closest_y = 1000
-        for vehid in current_scene.keys():
-            if vehid == me.veh_id: continue
-            them = current_scene[vehid]
-            if abs(them.rel_x - me.rel_x) <= (self.lane_width_m / 2):
-                gap = them.rel_y - me.rel_y
-                if gap < closest_y and gap > 0:
-                    closest_y = gap
-                    best = them
-        if best is None:
-            best = vehicle.vehicle("fake_veh",
-                {"speed_x": me.rel_vx,
-                 "speed_y": me.rel_vy,          # same speed
-                 "distance_y": me.rel_y + 1000, # largest gap
-                 "distance_x": me.rel_x + 10})  # unused
-        if verbose:
-            print("me: ", me.veh_id, "fore: ", best.veh_id)
-        return best
+    def simulate_one_path(self, H, step, verbose, profile, timer):
+        """
+        Simulates one path out to time horizon H by step size (step).
 
-    # vehicle.rel_x is negative if left
+        Arguments:
+          H: float, seconds
+            The time horizon fo which to simulate to.
+          step: float, seconds
+            The step size to take, in seconds.
+          verbose: boolean
+            Whether or not to log various occurrences.
+          profile: boolean
+            Whether or not to print timings of functions.
+          timer: general_utils.timing object. None if profile == False
+            The object that is keeping track of various timing qualities.
+
+        Returns:
+          path: A path object, which is a list of a dictionary of the vehicle
+              in objects in the scene, of length (H / step).
+        """
+        self.reset_scene(self.vehicle_states, self.ego_vel, self.ego_accel)
+        for vehid in self.scene.keys():
+            self.scene[vehid].longitudinal_model.randomize_parameters(
+                    self.means, self.variances)
+            self.scene[vehid].lateral_model.randomize_parameters(
+                    self.means, self.variances)
+        if profile:
+            timer.update_start("Deepcopies")
+        path.append(copy.deepcopy(self.scene))
+        if profile:
+            timer.update_end("Deepcopies", 1)
+            timer.update_start("SimForward")
+        path = [] # a path is a list of scenes
+        t = 0
+        while t < H:  # TODO modularize
+            t += step # need while loop because range doesnt handle float step.
+            path.append(self.do_one_step(step, profile, timer))
+
+        if profile:
+            timer.update_end("SimForward", 1)
+        return path
+
+    def do_one_step(self, step, profile, timer):
+        """
+        Does one step of path generation.
+        This involves computing the actions for each vehicle in the scene,
+          and updating the scene with the appropriate actions and step size.
+
+        Arguments:
+          step: float, seconds
+            The step size to take, in seconds.
+          profile: boolean
+            Whether or not to print timings of functions.
+          timer: general_utils.timing object. None if profile == False
+            The object that is keeping track of various timing qualities.
+
+        Returns:
+          scene_here: dict< string : dictionary <string:float> >
+            VehicleID : state information like relative position, velocity, etc.
+            This variable is what is simulated, and we must create a copy
+              through the use of deepcopy() to return.
+
+        """
+        if profile:
+            timer.update_start("GetAction")
+
+        actions = {}
+        for vehid in self.scene.keys():
+            actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
+            if verbose:
+                print("action for", vehid, ":", actions[vehid])
+        if profile:
+            timer.update_end("GetAction", 1)
+            timer.update_start("SceneUpdate")
+
+        self.update_scene(actions, step)
+        if profile:
+            timer.update_end("SceneUpdate", 1)
+            timer.update_start("Deepcopies")
+        scene_here = copy.deepcopy(self.scene)
+        if profile:
+            timer.update_end("Deepcopies", 1)
+        return scene_here
+
+    def get_fore_vehicle(self, current_scene, me, verbose=False):
+        """
+        Wrapper to utils to get the vehicle in front of "me". "me" is a vehicle
+        object that is not necessarily the ego vehicle, just the vehicle we are
+        getting the neighbor with respect to.
+
+        Arguments:
+          current_scene: dict< string : dictionary <string:float> >
+            VehicleID : state information like relative position, velocity, etc.
+          me: Vehicle
+            A Vehicle object that exists in the current scene.
+          verbose: boolean
+            Whether or not to log various occurrences.
+
+        Returns:
+          A Vehicle object
+        """
+        return scene_utils.get_fore_vehicle(
+            self.lane_width_m, current_scene, me, verbose)
+
     def get_back_vehicle(self, current_scene, me, left=True, verbose=False):
-        best = None
-        closest_y = 1000
-        for vehid in current_scene.keys():
-            if vehid == me.veh_id: continue
-            them = current_scene[vehid]
-            dx = them.rel_x - me.rel_x
-            if left:
-                if dx > 0: continue
-            else:
-                if dx < 0: continue
-            dx = abs(dx)
-            if dx > self.lane_width_m * 0.5 and dx < self.lane_width_m * 1.5:
-                gap = me.rel_y - them.rel_y # positive when me is in front
-                if gap < closest_y and gap > 0:
-                    closest_y = gap
-                    best = them
-        if best is None:
-            lane_x = self.lane_width_m
-            if left:
-                lane_x = -lane_x
-            best = vehicle.vehicle("fake_veh",
-                {"speed_x": me.rel_vx,
-                 "speed_y": me.rel_vy,              # same speed
-                 "distance_y": me.rel_y - 1000,     # largest gap
-                 "distance_x": me.rel_x - lane_x})  # in other lane
-        return best
+        """
+        Wrapper to utils to get the vehicle behind "me", in either the lane to
+        the left, or the lane to the right. See driver_models.py for the
+        motivation for this function, specifically the MOBIL model.
+
+        "me" is a vehicle object that is not necessarily the ego vehicle, just
+        the vehicle we are getting the neighbor with respect to.
+
+        # vehicle.rel_x is negative if left
+
+        Arguments:
+          current_scene: dict< string : dictionary <string:float> >
+            VehicleID : state information like relative position, velocity, etc.
+          me: Vehicle
+            A Vehicle object that exists in the current scene. We are finding
+            the neighboring vehicle with respect to "me"
+          left: boolean
+            Whether or not we want to get the vehicle behind us in
+          verbose: boolean
+            Whether or not to log various occurrences.
+
+        Returns:
+          A Vehicle object
+        """
+        return scene_utils.get_back_vehicle(
+            self.lane_width_m, current_scene, me, left, verbose)
 
     # TODO check negation is correct
-    # me is a vehicle object
     def get_back_vehicle_left(self, current_scene, me, verbose=False):
+        """
+        Wrapper to get_back_vehicle, see the function comments for
+        get_back_vehicle() for arguments and returns.
+        """
         return self.get_back_vehicle(current_scene, me, left=True, verbose=verbose)
 
     def get_back_vehicle_right(self, current_scene, me, verbose=False):
+        """
+        Wrapper to get_back_vehicle, see the function comments for
+        get_back_vehicle() for arguments and returns.
+        """
         return self.get_back_vehicle(current_scene, me, left=False, verbose=verbose)
