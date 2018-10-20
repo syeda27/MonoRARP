@@ -174,8 +174,6 @@ class scene:
             The time horizon fo which to simulate to.
           step: float, seconds
             The step size to take, in seconds.
-          verbose: boolean
-            Whether or not to log various occurrences.
           profile: boolean
             Whether or not to print timings of functions.
           timer: general_utils.timing object. None if profile == False
@@ -191,23 +189,23 @@ class scene:
                     self.means, self.variances)
             self.scene[vehid].lateral_model.randomize_parameters(
                     self.means, self.variances)
+        path = [] # a path is a list of scenes
         if profile:
             timer.update_start("Deepcopies")
         path.append(copy.deepcopy(self.scene))
         if profile:
             timer.update_end("Deepcopies", 1)
             timer.update_start("SimForward")
-        path = [] # a path is a list of scenes
         t = 0
         while t < H:  # TODO modularize
             t += step # need while loop because range doesnt handle float step.
-            path.append(self.do_one_step(step, profile, timer))
+            path.append(self.do_one_step(step, verbose, profile, timer))
 
         if profile:
             timer.update_end("SimForward", 1)
         return path
 
-    def do_one_step(self, step, profile, timer):
+    def do_one_step(self, step, verbose, profile, timer):
         """
         Does one step of path generation.
         This involves computing the actions for each vehicle in the scene,
@@ -216,6 +214,8 @@ class scene:
         Arguments:
           step: float, seconds
             The step size to take, in seconds.
+          verbose: boolean
+            Whether or not to log various occurrences.
           profile: boolean
             Whether or not to print timings of functions.
           timer: general_utils.timing object. None if profile == False
