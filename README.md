@@ -1,7 +1,6 @@
 # Real time driver risk estimation using object detection
 ### Integrated inputs include monocular video sources and GPS
 
-
 ## Install Instructions
 * Nothing directly for this repo
 * If the use of YOLO is desired, install darkflow and the correct changes to net/help.py and net/build.py.
@@ -12,7 +11,7 @@
         - You will need to download the pretrained model
 * Need openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
-* See [Docs/Install.md] for full instructions
+* See [Docs/Install.md](Docs/Install.md) for full instructions
 
 ## Running Guide
 * If all you want to do is run it, the only file you need to care about is run_risk_prediction.sh
@@ -20,13 +19,13 @@
 * To compile and run in C++ (IN PROGRESS):
     - `./compile_cpp.sh`  <-- this cleans all of the exisiting CMake files and compiled binaries,and then runs `cmake` and `make` in the `Compile` directory.
     - Then run the binaries in the `bin` file.
-* See [Docs/RunningGuide.md] for full guide / walthrough.
+* See [Docs/RunningGuide.md](Docs/RunningGuide.md) for full guide / walthrough.
 
 ## File Breakdown
-See [Docs/ProjectStructure.md]
+See [Docs/ProjectStructure.md](Docs/ProjectStructure.md)
 
 # Improvements to make
-See [Docs/FutureWork.md]
+See [Docs/FutureWork.md](Docs/FutureWork.md)
 
 
 
