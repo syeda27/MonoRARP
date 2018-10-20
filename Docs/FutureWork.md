@@ -1,8 +1,10 @@
 # Real time driver risk estimation using object detection
 ### Integrated inputs include monocular video sources and GPS
 
+TODO: update all documents...
+
 # Improvements to make
-This work is currently just a litle bit more than a minimum viable product. To that end, there are a lot of possible improvements to make. Below I have listed the ones I have thought of, in no particular order:
+This work is currently just a little bit more than a minimum viable product. To that end, there are a lot of possible improvements to make. Below I have listed the ones I have thought of, in no particular order:
 * Prioritize these improvements
 * Incorporate Lane Information
     - Helen Jiang did a great job of working on this, so we still have to incorporate it into this setup somehow.
