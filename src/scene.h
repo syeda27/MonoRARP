@@ -1,7 +1,11 @@
 #pragma once
 #include <unordered_map>
 #include <string>
+#include <iostream>
+
 #include "vehicle.h"
+
+namespace DRIVR {
 
 class Scene {
     public:
@@ -13,9 +17,12 @@ class Scene {
     static const std::unordered_map<std::string, float> param_to_mean;
     static const std::unordered_map<std::string, float> param_to_variance;
 
-
+    Scene();
     Scene(std::unordered_map<std::string, Vehicle> * start_id_to_vehicle,
           const std::pair<float, float> init_ego_speed=std::make_pair(0.0, 15.0),
           const std::pair<float, float> init_ego_accel=std::make_pair(0.0, 0.0));
 
+    void test();
 };
+
+} // end DRIVR

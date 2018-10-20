@@ -3,7 +3,9 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include "types.h"
+#include <iostream>
+
+#include "types.cpp"
 
 namespace DRIVR {
 
@@ -41,6 +43,8 @@ class State {
     void set_ego_speed(float speed_mps);
 
     void update_distance(Args args, Box box, int image_height, int image_width, std::string object_key);
+
+    void test();
 };
 
 } // end DRIVR
