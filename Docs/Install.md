@@ -11,22 +11,5 @@
         - You will need to download the pretrained model
 * Need openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
-* See [Docs/Install.md](Docs/Install.md) for full instructions
-
-## Running Guide
-* If all you want to do is run it, the only file you need to care about is run_risk_prediction.sh
-    - It is a bash script that handles numerous flags.
-* To compile and run in C++ (IN PROGRESS):
-    - `./compile_cpp.sh`  <-- this cleans all of the exisiting CMake files and compiled binaries,and then runs `cmake` and `make` in the `Compile` directory.
-    - Then run the binaries in the `bin` file.
-* See [Docs/RunningGuide.md](Docs/RunningGuide.md) for full guide / walthrough.
-
-## File Breakdown
-See [Docs/ProjectStructure.md](Docs/ProjectStructure.md)
-
-# Improvements to make
-See [Docs/FutureWork.md](Docs/FutureWork.md)
-
-
 
 *This research was funded by The Allstate Corporation.*
