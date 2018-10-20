@@ -12,8 +12,8 @@ from io import StringIO
 sys.path.append("..")
 from object_detection.utils import ops as utils_ops
 #session_config.gpu_options.per_process_gpu_memory_fraction = 0.6
-from utils import label_map_util
-from utils import visualization_utils as vis_util
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
 
 # Now importing custom packages
 # We want to add the directory that contains this file to the path list:

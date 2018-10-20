@@ -128,7 +128,7 @@ class risk_predictor:
                 start = time.time()
             this_scene = scene.scene(
                     state.get_current_states(),
-                    ego_speed=(0.0, state.get_ego_speed()),
+                    ego_vel=(0.0, state.get_ego_speed()),
                     ego_accel=(0.0, 0.0))  # TODO better initialization?
             if profile:
                 print("SceneInit took: {}".format(time.time() - start))

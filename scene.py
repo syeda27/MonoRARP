@@ -7,26 +7,41 @@ import time
 The scene maintains the driver models and coordinates with the state.
 It does not alter state, but rather maintains its own version for propagation
 
+Maintains internal copy of the original vehicle objects (vehicle_states)
+Maintains and updates internal representation of all vehicles: (scene)
+        # current scene: dict of vehicle id to vehicle objects
+
+Also maintains means and variances for the driver models we are using.
+ TODO - a better way of doing this.
+        means = {}      # mean of parameters for IDM and MOBIL
+        variances = {}  # variances of parameters for IDM and MOBIL
 """
 class scene:
-    vehicle_states = {}  # Used to initialize vehicle objects
-                         # VehicleID : state information for vehicle
-                                       # (distances, speeds, accels)
-    scene = {}  # current scene: dict of vehicle id to vehicle objects
-    ego_speed = (0,15)  # x, y for the ego vehicle, everything in
-                        # a vehicle object is relative. this is not.
-    ego_accel = (0,0)   # x, y
+    def __init__(self,
+                 vehicle_states,
+                 ego_vel=(0,15),
+                 ego_accel=(0,0),
+                 lane_width=3.7):
+        """
+        Initializes the scene object with internal parameters.
 
-    lane_width = 3.7    # meters
-
-    means = {}      # mean of parameters for IDM
-    variances = {}  # variances of parameters for IDM
-
-    def __init__(self, vehicle_states, ego_speed=(0,15), ego_accel=(0,0)):
+        Arguments:
+          vehicle_states: dict< string : dictionary <string:float> >
+            dictionary used to initialize the vehicle objects.
+            VehicleID : state information for Vehicle (distance, speed, accel).
+            Not updated over time, used to reset.
+          ego_vel: tuple(float, float), m/s: the ego vehicle's speed. This is
+            needed to initialize the ego vehicle, and adjust to absolute velocity.
+          ego_accel: tuple(float, float), m/s^2: the ego vehicle's acceleration.
+            This is needed to initialize the ego vehicle.
+          lane_width: float, m. To represent the road and find lane changes, etc.,
+            we would like an estimate of the lane width.
+        """
+        self.lane_width_m = lane_width
         self.vehicle_states = vehicle_states
-        self.reset_scene(vehicle_states, ego_speed, ego_accel)
+        self.reset_scene(vehicle_states, ego_vel, ego_accel)
         self.means = {
-                "des_v": ego_speed[1],    # first IDM
+                "des_v": ego_vel[1],    # first IDM
                 "hdwy_t": 1.5,
                 "min_gap": 2.0,
                 "accel": 0.5,
@@ -49,22 +64,59 @@ class scene:
                 }
 
     def clear_scene(self):
+        """
+        Clears the internal dictionary of vehicles.
+        """
         self.scene = {}
 
-    def set_ego(self, ego_speed, ego_accel):
-        self.ego_speed = ego_speed
+    def set_ego(self, ego_vel, ego_accel):
+        """
+        Creates an ego vehicle for the scene based on the velocity and accel.
+
+        Arguments:
+          ego_vel: tuple(float, float), m/s: the ego vehicle's speed. This is
+            needed to initialize the ego vehicle, and adjust to absolute velocity.
+          ego_accel: tuple(float, float), m/s^2: the ego vehicle's acceleration.
+            This is needed to initialize the ego vehicle.
+        """
+        self.ego_vel = ego_vel
         self.ego_accel = ego_accel
         self.scene["ego"] = vehicle.vehicle("ego", dict()) # TODO params
 
-    def reset_scene(self, vehicle_states, ego_speed=(0,15), ego_accel=(0,0)):
+    def reset_scene(self, vehicle_states=None, ego_vel=(0,15), ego_accel=(0,0)):
+        """
+        Wrapper to clear the scene, set the ego vehicle, and then create vehicle
+          objects for each vehicle in vehicle_states.
+        Arguments:
+          vehicle_states: dict< string : dictionary <string:float> >
+            dictionary used to initialize the vehicle objects.
+            VehicleID : state information for Vehicle (distance, speed, accel).
+            If None, use self.vehicle_states
+          ego_vel: tuple(float, float), m/s: the ego vehicle's speed. This is
+            needed to initialize the ego vehicle, and adjust to absolute velocity.
+          ego_accel: tuple(float, float), m/s^2: the ego vehicle's acceleration.
+            This is needed to initialize the ego vehicle.
+        """
         self.clear_scene()
-        self.set_ego(ego_speed, ego_accel)
+        self.set_ego(ego_vel, ego_accel)
+        if vehicle_states == None:
+            vehicle_states = self.vehicle_states
         for object_key in vehicle_states.keys():
             self.scene[object_key] = vehicle.vehicle(
                 object_key,
                 vehicle_states[object_key])
 
     def update_scene(self, actions, step=0.2):
+        """
+        Propagate self.scene forward by timestep {step} using the provided actions.
+        Arguments:
+          actions: dict <sting : tuple<float, float> >
+            A dictionary of vehicle id to acceleration lateral and acceleration
+            longitudinal. Order matters because it is a tuble.
+            Both values are in m/s^2.
+          step: float, seconds
+            The step size to take, in seconds.
+        """
         for vehid in actions.keys():
             dvx, dvy = actions[vehid]
             self.scene[vehid].rel_x += self.scene[vehid].rel_vx*step + 0.5*dvx*(step**2)
@@ -93,7 +145,7 @@ class scene:
         for i in range(N):  # TODO modularize
             path = [] # a path is a list of scenes
             t = 0
-            self.reset_scene(self.vehicle_states, self.ego_speed, self.ego_accel)
+            self.reset_scene(self.vehicle_states, self.ego_vel, self.ego_accel)
             for vehid in self.scene.keys():
                 self.scene[vehid].longitudinal_model.randomize_parameters(
                         self.means, self.variances)
@@ -151,7 +203,7 @@ class scene:
         for vehid in current_scene.keys():
             if vehid == me.veh_id: continue
             them = current_scene[vehid]
-            if abs(them.rel_x - me.rel_x) <= (self.lane_width / 2):
+            if abs(them.rel_x - me.rel_x) <= (self.lane_width_m / 2):
                 gap = them.rel_y - me.rel_y
                 if gap < closest_y and gap > 0:
                     closest_y = gap
@@ -179,13 +231,13 @@ class scene:
             else:
                 if dx < 0: continue
             dx = abs(dx)
-            if dx > self.lane_width * 0.5 and dx < self.lane_width * 1.5:
+            if dx > self.lane_width_m * 0.5 and dx < self.lane_width_m * 1.5:
                 gap = me.rel_y - them.rel_y # positive when me is in front
                 if gap < closest_y and gap > 0:
                     closest_y = gap
                     best = them
         if best is None:
-            lane_x = self.lane_width
+            lane_x = self.lane_width_m
             if left:
                 lane_x = -lane_x
             best = vehicle.vehicle("fake_veh",

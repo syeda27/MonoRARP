@@ -56,10 +56,10 @@ class vehicle:
 
     def get_lateral_accel(self, fore_vehicle, scene, step=0.2):
         if self.lateral_distance > 0: # in a lane change maneuver
-            if self.lateral_distance >= scene.lane_width:
+            if self.lateral_distance >= scene.lane_width_m:
                 # lane change is done, stop changing lanes
                 self.lateral_distance = 0
-                return -(self.rel_vx + scene.ego_speed[0]) / step
+                return -(self.rel_vx + scene.ego_vel[0]) / step
             else:
                 # still changing lanes
                 return 0
@@ -70,7 +70,7 @@ class vehicle:
         backs_fore_vehicle_right = scene.get_fore_vehicle(scene.scene, back_vehicle_right)
         change_lanes = self.lateral_model.propagate(self, fore_vehicle,
                 back_vehicle_right, backs_fore_vehicle_right,
-                scene.ego_speed[1], step)
+                scene.ego_vel[1], step)
         if change_lanes > 0:
             return change_lanes
 
@@ -81,7 +81,7 @@ class vehicle:
                 scene.scene, back_vehicle_left)
         change_lanes = self.lateral_model.propagate(self, fore_vehicle,
                 back_vehicle_left, backs_fore_vehicle_left,
-                scene.ego_speed[1], step)
+                scene.ego_vel[1], step)
         return change_lanes
 
     """
@@ -103,7 +103,7 @@ class vehicle:
         gap_y = fore_vehicle.rel_y - self.rel_y
         if gap_y <= 0:
             return (0,0) # don't react
-        vy = self.rel_vy + scene.ego_speed[1]
+        vy = self.rel_vy + scene.ego_vel[1]
         longitudinal_accel = self.longitudinal_model.propagate(\
                 vy,                                 # own speed, absolute
                 gap_y,                              # fore gap
