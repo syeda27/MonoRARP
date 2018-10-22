@@ -6,7 +6,7 @@ from collections import defaultdict
 from driver_risk_utils import general_utils
 from driver_risk_utils import state_estimation_utils as s_utils
 
-'''
+"""
 Use the state to keep track of states associated with vehicles over time.
 
 Simple use case is to store list of states, where bounding box index is
@@ -16,16 +16,16 @@ Then, we reset the stored information whever the tracker is reset.
 A more complex case is to store past state information and associate it with
 the closest bounding box at query time.
 We store a maximum amount of information at any given time.
-'''
+"""
 class state:
     MAX_HISTORY = 100
 
-    '''
+    """
     states is the main component here.
 
     It is a dictionary that stores object key: past_state_info
     past_state_info is a list of dictionaries for this object.
-    '''
+    """
 
     def __init__(self):
         self.state_histories = defaultdict(list)
