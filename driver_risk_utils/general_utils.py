@@ -37,15 +37,16 @@ class timing:
             self.durations[key] = 0
             self.counts[key] = 0
 
-    def update_start(key):
+    def update_start(self, key):
         self.start_times[key] = time.time()
 
-    def update_end(key, n=1):
+    def update_end(self, key, n=1):
         self.counts[key] += n
         self.durations[key] += time.time() - self.start_times[key]
 
-    def print_stats():
-        for key in keys:
+    def print_stats(self):
+        for key in self.start_times.keys():
+            if self.counts[key] == 0: continue
             print("{} {} took: {}".format(
                 key, self.counts[key], self.durations[key])
             )

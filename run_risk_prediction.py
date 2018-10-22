@@ -279,7 +279,7 @@ class runner:
                 verbose=False)
         return self.risk_predictor.prev_risk
 
-    def process_queue(self):
+    def process_queue(self, profile=False):
         """
         Iterate over all images in queue to calculate and display everything.
         This function includes the call to run the object detection network,
@@ -287,15 +287,32 @@ class runner:
 
         Note: resets self.buffer_inp and self.buffer_pre to empty lists.
         """
+        timer = None
+        if profile:
+            timer = general_utils.timing(
+                ["NeuralNet", "DetectObjects", "GetRisk", "Display"])
         net_out = None
         if self.tracker_obj.should_reset():
+            if profile:
+                timer.update_start("NeuralNet")
             net_out = self.sess.run(self.tensor_dict,
                                     feed_dict={self.image_tensor: self.buffer_pre})
+            if profile:
+                timer.update_end("NeuralNet", 1)
         for i in range(self.launcher.all_args.queue):
             # Visualization of the results of a detection
+            if profile:
+                timer.update_start("DetectObjects")
             do_convert, boxes, labels = self.detect_objects(i, net_out)
+            if profile:
+                timer.update_end("DetectObjects", len(boxes))
+                timer.update_start("GetRisk")
+
             risk = self.get_risk()
 
+            if profile:
+                timer.update_end("GetRisk", 1)
+                timer.update_start("Display")
             img = display_utils.display(
                     self.launcher.all_args,
                     self.state,
@@ -306,11 +323,17 @@ class runner:
                     labels,
                     fps=self.fps
                 )
+
+            if profile:
+                timer.update_end("Display", 1)
+
             if self.launcher.all_args.save:
                 self.videoWriter.write(img)
             cv2.imshow('', img)
         self.buffer_inp = list()
         self.buffer_pre = list()
+        if profile:
+            timer.print_stats()
 
     def process_frame(self):
         """

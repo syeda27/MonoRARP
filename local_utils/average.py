@@ -85,12 +85,18 @@ def average_logs(file_name,
 f = "simulated_times.log"
 keys = {"SimForward", "Deepcopies", "GetAction", "SceneUpdate", "Simulating"}
 average_logs(f, 1, -1, check_valid_sim, keys=keys, total_key="Simulating")
-print("\n\n\n")
 
+print("\n\n\n")
 f = "risk_sim_times.log"
 keys = {"SceneInit", "RiskSim", "CalculateRisk"}
 average_logs(f, None, -1, check_valid_sim, keys=keys)
 
+print("\n\n\n")
 f = "get_action_times.log"
 keys = {"GetFore", "GetLatAceel", "PropLongA"}
 average_logs(f, None, -1, check_valid_sim, keys=keys)
+
+print("\n\n\n")
+f = "queue_processing.log"
+keys = {"NeuralNet", "DetectObjects", "GetRisk", "Display"}
+average_logs(f, 1, -1, check_valid_sim, keys=keys)

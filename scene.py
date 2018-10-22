@@ -151,6 +151,9 @@ class scene:
             - a path object is a list of a dictionary of the vehicles in a
                 scene, of length (H / step)
         """
+        if verbose:
+            print("Simulating {} paths for horizon {} by steps of {}".format(
+                N, H, step))
         timer = None # defines the variable in case not profiling.
         paths = [] # list of N paths, which are snapshots of the scenes
         if profile:

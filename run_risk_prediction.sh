@@ -17,7 +17,6 @@ TF_LOC='/home/derek/env_tf_models_research/object_detection'
 if [ "$1" != "" ]; then
     TF_LOC=$1
 fi
-echo $TF_LOC
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
