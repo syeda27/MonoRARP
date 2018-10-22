@@ -25,6 +25,10 @@ def convert(im_height, im_width, b):
                               int(ymin * im_height), int(ymax * im_height))
     return (left, right, top, bot)
 
+def mph_to_mps(mph):
+    return mph * 0.44704
+def mps_to_mph(mps):
+    return mps / 0.44704
 
 class timing:
     def __init__(self, keys):
