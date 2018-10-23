@@ -20,11 +20,15 @@ class state:
     We store a maximum amount of information at any given time.
 
     ego_speed is in meters per second. We provide helpers to convert from mph.
-    It represents the absolute speed for the ego vehicle.
+    It represents the absolute speed for the ego vehicle, at the most recent
+    time step.
+    ego_speed is not used in the methods for the state class, but is still
+    associated with the state class. We do not need to track its history, but
+    if the need arises it would be easy to accomodate. 
     """
-    MAX_HISTORY = 100
 
-    def __init__(self):
+    def __init__(self, max_history=10):
+        self.max_history = max_history
         self.state_histories = defaultdict(list)
         # A dictionary of vehicle ID: list of vehicle state history
         self.ego_speed = 0
@@ -169,8 +173,8 @@ class state:
         """
 
         state_len = len(self.state_histories[object_key])
-        if state_len >= self.MAX_HISTORY:
-            self.state_histories[object_key] = self.state_histories[object_key][-(self.MAX_HISTORY-1):]
+        if state_len >= self.max_history:
+            self.state_histories[object_key] = self.state_histories[object_key][-(self.max_history-1):]
         self._update_distance(args, box, im_h, im_w, object_key)
         self._update_speed(object_key)
 
@@ -239,7 +243,7 @@ class state:
           exist in the state_histories, we will get an S of None from utils,
           and thus never update the speed.
         """
-        S = s_utils.calc_speed(self.state_histories[object_key])
+        S = s_utils.calc_speed(self.get_state(object_key), to_use=5)
         Sy = None
         Sx = None
         if S is not None:

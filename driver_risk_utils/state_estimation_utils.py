@@ -6,10 +6,10 @@ distance to bounding boxes.
 import numpy as np
 
 # TODO don't assume uniform frame rate - could record time
-def calc_speed(state_for_object, TO_USE=5, verbose=False):
+def calc_speed(state_for_object, to_use=5, verbose=False):
     """
     Right now this function returns the average distance change per frame
-     from the last TO_USE  frames.
+     from the last to_use  frames.
     If there is no history, aka this is the first frame, it returns None so
      that it will be ignored.
     Also, average with the previous calculated speed, if it exists.
@@ -19,7 +19,7 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
         The list of states (history) identified by an object.
         Each state in the list is a dictionary of keys like 'distance_y' to
         their appropriate values.
-      TO_USE:
+      to_use:
         The number of frames to use when calculating speed.
       verbose: boolean
         Whether or not to log extra information.
@@ -33,7 +33,7 @@ def calc_speed(state_for_object, TO_USE=5, verbose=False):
             print("Speed")
             print("state not long enough")
         return None, None
-    to_consider = state_for_object[-TO_USE:]
+    to_consider = state_for_object[-to_use:]
     Dx, nx, Dy, ny = 0.0, 0, 0.0, 0
     for i in range(len(to_consider) - 1):
         if "distance_y" in to_consider[i+1] and "distance_y" in to_consider[i]:
