@@ -15,7 +15,7 @@ def calc_speed(state_for_object, to_use=5, verbose=False):
     Also, average with the previous calculated speed, if it exists.
 
     Arguments:
-      state_for_object: list <dict <string: float> >
+      state_for_object: list <vehicle_state >
         The list of states (history) identified by an object.
         Each state in the list is a dictionary of keys like 'distance_y' to
         their appropriate values.
@@ -36,16 +36,22 @@ def calc_speed(state_for_object, to_use=5, verbose=False):
     to_consider = state_for_object[-to_use:]
     Dx, nx, Dy, ny = 0.0, 0, 0.0, 0
     for i in range(len(to_consider) - 1):
-        if "distance_y" in to_consider[i+1] and "distance_y" in to_consider[i]:
-            Dy += (to_consider[i+1]['distance_y']
-                   - to_consider[i]['distance_y']
-                  )
-            ny += 1
-        if "distance_x" in to_consider[i+1] and "distance_x" in to_consider[i]:
-            Dx += (to_consider[i+1]['distance_x']
-                   - to_consider[i]['distance_x']
-                  )
-            nx += 1
+        n = 1.0  # will be time
+        if to_consider[i+1].update_time is not None \
+            and to_consider[i].update_time is not None:
+                n = to_consider[i+1].update_time - to_consider[i].update_time
+        if "distance_y" in to_consider[i+1].quantities \
+            and "distance_y" in to_consider[i].quantities:
+                Dy += (to_consider[i+1].quantities['distance_y']
+                       - to_consider[i].quantities['distance_y']
+                      )
+                ny += n
+        if "distance_x" in to_consider[i+1].quantities \
+            and "distance_x" in to_consider[i].quantities:
+                Dx += (to_consider[i+1].quantities['distance_x']
+                        - to_consider[i].quantities['distance_x']
+                      )
+                nx += n
     Sy, Sx = None, None
     if ny > 0:
         Sy = Dy / ny

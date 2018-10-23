@@ -35,7 +35,7 @@ def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
                         (0,0,50), int(thick/3))
             continue
         this_state = STATE.update_state((left, right, top, bot),
-                im_height, im_width, args, object_key=i)
+                im_height, im_width, args, object_key=i).quantities
         text = ""
         text2 = ""
         object_label = "obj: " + str(i)

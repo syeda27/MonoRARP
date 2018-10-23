@@ -29,7 +29,7 @@ class scene:
         Initializes the scene object with internal parameters.
 
         Arguments:
-          vehicle_states: dict< string : dictionary <string:float> >
+          vehicle_states: dict< string : vehicle_state >
             dictionary used to initialize the vehicle objects.
             VehicleID : state information for Vehicle (distance, speed, accel).
             Not updated over time, used to reset.
@@ -107,7 +107,7 @@ class scene:
         for object_key in vehicle_states.keys():
             self.scene[object_key] = vehicle.vehicle(
                 object_key,
-                vehicle_states[object_key])
+                vehicle_states[object_key].quantities)
 
     def update_scene(self, actions, step=0.2):
         """
