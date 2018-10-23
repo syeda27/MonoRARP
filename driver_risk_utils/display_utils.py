@@ -15,7 +15,7 @@ def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
         left_margin=12, top_margin=36, space=36):
     if type(im) is not np.ndarray:
         imgcv = cv2.imread(im)
-    else: 
+    else:
         imgcv = im
     im_height, im_width, _ = imgcv.shape
     thick = int((im_height + im_width) // 300)
@@ -34,7 +34,7 @@ def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
                         (int(left), int(top)), (int(right), int(bot)),
                         (0,0,50), int(thick/3))
             continue
-        this_state = STATE.update_state((left, right, top, bot), 
+        this_state = STATE.update_state((left, right, top, bot),
                 im_height, im_width, args, object_key=i)
         text = ""
         text2 = ""
@@ -50,36 +50,35 @@ def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
             if 'speed_y' in this_state:
                 text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
             # state info in top left:
-            outline_text(imgcv, object_label, left_margin, 
-                    top_margin+space*(3*i), 
+            outline_text(imgcv, object_label, left_margin,
+                    top_margin+space*(3*i),
                     im_height, black, color, thick)
-            outline_text(imgcv, text, left_margin, 
-                    top_margin+space*(3*i+1), 
+            outline_text(imgcv, text, left_margin,
+                    top_margin+space*(3*i+1),
                     im_height, black, color, thick)
-            outline_text(imgcv, text2, left_margin, 
+            outline_text(imgcv, text2, left_margin,
                     top_margin+space*(3*i+2),
                     im_height, black, color, thick)
-            
+
         # object id on box:
         outline_text(imgcv, object_label, int(left), int(top), im_height, black, color, thick)
         cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),
                         color, int(thick/3))
-    outline_text(imgcv, "risk: {0:.2f}".format(risk), 
-                int(im_width / 2 - space), 
-                im_height - space, im_height, 
+    outline_text(imgcv, "risk: {0:.2f}".format(risk),
+                int(im_width / 2 - space),
+                im_height - space, im_height,
                 black, color, thick)
-    outline_text(imgcv, "ego speed: {0:.2f} mph".format(STATE.get_ego_speed_mph()), 
-                int(im_width / 2 - space), 
-                im_height - space - space, im_height, 
+    outline_text(imgcv, "ego speed: {0:.2f} mph".format(STATE.get_ego_speed_mph()),
+                int(im_width / 2 - space),
+                im_height - space - space, im_height,
                 black, color, thick)
     return imgcv
 
 def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
     cv2.putText(imgcv, text,
-            (left, top-12),  # TODO make these values parameters 
+            (left, top-12),  # TODO make these values parameters
             0, 1e-3*imh, color1, int(2*thick/3))
     cv2.putText(imgcv, text,
-            (left, top-12), 
+            (left, top-12),
             0, 1e-3*imh, color2, int(1*thick/4))
-

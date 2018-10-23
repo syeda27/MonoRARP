@@ -388,6 +388,7 @@ class runner:
         self.tracker_obj = tracker.tracker(
             self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
 
+        # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
         while self.camera.isOpened() and not self.done:
