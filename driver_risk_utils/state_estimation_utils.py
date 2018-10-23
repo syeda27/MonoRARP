@@ -5,7 +5,6 @@ distance to bounding boxes.
 
 import numpy as np
 
-# TODO don't assume uniform frame rate - could record time
 def calc_speed(state_for_object, to_use=5, verbose=False):
     """
     Right now this function returns the average distance change per frame

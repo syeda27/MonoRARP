@@ -120,9 +120,6 @@ class state:
         state information. This updates both distance and speed and should
         be treated as the external interface to the state class.
 
-        TODO: pass in time image was captured.
-        TODO: make state an object / struct that also includes time.
-
         Arguments:
           box: (int, int, int, int)
             (left, right, top, bottom) coordinates of a box in the image.
@@ -169,9 +166,6 @@ class state:
         For the given object key and associated detection box, we update our
         state information, but only the distances.
         This should only be called internally, hence the "_".
-
-        TODO: pass in time image was captured.
-        TODO: make state an object / struct that also includes time.
 
         Arguments:
           args: An args object as from argument_utils.py. Must contain
