@@ -150,7 +150,6 @@ class state:
             The new state that we created, see vehicle_state.py
             (It is also appended to the internal state_histories.)
         """
-
         state_len = len(self.state_histories[object_key])
         if state_len >= self.max_history:
             self.state_histories[object_key] = self.state_histories[object_key][-(self.max_history-1):]

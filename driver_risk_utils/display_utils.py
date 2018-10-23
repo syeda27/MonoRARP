@@ -11,8 +11,18 @@ except ImportError:  # For testing
     import general_utils
 
 # TODO modularize, comment
-def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
-        left_margin=12, top_margin=36, space=36):
+def display(args,
+            STATE,
+            risk,
+            im,
+            boxes,
+            do_convert=True,
+            labels=[],
+            fps=6.0,
+            frame_time=None,
+            left_margin=12,
+            top_margin=36,
+            space=36):
     if type(im) is not np.ndarray:
         imgcv = cv2.imread(im)
     else:
@@ -21,8 +31,6 @@ def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
     thick = int((im_height + im_width) // 300)
     color = (0, 50, 255) # BGR
     black = (0, 0, 0)
-    if len(labels) < len(boxes):
-        labels.extend([""] * (len(boxes) - len(labels)))
     for i,b in enumerate(boxes):
         if do_convert:
             (left, right, top, bot) = general_utils.convert(im_height, im_width, b)
@@ -34,21 +42,22 @@ def display(args, STATE, risk, im, boxes, do_convert=True, labels=[], fps=6.0,
                         (int(left), int(top)), (int(right), int(bot)),
                         (0,0,50), int(thick/3))
             continue
-        this_state = STATE.update_state((left, right, top, bot),
-                im_height, im_width, args, object_key=i).quantities
+        this_state = STATE.get_current_states(object_key=i).quantities
         text = ""
         text2 = ""
         object_label = "obj: " + str(i)
+        speed_mult = 1.0
+        if frame_time is None:
+            speed_mult = fps
         if this_state is not None:
             if "distance_x" in this_state:
                 text += "dx: {0:.2f}, ".format(this_state['distance_x'])
             if "distance_y" in this_state:
                 text += "dy: {0:.2f}".format(this_state['distance_y'])
             if 'speed_x' in this_state:
-                text2 += "sx: {0:.2f}, ".format(\
-                        this_state['speed_x']*fps)
+                text2 += "sx: {0:.2f}, ".format(this_state['speed_x']*speed_mult)
             if 'speed_y' in this_state:
-                text2 += "sy: {0:.2f}".format(this_state['speed_y']*fps)
+                text2 += "sy: {0:.2f}".format(this_state['speed_y']*speed_mult)
             # state info in top left:
             outline_text(imgcv, object_label, left_margin,
                     top_margin+space*(3*i),

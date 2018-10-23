@@ -250,6 +250,7 @@ class runner:
         # TODO the use of net_out can get somewhat confusing. That means it can
         # be optimized somehow...
         do_convert = True
+
         if self.tracker_obj.use_tracker:
             boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, self.buffer_inp)
         else:
@@ -259,6 +260,15 @@ class runner:
                     net_out['detection_classes'][i][np.where(\
                         net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
                     ]
+        if len(labels) < len(boxes):
+            labels.extend([""] * (len(boxes) - len(labels)))
+        im_h, im_w, _ = self.buffer_inp[i].shape
+
+        for i,b in enumerate(boxes):
+            if do_convert:
+                (left, right, top, bot) = general_utils.convert(im_h, im_w, b)
+            else:
+                (left, right, top, bot) = b
         return do_convert, boxes, labels
 
     def get_risk(self):
@@ -279,7 +289,20 @@ class runner:
                 verbose=False)
         return self.risk_predictor.prev_risk
 
-    def process_queue(self, profile=False):
+    def update_state(self, labels, boxes, im_h, im_w, frame_time):
+        """
+        Pulled out from display utils. Goes through and updates the state
+        based on the boxes and labels.
+        """
+        for i, b in enumerate(boxes):
+            (left, right, top, bot) = b
+            aspect_ratio_off = general_utils.check_aspect_ratio(b)
+            if labels[i] != "car" or aspect_ratio_off:
+                continue
+            self.state.update_state((left, right, top, bot),
+                    im_h, im_w, args, object_key=i, time=frame_time).quantities
+
+    def process_queue(self, frame_time, profile=False):
         """
         Iterate over all images in queue to calculate and display everything.
         This function includes the call to run the object detection network,
@@ -304,6 +327,8 @@ class runner:
             if profile:
                 timer.update_start("DetectObjects")
             do_convert, boxes, labels = self.detect_objects(i, net_out)
+            im_h, im_w, _ = self.buffer_inp[i].shape
+            self.update_state(labels, boxes, im_h, im_w, frame_time)
             if profile:
                 timer.update_end("DetectObjects", len(boxes))
                 timer.update_start("GetRisk")
@@ -321,7 +346,8 @@ class runner:
                     boxes,
                     do_convert,
                     labels,
-                    fps=self.fps
+                    fps=self.fps,
+                    frame_time=frame_time
                 )
 
             if profile:
@@ -354,7 +380,7 @@ class runner:
         if self.done: return
 
         if self.elapsed % self.launcher.all_args.queue == 0:
-            self.process_queue()
+            self.process_queue(time.time())
 
         if self.launcher.all_args.use_gps:
             self.state.set_ego_speed(self.launcher.gps_interface.get_reading())
