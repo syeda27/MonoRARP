@@ -16,7 +16,6 @@ def display(args,
             risk,
             im,
             boxes,
-            do_convert=True,
             labels=[],
             fps=6.0,
             frame_time=None,
@@ -32,11 +31,8 @@ def display(args,
     color = (0, 50, 255) # BGR
     black = (0, 0, 0)
     for i,b in enumerate(boxes):
-        if do_convert:
-            (left, right, top, bot) = general_utils.convert(im_height, im_width, b)
-        else:
-            (left, right, top, bot) = b
         aspect_ratio_off = general_utils.check_aspect_ratio(b)
+        (left, right, top, bot) = b
         if labels[i] != "car" or aspect_ratio_off:
             cv2.rectangle(imgcv,
                         (int(left), int(top)), (int(right), int(bot)),

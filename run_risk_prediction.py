@@ -264,12 +264,10 @@ class runner:
             labels.extend([""] * (len(boxes) - len(labels)))
         im_h, im_w, _ = self.buffer_inp[i].shape
 
-        for i,b in enumerate(boxes):
-            if do_convert:
-                (left, right, top, bot) = general_utils.convert(im_h, im_w, b)
-            else:
-                (left, right, top, bot) = b
-        return do_convert, boxes, labels
+        if do_convert:
+            for i,b in enumerate(boxes):
+                boxes[i] = general_utils.convert(im_h, im_w, b)
+        return boxes, labels
 
     def get_risk(self):
         """
@@ -326,7 +324,7 @@ class runner:
             # Visualization of the results of a detection
             if profile:
                 timer.update_start("DetectObjects")
-            do_convert, boxes, labels = self.detect_objects(i, net_out)
+            boxes, labels = self.detect_objects(i, net_out)
             im_h, im_w, _ = self.buffer_inp[i].shape
             self.update_state(labels, boxes, im_h, im_w, frame_time)
             if profile:
@@ -344,8 +342,7 @@ class runner:
                     risk,
                     self.buffer_inp[i],
                     boxes,
-                    do_convert,
-                    labels,
+                    labels=labels,
                     fps=self.fps,
                     frame_time=frame_time
                 )

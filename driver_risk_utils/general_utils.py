@@ -20,6 +20,9 @@ def check_aspect_ratio(box):
 
 # ymin, xmin, ymax, xmax  ===> left, right, top, bot
 def convert(im_height, im_width, b):
+    """
+    Converts the box from normalized coordinates to absolute pixel values.
+    """
     (ymin, xmin, ymax, xmax) = b
     (left, right, top, bot) = (int(xmin * im_width), int(xmax * im_width),
                               int(ymin * im_height), int(ymax * im_height))
