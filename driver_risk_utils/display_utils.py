@@ -113,3 +113,37 @@ def outline_text(imgcv, text, left, top, disp_args, thick_mult=1):
                 disp_args.text_height_mult * disp_args.im_height,
                 disp_args.color,
                 disp_args.get_thick()*thick_mult)
+
+
+def display(args,
+            state,
+            risk,
+            speed,
+            im,
+            boxes,
+            labels=[],
+            fps=6.0,
+            frame_time=None,
+            disp_args=display_args()):
+    """
+    We leave this function here, even though display.py exists, in case we ever
+    want to display without maintaining a display class object.
+    """
+    if type(im) is not np.ndarray:
+        imgcv = cv2.imread(im)
+    else:
+        imgcv = im
+    disp_args.set_im(imgcv)
+    for i,b in enumerate(boxes):
+        aspect_ratio_off = general_utils.check_aspect_ratio(b)
+        (left, right, top, bot) = b
+        if labels[i] != "car" or aspect_ratio_off:
+            make_rectangle(imgcv, b, disp_args.invalid_color, disp_args.thick)
+            continue
+
+        text = make_text(str(i), state[i], frame_time)
+        # object id on box:
+        outline_object_text(text, imgcv, disp_args, i)
+        outline_rectangle(imgcv, b, disp_args)
+    outline_global_text(imgcv, risk, speed, disp_args)
+    return imgcv
