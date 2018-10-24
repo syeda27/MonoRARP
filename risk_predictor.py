@@ -51,17 +51,23 @@ class risk_predictor:
     prev_risk = 0.0       # TODO make list and smooth over time
 
     def __init__(self,
-                 H=5.0,
-                 step=0.2,
+                 sim_horizon=5.0,
+                 sim_step=0.2,
+                 ttc_horizon=3.0,
+                 ttc_step=0.25,
                  collision_tolerance_x=2.0,
                  collision_tolerance_y=2.0,
-                 ttc_tolerance=1.0):
+                 ttc_tolerance=0.5):
         """
         Arguments
-          H:
+          sim_horizon:
             Float, the simulation horizon (seconds)
-          step:
+          sim_step:
             Float, the number of seconds for each step of the simulation.
+          ttc_horizon:
+            Float, the horizon (seconds) to use when finding low ttc events.
+          ttc_step:
+            Float, the step size (seconds) to use when finding low ttc events.
           collision_tolerance_x:
             Float, tolerance (meters) to indicate a collision, laterally.
           collision_tolerance_y:
@@ -70,11 +76,16 @@ class risk_predictor:
             Float, a time-to-collision less than this value is considered a "low
               time to collision event" for the purposes of risk calculation.
         """
-        self.H = H
-        self.step = step
-        self.collision_tolerance_x = collision_tolerance_x
-        self.collision_tolerance_y = collision_tolerance_y
-        self.ttc_tolerance = ttc_tolerance
+        self.sim_horizon = sim_horizon
+        self.sim_step = sim_step
+        self.risk_args = risk_prediction_utils.risk_args(
+            ttc_horizon,
+            ttc_step,
+            collision_tolerance_x,
+            collision_tolerance_y,
+            collision_score=10,
+            low_ttc_score=1
+        )
         self.prev_risk = 0.0
 
     def reset(self):
@@ -118,10 +129,7 @@ class risk_predictor:
         if risk_type.lower() == "ttc":
             risk = risk_prediction_utils.calculate_ttc(
                     state,
-                    self.H,
-                    self.step,
-                    self.collision_tolerance_x,
-                    self.collision_tolerance_y,
+                    self.risk_args,
                     verbose)
         elif risk_type.lower() == "online":
             if profile:
@@ -135,17 +143,15 @@ class risk_predictor:
                 start = time.time()
             rollouts = this_scene.simulate(
                     n_sims,
-                    self.H,
-                    self.step,
+                    self.sim_horizon,
+                    self.sim_step,
                     verbose)
             if profile:
                 print("RiskSim took: {}".format(time.time() - start))
                 start = time.time()
             risk = risk_prediction_utils.calculate_risk(
                     rollouts,
-                    self.collision_tolerance_x,
-                    self.collision_tolerance_y,
-                    self.ttc_tolerance,
+                    self.risk_args,
                     verbose)
             if profile:
                 print("CalculateRisk took: {}".format(time.time() - start))

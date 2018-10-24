@@ -58,11 +58,12 @@ def add_general_args(parser):
             default=defaults.DEVICE)
 
 def add_risk_args(parser):
-    parser.add_argument("--risk_H", type=int, default=defaults.RISK_HORIZON)
+    parser.add_argument("--risk_H", type=float, default=defaults.RISK_HORIZON)
     parser.add_argument("--risk_step", type=float, default=defaults.RISK_STEP)
+    parser.add_argument("--ttc_H", type=float, default=defaults.TTC_HORIZON)
+    parser.add_argument("--ttc_step", type=float, default=defaults.TTC_STEP)
     parser.add_argument("--col_tol_x", type=float, default=defaults.COLLISION_TOL_X_m)
     parser.add_argument("--col_tol_y", type=float, default=defaults.COLLISION_TOL_Y_m)
-    parser.add_argument("--ttc_tol", type=float, default=defaults.TTC_TOL)
 
 """
 parse_args creates a parser object, adds the arguments and default arguments,

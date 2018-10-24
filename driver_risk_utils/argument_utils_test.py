@@ -36,9 +36,10 @@ def test_default_args():
 
     assert args.risk_H == defaults.RISK_HORIZON
     assert args.risk_step == defaults.RISK_STEP
+    assert args.ttc_H == defaults.TTC_HORIZON
+    assert args.ttc_step == defaults.TTC_STEP
     assert args.col_tol_x == defaults.COLLISION_TOL_X_m
     assert args.col_tol_y == defaults.COLLISION_TOL_Y_m
-    assert args.ttc_tol == defaults.TTC_TOL
 
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 

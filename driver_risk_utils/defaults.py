@@ -36,8 +36,9 @@ SAVE = "TRUE"
 SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
 
 ## RISK DEFAULTS ##
-RISK_HORIZON = 5 # seconds, not frames
-RISK_STEP = 0.2  # seconds to step by
-COLLISION_TOL_X_m = 2
+RISK_HORIZON = 5 # seconds, not frames, for simulating with driver models
+RISK_STEP = 0.25  # seconds to step by
+TTC_HORIZON = 2  # seconds, for use when calculating low ttc events.
+TTC_STEP = 0.5
+COLLISION_TOL_X_m = 1 # what constitutes a collision?
 COLLISION_TOL_Y_m = 2
-TTC_TOL = 1.0

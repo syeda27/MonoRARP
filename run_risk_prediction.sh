@@ -52,11 +52,12 @@ MIN_CAMERA_ANGLE=54.5       # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
 RELATIVE_HORIZON=0.5        # between 0 and 1
 
-RISK_H=5      # seconds
-RISK_STEP=0.2 # seconds
-COL_TOL_X=2.0 # meters
-COL_TOL_Y=2.0 # meters
-TTC_TOL=1.0   # seconds
+RISK_H=5        # seconds
+RISK_STEP=0.25  # seconds
+COL_TOL_X=1.0   # meters
+COL_TOL_Y=2.0   # meters
+TTC_H=1.0       # seconds
+TTC_STEP=0.25   # seconds
 
 
 if ($YOLO); then
@@ -92,7 +93,8 @@ else
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
-        --risk_H $RISK_H --risk_step $RISK_STEP --ttc_tol $TTC_TOL \
+        --risk_H $RISK_H --risk_step $RISK_STEP \
+        --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
         --accept_speed $ACCEPT_SPEED
     cd $START_LOC

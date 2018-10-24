@@ -106,11 +106,12 @@ class runner:
         self.state.set_ego_speed_mph(35)
 
         self.risk_predictor = risk_predictor.risk_predictor(
-            launcher.all_args.risk_H,
-            step=launcher.all_args.risk_step,
+            sim_horizon=launcher.all_args.risk_H,
+            sim_step=launcher.all_args.risk_step,
+            ttc_horizon=launcher.all_args.ttc_H,
+            ttc_step=launcher.all_args.ttc_step,
             collision_tolerance_x=launcher.all_args.col_tol_x,
             collision_tolerance_y=launcher.all_args.col_tol_y,
-            ttc_tolerance=launcher.all_args.ttc_tol
         )
         self.reset_vars()
 
@@ -281,11 +282,10 @@ class runner:
         """
         calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
         if calculate_risk:
-            return self.risk_predictor.get_risk(
-                self.state,
-                risk_type="online",  # TODO make these args
-                n_sims=50,
-                verbose=False)
+            return self.risk_predictor.get_risk(self.state,
+                                                risk_type="online",  # TODO make these args
+                                                n_sims=50,
+                                                verbose=False)
         return self.risk_predictor.prev_risk
 
     def update_state(self, labels, boxes, im_h, im_w, frame_time):
@@ -340,8 +340,8 @@ class runner:
             self.display_obj.update_image(self.buffer_inp[i])
             img = self.display_obj.display_info(
                     self.state.get_current_states_quantities(),
-                    self.state.get_ego_speed_mph(),
                     risk,
+                    self.state.get_ego_speed_mph(),
                     boxes,
                     labels,
                     fps=self.fps,
