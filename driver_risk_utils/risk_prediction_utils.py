@@ -234,19 +234,27 @@ def calculate_risk_one_rollout(path, risk_args, lowest_ttc=1000, verbose=False):
     """
     rollout_risk = 0.0
     for curr_scene in path:
-        colliding, vehid = check_collisions(
-            curr_scene,
-            0.0,
-            risk_args.collision_tolerance_x,
-            risk_args.collision_tolerance_y)
-        if colliding:
-            rollout_risk += risk_args.collision_score
-        else:
-            # we simulate forward in time using constant velocities.
-            ttc = calculate_ttc_veh(curr_scene,
-                                    risk_args,
-                                    verbose)
-            if ttc: # means we encountered a collision in less than risk_args.H
-                lowest_ttc = min(ttc, lowest_ttc)
-                rollout_risk += risk_args.low_ttc_score
+        scene_risk, lowest_ttc = calculate_risk_one_scene(
+            curr_scene, risk_args, lowest_ttc, verbose)
+        rollout_risk += scene_risk
     return rollout_risk / len(path), lowest_ttc
+
+def calculate_risk_one_scene(curr_scene, risk_args, lowest_ttc, verbose):
+    risk = 0
+    colliding, vehid = check_collisions(
+        curr_scene,
+        0.0,
+        risk_args.collision_tolerance_x,
+        risk_args.collision_tolerance_y)
+    if colliding:
+        return risk_args.collision_score, lowest_ttc
+    else:
+        # we simulate forward in time using constant velocities.
+        ttc = calculate_ttc_veh(curr_scene,
+                                risk_args,
+                                verbose)
+        if ttc: # means we encountered a collision in less than risk_args.H
+            lowest_ttc = min(ttc, lowest_ttc)
+            risk = risk_args.low_ttc_score
+
+    return risk, lowest_ttc

@@ -21,6 +21,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import obj_det_state
 import risk_predictor
+import sim_and_risk
 import tracker
 import display
 from driver_risk_utils import argument_utils, general_utils, gps_utils
@@ -105,6 +106,7 @@ class runner:
         self.state = obj_det_state.state()
         self.state.set_ego_speed_mph(35)
 
+        #         self.risk_predictor = sim_and_risk.embedded_risk_predictor(
         self.risk_predictor = risk_predictor.risk_predictor(
             sim_horizon=launcher.all_args.risk_H,
             sim_step=launcher.all_args.risk_step,

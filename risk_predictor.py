@@ -42,6 +42,7 @@ sys.stdout.flush()
 import scene
 import time
 
+import sim_and_risk
 from driver_risk_utils import risk_prediction_utils
 
 class risk_predictor:
@@ -56,8 +57,7 @@ class risk_predictor:
                  ttc_horizon=3.0,
                  ttc_step=0.25,
                  collision_tolerance_x=2.0,
-                 collision_tolerance_y=2.0,
-                 ttc_tolerance=0.5):
+                 collision_tolerance_y=2.0):
         """
         Arguments
           sim_horizon:
@@ -72,9 +72,6 @@ class risk_predictor:
             Float, tolerance (meters) to indicate a collision, laterally.
           collision_tolerance_y:
             Float, tolerance (meters) to indicate a collision, longitudinal
-          ttc_tolerance:
-            Float, a time-to-collision less than this value is considered a "low
-              time to collision event" for the purposes of risk calculation.
         """
         self.sim_horizon = sim_horizon
         self.sim_step = sim_step
