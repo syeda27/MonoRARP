@@ -64,14 +64,14 @@ def add_risk_args(parser):
     parser.add_argument("--col_tol_y", type=float, default=defaults.COLLISION_TOL_Y_m)
     parser.add_argument("--ttc_tol", type=float, default=defaults.TTC_TOL)
 
-'''
+"""
 parse_args creates a parser object, adds the arguments and default arguments,
   and concludes by returning the parsed arugments.
   Additionally, it performs some simple initial checks
 
 Returns:
   args: an object with all of the function arguments.
-'''
+"""
 def parse_args():
     parser = argparse.ArgumentParser()
     add_camera_args(parser)
@@ -84,14 +84,14 @@ def parse_args():
 
     return do_arg_checks(args)
 
-'''
+"""
 do_arg_checks:
     checks some of the args as desired.
 Returns:
     args: If all checks succeed
 Raises:
     AssertionError: if there is an invalid horizon argument
-'''
+"""
 def do_arg_checks(args):
     if args.source == "0" or args.source == "1":
         args.source = int(args.source)

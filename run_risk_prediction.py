@@ -338,11 +338,12 @@ class runner:
                 timer.update_start("Display")
             img = display_utils.display(
                     self.launcher.all_args,
-                    self.state,
+                    self.state.get_current_states_quantities(),
+                    self.state.get_ego_speed_mph(),
                     risk,
                     self.buffer_inp[i],
                     boxes,
-                    labels=labels,
+                    labels,
                     fps=self.fps,
                     frame_time=frame_time
                 )

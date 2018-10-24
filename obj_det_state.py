@@ -80,6 +80,19 @@ class state:
             current_state[vehicle_id] = state_history[-1]
         return current_state
 
+    def get_current_states_quantities(self, object_key=None):
+        """
+        Similar to get_current_states, but only returns the
+        vehicle_state.quanitites dictionary instead of the full vehicle_state.
+        """
+        if object_key is not None:
+            return self.state_histories[object_key][-1].quantities
+        current_state = {}
+        for vehicle_id, state_history in self.state_histories.items():
+            current_state[vehicle_id] = state_history[-1].quantities
+        return current_state
+
+
     def get_ego_speed(self):
         """
         Returns the stored absolute ego vehicle speed, in meters/sec.

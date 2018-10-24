@@ -10,80 +10,137 @@ try:
 except ImportError:  # For testing
     import general_utils
 
+"""
+Display_args
+These values are necessary for displaying the information to the user.
+Currently just values, but we obviously want these to be configurable.
+"""
+class display_args:
+    def __init__(self):
+        self.left_margin = 12 # pixels
+        self.top_margin = 36
+        self.space = 36
+        self.text_outline_offset = 12
+        self.text_height_mult = 1e-3
+        self.color = (0, 50, 255) # BGR
+        self.black = (0, 0, 0)
+        self.invalid_color = (0, 0, 50)
+        self.thickness = 300
+        self.thick = None
+
+    def set_im(self, im):
+        self.im_height, self.im_width, _ = im.shape
+        self.set_thick()
+
+    def set_thick(self):
+        self.thick = self.get_thick()
+
+    def get_thick(self):
+        if self.thick is not None:
+            return self.thick
+        return int( int((self.im_height + self.im_width) // self.thickness) / 3)
+
+def make_rectangle(im, b, color, thickness):
+    #   (left, right, top, bot) = b
+    cv2.rectangle(im,
+                  (int(b[0]), int(b[2])),
+                  (int(b[1]), int(b[3])),
+                  color,
+                  thickness)
+
+def outline_rectangle(im, b, disp_args):
+    make_rectangle(im, b, disp_args.black, disp_args.get_thick()*2)
+    make_rectangle(im, b, disp_args.color, disp_args.get_thick())
+
+
 # TODO modularize, comment
 def display(args,
-            STATE,
+            state,
             risk,
+            speed,
             im,
             boxes,
             labels=[],
             fps=6.0,
             frame_time=None,
-            left_margin=12,
-            top_margin=36,
-            space=36):
+            disp_args=display_args()):
     if type(im) is not np.ndarray:
         imgcv = cv2.imread(im)
     else:
         imgcv = im
-    im_height, im_width, _ = imgcv.shape
-    thick = int((im_height + im_width) // 300)
-    color = (0, 50, 255) # BGR
-    black = (0, 0, 0)
+    disp_args.set_im(imgcv)
     for i,b in enumerate(boxes):
         aspect_ratio_off = general_utils.check_aspect_ratio(b)
         (left, right, top, bot) = b
         if labels[i] != "car" or aspect_ratio_off:
-            cv2.rectangle(imgcv,
-                        (int(left), int(top)), (int(right), int(bot)),
-                        (0,0,50), int(thick/3))
+            make_rectangle(imgcv, b, disp_args.invalid_color, disp_args.thick)
             continue
-        this_state = STATE.get_current_states(object_key=i).quantities
-        text = ""
-        text2 = ""
-        object_label = "obj: " + str(i)
-        speed_mult = 1.0
-        if frame_time is None:
-            speed_mult = fps
-        if this_state is not None:
-            if "distance_x" in this_state:
-                text += "dx: {0:.2f}, ".format(this_state['distance_x'])
-            if "distance_y" in this_state:
-                text += "dy: {0:.2f}".format(this_state['distance_y'])
-            if 'speed_x' in this_state:
-                text2 += "sx: {0:.2f}, ".format(this_state['speed_x']*speed_mult)
-            if 'speed_y' in this_state:
-                text2 += "sy: {0:.2f}".format(this_state['speed_y']*speed_mult)
-            # state info in top left:
-            outline_text(imgcv, object_label, left_margin,
-                    top_margin+space*(3*i),
-                    im_height, black, color, thick)
-            outline_text(imgcv, text, left_margin,
-                    top_margin+space*(3*i+1),
-                    im_height, black, color, thick)
-            outline_text(imgcv, text2, left_margin,
-                    top_margin+space*(3*i+2),
-                    im_height, black, color, thick)
 
+        text = make_text(str(i), state[i], frame_time)
         # object id on box:
-        outline_text(imgcv, object_label, int(left), int(top), im_height, black, color, thick)
-        cv2.rectangle(imgcv,
-                        (int(left), int(top)), (int(right), int(bot)),
-                        color, int(thick/3))
-    outline_text(imgcv, "risk: {0:.2f}".format(risk),
-                int(im_width / 2 - space),
-                im_height - space, im_height,
-                black, color, thick)
-    outline_text(imgcv, "ego speed: {0:.2f} mph".format(STATE.get_ego_speed_mph()),
-                int(im_width / 2 - space),
-                im_height - space - space, im_height,
-                black, color, thick)
+        outline_object_text(text, imgcv, disp_args, i)
+        outline_rectangle(imgcv, b, disp_args)
+    outline_global_text(imgcv, risk, speed, disp_args)
     return imgcv
 
-def outline_text(imgcv, text, left, top, imh, color1, color2, thick):
-    cv2.putText(imgcv, text,
-            (left, top-12),  # TODO make these values parameters
-            0, 1e-3*imh, color1, int(2*thick/3))
-    cv2.putText(imgcv, text,
-            (left, top-12),
-            0, 1e-3*imh, color2, int(1*thick/4))
+def make_text(obj_key, this_state, frame_time):
+    text = ""
+    text2 = ""
+    object_label = "obj: " + obj_key
+    speed_mult = 1.0
+    if frame_time is None:
+        speed_mult = fps
+    if this_state is not None:
+        if "distance_x" in this_state:
+            text += "dx: {0:.2f}, ".format(this_state['distance_x'])
+        if "distance_y" in this_state:
+            text += "dy: {0:.2f}".format(this_state['distance_y'])
+        if 'speed_x' in this_state:
+            text2 += "sx: {0:.2f}, ".format(this_state['speed_x']*speed_mult)
+        if 'speed_y' in this_state:
+            text2 += "sy: {0:.2f}".format(this_state['speed_y']*speed_mult)
+    return [object_label, text, text2]
+
+def outline_object_text(text_list, imgcv, disp_args, i):
+    im_height, im_width, _ = imgcv.shape
+    n = len(text_list)
+    for text_j in range(n):
+        outline_text(imgcv,
+                     text_list[text_j],
+                     disp_args.left_margin,
+                     disp_args.top_margin + disp_args.space * (n * i + text_j),
+                     disp_args,
+                     thick_mult=1)
+
+def outline_global_text(img, risk, ego_speed_mph, disp_args):
+    horiz = int(disp_args.im_width / 2 - disp_args.space)
+    vert = disp_args.im_height - disp_args.space
+    outline_text(img,
+                 "risk: {0:.2f}".format(risk),
+                 horiz,
+                 vert,
+                 disp_args,
+                 thick_mult=1)
+    outline_text(img,
+                 "ego speed: {0:.2f} mph".format(ego_speed_mph),
+                 horiz,
+                 vert - disp_args.space,
+                 disp_args,
+                 thick_mult=1)
+
+
+def outline_text(imgcv, text, left, top, disp_args, thick_mult=1):
+    cv2.putText(imgcv,
+                text,
+                (left, top - disp_args.text_outline_offset),
+                0, # fontFace
+                disp_args.text_height_mult * disp_args.im_height,
+                disp_args.black,
+                2*disp_args.get_thick()*thick_mult)
+    cv2.putText(imgcv,
+                text,
+                (left, top - disp_args.text_outline_offset),
+                0, # fontFace
+                disp_args.text_height_mult * disp_args.im_height,
+                disp_args.color,
+                disp_args.get_thick()*thick_mult)
