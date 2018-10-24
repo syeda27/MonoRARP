@@ -52,37 +52,6 @@ def outline_rectangle(im, b, disp_args):
     make_rectangle(im, b, disp_args.black, disp_args.get_thick()*2)
     make_rectangle(im, b, disp_args.color, disp_args.get_thick())
 
-
-# TODO modularize, comment
-def display(args,
-            state,
-            risk,
-            speed,
-            im,
-            boxes,
-            labels=[],
-            fps=6.0,
-            frame_time=None,
-            disp_args=display_args()):
-    if type(im) is not np.ndarray:
-        imgcv = cv2.imread(im)
-    else:
-        imgcv = im
-    disp_args.set_im(imgcv)
-    for i,b in enumerate(boxes):
-        aspect_ratio_off = general_utils.check_aspect_ratio(b)
-        (left, right, top, bot) = b
-        if labels[i] != "car" or aspect_ratio_off:
-            make_rectangle(imgcv, b, disp_args.invalid_color, disp_args.thick)
-            continue
-
-        text = make_text(str(i), state[i], frame_time)
-        # object id on box:
-        outline_object_text(text, imgcv, disp_args, i)
-        outline_rectangle(imgcv, b, disp_args)
-    outline_global_text(imgcv, risk, speed, disp_args)
-    return imgcv
-
 def make_text(obj_key, this_state, frame_time):
     text = ""
     text2 = ""

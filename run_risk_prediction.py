@@ -22,7 +22,8 @@ sys.path.append(os.path.dirname(__file__))
 import obj_det_state
 import risk_predictor
 import tracker
-from driver_risk_utils import argument_utils, display_utils, general_utils, gps_utils
+import display
+from driver_risk_utils import argument_utils, general_utils, gps_utils
 
 
 class launcher:
@@ -336,12 +337,11 @@ class runner:
             if profile:
                 timer.update_end("GetRisk", 1)
                 timer.update_start("Display")
-            img = display_utils.display(
-                    self.launcher.all_args,
+            self.display_obj.update_image(self.buffer_inp[i])
+            img = self.display_obj.display_info(
                     self.state.get_current_states_quantities(),
                     self.state.get_ego_speed_mph(),
                     risk,
-                    self.buffer_inp[i],
                     boxes,
                     labels,
                     fps=self.fps,
@@ -411,10 +411,13 @@ class runner:
         # Tracker
         self.tracker_obj = tracker.tracker(
             self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
+        # Display
+        self.display_obj = display.display()
 
         # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
+
         while self.camera.isOpened() and not self.done:
             self.process_frame()
 
