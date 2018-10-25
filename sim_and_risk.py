@@ -6,15 +6,58 @@ the way, this class will calculate risk while rolling out, and only have to do
 N deepcopies (for the initialization).
 """
 
-import risk_predictor, scene
+import time
 
-class embedded_risk_predictor(risk_predictor):
+from risk_predictor import RiskPredictor
+from scene import Scene
+
+from driver_risk_utils import risk_prediction_utils, general_utils
+
+class EmbeddedRiskPredictor(RiskPredictor, Scene):
+
+    def set_scene(self, state, lane_width=3.7):
+        """
+        Initializes the scene object with internal parameters.
+
+        Arguments:
+          state: A state object
+            Used to get the vehicle_states and ego velocity (assume longitudinal)
+          lane_width: float
+            The standard width of a lane, in meters.
+        """
+        self.lane_width_m = lane_width
+        self.vehicle_states = state.get_current_states()
+        self.reset_scene(ego_vel=(0.0, state.get_ego_speed()),
+                         ego_accel=(0.0, 0.0))
+        self.means = {
+                "des_v": self.ego_vel[1],    # first IDM
+                "hdwy_t": 1.5,
+                "min_gap": 2.0,
+                "accel": 0.5,
+                "deccel": 3.0,  # below are mobil
+                "p": 0.2,
+                "b_safe": 3.0,
+                "a_thr": 0.2,
+                "delta_b": 0
+                }
+        self.variances = {
+                "des_v": 10,    # first IDM
+                "hdwy_t": 0.25,
+                "min_gap": 0.25,
+                "accel": 0.2,
+                "deccel": 0.1,  # below are mobil
+                "p": 0.1,
+                "b_safe": 0.2,
+                "a_thr": 0.1,
+                "delta_b": 0
+                }
+
     def get_risk(self,
                  state,
                  risk_type="ttc",
                  n_sims=10,
                  verbose=False,
-                 profile=False):
+                 timer=None):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -27,8 +70,8 @@ class embedded_risk_predictor(risk_predictor):
               rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
-          profile:
-            Boolean, whether or not to print timings of functions.
+          timer: general_utils.timing object.
+            The object that is keeping track of various timing qualities.
 
         Returns
           risk:
@@ -44,33 +87,29 @@ class embedded_risk_predictor(risk_predictor):
                     self.risk_args,
                     verbose)
         elif risk_type.lower() == "online":
-            if profile:
-                start = time.time()
-            this_scene = sim_and_risk.sim_and_risk(
-                    state.get_current_states(),
-                    ego_vel=(0.0, state.get_ego_speed()),
-                    ego_accel=(0.0, 0.0))  # TODO better initialization?
-            if profile:
-                print("SceneInit took: {}".format(time.time() - start))
-                start = time.time()
-            risk = this_scene.simulate(
+            if timer:
+                timer.update_start("SceneInit")
+            self.set_scene(state)
+            if timer:
+                timer.update_end("SceneInit")
+                timer.update_start("RiskSim")
+                timer.update_start("CalculateRisk")
+            risk = self.simulate(
                 n_sims,
                 self.sim_horizon,
                 self.sim_step,
-                verbose
+                verbose,
+                timer
             )
-            if profile:
-                print("RiskSim took: {}".format(time.time() - start))
-                start = time.time()
-            if profile:
-                print("CalculateRisk took: {}".format(time.time() - start))
+            if timer:
+                timer.update_end("RiskSim", n_sims)
+                timer.update_end("CalculateRisk")
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         self.prev_risk = (risk + self.prev_risk) / 2.0
         return self.prev_risk
 
-class sim_and_risk(scene):
-    def simulate(self, N=100, H=5, step=0.2, verbose=False, profile=False):
+    def simulate(self, N=100, H=5, step=0.2, verbose=False, timer=None):
         """
         Runs N simulations using the IDM driver model
 
@@ -83,8 +122,8 @@ class sim_and_risk(scene):
             The step size to take, in seconds.
           verbose: boolean
             Whether or not to log various occurrences.
-          profile: boolean
-            Whether or not to print timings of functions.
+          timer: general_utils.timing object.
+            The object that is keeping track of various timing qualities.
 
         Returns:
           risk: float
@@ -92,21 +131,17 @@ class sim_and_risk(scene):
         if verbose:
             print("Simulating {} paths for horizon {} by steps of {}".format(
                 N, H, step))
-        timer = None # defines the variable in case not profiling.
         risk = 0 # list of N paths, which are snapshots of the scenes
-        if profile:
-            timer = general_utils.timing(
-                ["Simulating", "Deepcopies", "SimForward", "GetAction", "SceneUpdate"])
+        if timer is not None:
             timer.update_start("Simulating")
 
         for i in range(N):  # TODO modularize
-            risk += self.simulate_one_path(H, step, verbose, profile, timer)
-        if profile:
+            risk += self.simulate_one_path(H, step, verbose, timer)
+        if timer is not None:
             timer.update_end("Simulating", N)
-            timer.print_stats()
         return risk / N
 
-    def simulate_one_path(self, H, step, verbose, profile, timer):
+    def simulate_one_path(self, H, step, verbose, timer):
         """
         Simulates one path out to time horizon H by step size (step).
 
@@ -115,9 +150,7 @@ class sim_and_risk(scene):
             The time horizon fo which to simulate to.
           step: float, seconds
             The step size to take, in seconds.
-          profile: boolean
-            Whether or not to print timings of functions.
-          timer: general_utils.timing object. None if profile == False
+          timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
 
         Returns:
@@ -130,18 +163,18 @@ class sim_and_risk(scene):
             self.scene[vehid].lateral_model.randomize_parameters(
                     self.means, self.variances)
         risk = 0
-        if profile:
+        if timer:
             timer.update_start("SimForward")
         t = 0
         while t < H:  # TODO modularize
             t += step # need while loop because range doesnt handle float step.
-            risk += self.do_one_step(step, verbose, profile, timer)
+            risk += self.do_one_step(step, verbose, timer)
 
-        if profile:
+        if timer:
             timer.update_end("SimForward")
-        return risk / (H / t)
+        return risk / (H * t)
 
-    def do_one_step(self, step, verbose, profile, timer):
+    def do_one_step(self, step, verbose, timer):
         """
         Does one step of path generation.
         This involves computing the actions for each vehicle in the scene,
@@ -152,9 +185,7 @@ class sim_and_risk(scene):
             The step size to take, in seconds.
           verbose: boolean
             Whether or not to log various occurrences.
-          profile: boolean
-            Whether or not to print timings of functions.
-          timer: general_utils.timing object. None if profile == False
+          timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
 
         Returns:
@@ -164,7 +195,7 @@ class sim_and_risk(scene):
               through the use of deepcopy() to return.
 
         """
-        if profile:
+        if timer:
             timer.update_start("GetAction")
 
         actions = {}
@@ -172,10 +203,15 @@ class sim_and_risk(scene):
             actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
             if verbose:
                 print("action for", vehid, ":", actions[vehid])
-        if profile:
+        if timer:
             timer.update_end("GetAction", 1)
             timer.update_start("SceneUpdate")
 
         self.update_scene(actions, step)
-        risk = risk_prediction_utils.calculate_risk_one_scene(self.scene, self.risk_args, 1000, verbose)
+        if timer:
+            timer.update_end("SceneUpdate", 1)
+            timer.update_start("OneSceneRisk")
+        risk, _ = risk_prediction_utils.calculate_risk_one_scene(self.scene, self.risk_args, 1000, verbose)
+        if timer:
+            timer.update_end("OneSceneRisk", 1)
         return risk

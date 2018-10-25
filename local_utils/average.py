@@ -10,7 +10,7 @@ class timed_obj:
         self.wrapped_num += 1
         self.individual_num += num
 
-    def print_profile(self, total_object=None):
+    def print_profile(self, total_time=0, total_object=None):
         Output = """
 Key: {}
 Total time: {}
@@ -24,14 +24,17 @@ Inidividual calls per second: {}
             self.total_time,
             self.wrapped_num,
             self.individual_num,
-            self.total_time / self.wrapped_num,
-            self.total_time / self.individual_num,
-            self.individual_num / self.total_time
+            self.total_time / max(1,self.wrapped_num),
+            self.total_time / max(1,self.individual_num),
+            self.individual_num / max(1,self.total_time)
         )
         print(Output)
         if total_object is not None:
-            print("Portion of total time: {}".format(
+            print("Portion of total time (obj): {}".format(
                 self.total_time / total_object.total_time))
+        if total_time > 0:
+            print("Portion of total time: {}".format(
+                self.total_time / total_time))
 
 def check_valid_sim(tokens):
     return len(tokens) > 2
@@ -48,6 +51,7 @@ def average_logs(file_name,
     """
     Give a filename, the... TODO
     """
+    total_time = 0
     timed_objects = {}
     for key in keys:
         timed_objects[key] = timed_obj(key)
@@ -62,6 +66,9 @@ def average_logs(file_name,
     with open(file_name, "r") as f:
         for line in f.readlines():
             tokens = line.split(split_on)
+            if tokens[0] == "Total":
+                total_time += float(tokens[-1])
+                print("Found line with total time:", tokens)
             if is_valid_fn is not None and not is_valid_fn(tokens):
                 print("Invalid line: {}".format(tokens))
                 continue
@@ -74,14 +81,21 @@ def average_logs(file_name,
             time = float(tokens[token_idx_time])
             num = 1
             if token_idx_num is not None:
-                num = float(tokens[token_idx_num])
+                try:
+                    num = float(tokens[token_idx_num])
+                except:
+                    #print("line had invalide num at {}:".format(token_idx_num))
+                    #print(line)
+                    #print(tokens[token_idx_num])
+                    num = 1
             timed_objects[key].update(time, num)
             if all_total:
                 timed_objects[total_key].update(time, num)
 
-    for key in keys:
-        timed_objects[key].print_profile(timed_objects[total_key])
+    for key in sorted(list(keys)):
+        timed_objects[key].print_profile(total_time, timed_objects[total_key])
 
+'''
 f = "simulated_times.log"
 keys = {"SimForward", "Deepcopies", "GetAction", "SceneUpdate", "Simulating"}
 average_logs(f, 1, -1, check_valid_sim, keys=keys, total_key="Simulating")
@@ -100,3 +114,20 @@ print("\n\n\n")
 f = "queue_processing.log"
 keys = {"NeuralNet", "DetectObjects", "GetRisk", "Display"}
 average_logs(f, 1, -1, check_valid_sim, keys=keys)
+'''
+
+print("\n\n\n")
+f = "risk_and_sim_times.log"
+keys = {"SimForward", "Deepcopies", "GetAction", "SceneUpdate", "Simulating",
+        "SceneInit", "RiskSim", "CalculateRisk", "OneSceneRisk",
+        "NeuralNet", "DetectObjects", "GetRisk", "Display",
+        "AllCalls"}
+average_logs(f, 1, -1, check_valid_sim, keys=keys, total_key="AllCalls")
+
+print("\n\n\n")
+f = "sep_risk_and_sim_times.log"
+keys = {"SimForward", "Deepcopies", "GetAction", "SceneUpdate", "Simulating",
+        "SceneInit", "RiskSim", "CalculateRisk",
+        "NeuralNet", "DetectObjects", "GetRisk", "Display",
+        "AllCalls"}
+average_logs(f, 1, -1, check_valid_sim, keys=keys, total_key="AllCalls")

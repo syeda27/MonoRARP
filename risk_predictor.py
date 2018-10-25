@@ -1,5 +1,5 @@
 """
-This file defines the `risk_predictor` class.
+This file defines the `RiskPredictor` class.
 
 The main class function works in conjunction with the STATE from obj_det_state
 
@@ -42,10 +42,9 @@ sys.stdout.flush()
 import scene
 import time
 
-import sim_and_risk
 from driver_risk_utils import risk_prediction_utils
 
-class risk_predictor:
+class RiskPredictor:
     """
     Used to keep track of some important arguments and the previous risk.
     """
@@ -97,7 +96,7 @@ class risk_predictor:
                  risk_type="ttc",
                  n_sims=10,
                  verbose=False,
-                 profile=False):
+                 timer=None):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -112,8 +111,8 @@ class risk_predictor:
               rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
-          profile:
-            Boolean, whether or not to print timings of functions.
+          timer: general_utils.timing object.
+            The object that is keeping track of various timing qualities.
 
         Returns
           risk:
@@ -129,29 +128,30 @@ class risk_predictor:
                     self.risk_args,
                     verbose)
         elif risk_type.lower() == "online":
-            if profile:
-                start = time.time()
-            this_scene = scene.scene(
+            if timer:
+                timer.update_start("SceneInit")
+            this_scene = scene.Scene(
                     state.get_current_states(),
                     ego_vel=(0.0, state.get_ego_speed()),
                     ego_accel=(0.0, 0.0))  # TODO better initialization?
-            if profile:
-                print("SceneInit took: {}".format(time.time() - start))
-                start = time.time()
+            if timer:
+                timer.update_end("SceneInit")
+                timer.update_start("RiskSim")
             rollouts = this_scene.simulate(
                     n_sims,
                     self.sim_horizon,
                     self.sim_step,
-                    verbose)
-            if profile:
-                print("RiskSim took: {}".format(time.time() - start))
-                start = time.time()
+                    verbose,
+                    timer)
+            if timer:
+                timer.update_end("RiskSim", n_sims)
+                timer.update_start("CalculateRisk")
             risk = risk_prediction_utils.calculate_risk(
                     rollouts,
                     self.risk_args,
                     verbose)
-            if profile:
-                print("CalculateRisk took: {}".format(time.time() - start))
+            if timer:
+                timer.update_end("CalculateRisk")
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         self.prev_risk = (risk + self.prev_risk) / 2.0

@@ -7,7 +7,7 @@ from driver_risk_utils import general_utils
 
 
 """
-The scene maintains the driver models and coordinates with the state.
+The Scene maintains the driver models and coordinates with the state.
 It does not alter state, but rather maintains its own version for propagation
 
 Maintains internal copy of the original vehicle objects (vehicle_states)
@@ -19,7 +19,7 @@ Also maintains means and variances for the driver models we are using.
         means = {}      # mean of parameters for IDM and MOBIL
         variances = {}  # variances of parameters for IDM and MOBIL
 """
-class scene:
+class Scene:
     def __init__(self,
                  vehicle_states,
                  ego_vel=(0,15),
@@ -129,7 +129,7 @@ class scene:
             self.scene[vehid].rel_vx = self.scene[vehid].rel_vx + dvx*step
             self.scene[vehid].rel_vy = self.scene[vehid].rel_vy + dvy*step
 
-    def simulate(self, N=100, H=5, step=0.2, verbose=False, profile=False):
+    def simulate(self, N=100, H=5, step=0.2, verbose=False, timer=None):
         """
         Runs N simulations using the IDM driver model
 
@@ -142,8 +142,8 @@ class scene:
             The step size to take, in seconds.
           verbose: boolean
             Whether or not to log various occurrences.
-          profile: boolean
-            Whether or not to print timings of functions.
+          timer: general_utils.timing object.
+            The object that is keeping track of various timing qualities.
 
         Returns:
           paths (aka rollouts)
@@ -154,21 +154,17 @@ class scene:
         if verbose:
             print("Simulating {} paths for horizon {} by steps of {}".format(
                 N, H, step))
-        timer = None # defines the variable in case not profiling.
         paths = [] # list of N paths, which are snapshots of the scenes
-        if profile:
-            timer = general_utils.timing(
-                ["Simulating", "Deepcopies", "SimForward", "GetAction", "SceneUpdate"])
+        if timer:
             timer.update_start("Simulating")
 
         for i in range(N):  # TODO modularize
-            paths.append(self.simulate_one_path(H, step, verbose, profile, timer))
-        if profile:
+            paths.append(self.simulate_one_path(H, step, verbose, timer))
+        if timer:
             timer.update_end("Simulating", N)
-            timer.print_stats()
         return paths
 
-    def simulate_one_path(self, H, step, verbose, profile, timer):
+    def simulate_one_path(self, H, step, verbose, timer):
         """
         Simulates one path out to time horizon H by step size (step).
 
@@ -177,8 +173,8 @@ class scene:
             The time horizon fo which to simulate to.
           step: float, seconds
             The step size to take, in seconds.
-          profile: boolean
-            Whether or not to print timings of functions.
+          verbose: boolean
+            Whether or not to log various occurrences.
           timer: general_utils.timing object. None if profile == False
             The object that is keeping track of various timing qualities.
 
@@ -193,22 +189,22 @@ class scene:
             self.scene[vehid].lateral_model.randomize_parameters(
                     self.means, self.variances)
         path = [] # a path is a list of scenes
-        if profile:
+        if timer:
             timer.update_start("Deepcopies")
         path.append(copy.deepcopy(self.scene))
-        if profile:
+        if timer:
             timer.update_end("Deepcopies", 1)
             timer.update_start("SimForward")
         t = 0
         while t < H:  # TODO modularize
             t += step # need while loop because range doesnt handle float step.
-            path.append(self.do_one_step(step, verbose, profile, timer))
+            path.append(self.do_one_step(step, verbose, timer))
 
-        if profile:
+        if timer:
             timer.update_end("SimForward", 1)
         return path
 
-    def do_one_step(self, step, verbose, profile, timer):
+    def do_one_step(self, step, verbose, timer):
         """
         Does one step of path generation.
         This involves computing the actions for each vehicle in the scene,
@@ -219,9 +215,7 @@ class scene:
             The step size to take, in seconds.
           verbose: boolean
             Whether or not to log various occurrences.
-          profile: boolean
-            Whether or not to print timings of functions.
-          timer: general_utils.timing object. None if profile == False
+          timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
 
         Returns:
@@ -231,7 +225,7 @@ class scene:
               through the use of deepcopy() to return.
 
         """
-        if profile:
+        if timer:
             timer.update_start("GetAction")
 
         actions = {}
@@ -239,16 +233,16 @@ class scene:
             actions[vehid] = self.scene[vehid].get_action(self, step) # dvxdt, dvydt
             if verbose:
                 print("action for", vehid, ":", actions[vehid])
-        if profile:
+        if timer:
             timer.update_end("GetAction", 1)
             timer.update_start("SceneUpdate")
 
         self.update_scene(actions, step)
-        if profile:
+        if timer:
             timer.update_end("SceneUpdate", 1)
             timer.update_start("Deepcopies")
         scene_here = copy.deepcopy(self.scene)
-        if profile:
+        if timer:
             timer.update_end("Deepcopies", 1)
         return scene_here
 

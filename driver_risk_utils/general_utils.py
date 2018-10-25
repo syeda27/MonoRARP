@@ -4,6 +4,8 @@ estimation system.
 '''
 
 import time
+from collections import defaultdict
+
 
 def get_fps(start, frames):
     if frames < 5:
@@ -34,15 +36,10 @@ def mps_to_mph(mps):
     return mps / 0.44704
 
 class timing:
-    def __init__(self, keys):
+    def __init__(self):
         self.start_times = {}
-        self.durations = {}
-        self.counts = {}
-
-        for key in keys:
-            self.start_times[key] = time.time()
-            self.durations[key] = 0
-            self.counts[key] = 0
+        self.durations = defaultdict(int)
+        self.counts = defaultdict(int)
 
     def update_start(self, key):
         self.start_times[key] = time.time()
