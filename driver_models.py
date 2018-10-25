@@ -13,7 +13,7 @@ from driver_risk_utils import driver_model_utils
 
 # TODO make an abstract class and have these extend them?
 
-class idm_model:
+class IDM_Model:
     """
     The intelligent driver model (IDM) is used to model the longitudinal
     acceleration for human drivers.
@@ -128,7 +128,7 @@ class idm_model:
 
 
 # MOBIL for latitudinal acceleration
-class mobil_model:
+class MOBIL_Model:
     """
     The mobil model is used to model the lateral acceleration for human drivers.
 

@@ -74,7 +74,7 @@ class RiskPredictor:
         """
         self.sim_horizon = sim_horizon
         self.sim_step = sim_step
-        self.risk_args = risk_prediction_utils.risk_args(
+        self.risk_args = risk_prediction_utils.RiskArgs(
             ttc_horizon,
             ttc_step,
             collision_tolerance_x,

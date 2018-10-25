@@ -7,9 +7,9 @@ import cv2
 
 from driver_risk_utils import display_utils, general_utils
 
-class display:
+class Display:
     def __init__(self):
-        self.d_args = display_utils.display_args()
+        self.d_args = display_utils.DisplayArgs()
         self.imgcv = None
 
     def update_image(self, im):

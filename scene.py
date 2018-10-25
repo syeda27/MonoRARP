@@ -84,7 +84,7 @@ class Scene:
         """
         self.ego_vel = ego_vel
         self.ego_accel = ego_accel
-        self.scene["ego"] = vehicle.vehicle("ego", dict()) # TODO params
+        self.scene["ego"] = vehicle.Vehicle("ego", dict()) # TODO params
 
     def reset_scene(self, vehicle_states=None, ego_vel=(0,15), ego_accel=(0,0)):
         """
@@ -105,7 +105,7 @@ class Scene:
         if vehicle_states == None:
             vehicle_states = self.vehicle_states
         for object_key in vehicle_states.keys():
-            self.scene[object_key] = vehicle.vehicle(
+            self.scene[object_key] = vehicle.Vehicle(
                 object_key,
                 vehicle_states[object_key].quantities)
 

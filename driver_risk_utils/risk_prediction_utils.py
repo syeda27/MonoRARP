@@ -5,7 +5,7 @@ on that information, it must be passed in. This allows the functions to be
 used when no risk_predictor object is defined. Thus, they are utilities.
 """
 
-class risk_args:
+class RiskArgs:
     """
     risk_args is a class to help track some important arguments for the risk
     predictor utilties.

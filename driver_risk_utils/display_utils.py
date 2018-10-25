@@ -15,7 +15,7 @@ Display_args
 These values are necessary for displaying the information to the user.
 Currently just values, but we obviously want these to be configurable.
 """
-class display_args:
+class DisplayArgs:
     def __init__(self):
         self.left_margin = 12 # pixels
         self.top_margin = 36
@@ -124,7 +124,7 @@ def display(args,
             labels=[],
             fps=6.0,
             frame_time=None,
-            disp_args=display_args()):
+            disp_args=DisplayArgs()):
     """
     We leave this function here, even though display.py exists, in case we ever
     want to display without maintaining a display class object.

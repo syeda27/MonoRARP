@@ -33,7 +33,7 @@ parser.add_argument("--horizon", type=float, default=0.5) # 0 - 1
 
 
 args = parser.parse_args()
-STATE = obj_det_state.state()
+STATE = obj_det_state.State()
 
 im_h, im_w = (480, 640)
 left, right, top, bot = (245, 395, 300, 400)
@@ -45,7 +45,7 @@ box = (left, right, top, bot)
 STATE.update_state(box, im_h, im_w, args, test=True, object_key=1)
 
 STATE.set_ego_speed(25)
-this_scene = scene.scene(STATE.states, ego_speed=(0,STATE.get_ego_speed()), ego_accel=(0,0))
+this_scene = scene.Scene(STATE.states, ego_speed=(0,STATE.get_ego_speed()), ego_accel=(0,0))
 rollouts = this_scene.simulate(1,   # n_sims
                                50, # H
                                0.1, # step

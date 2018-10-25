@@ -7,7 +7,7 @@ from driver_risk_utils import general_utils
 from driver_risk_utils import state_estimation_utils as s_utils
 import vehicle_state
 
-class state:
+class State:
     """
     Use the state to keep track of states associated with vehicles over time.
     The "states" are quantaties such as relative position and velocity.
@@ -211,7 +211,7 @@ class state:
                         camera_focal_len = args.focal,
                         camera_height = args.cameraH, carW=args.carW)
 
-        new_vehicle_state = vehicle_state.vehicle_state()
+        new_vehicle_state = vehicle_state.VehicleState()
         new_vehicle_state.quantities["distance_x"] = \
             s_utils.left_of_center(box, im_w) * \
             np.mean(

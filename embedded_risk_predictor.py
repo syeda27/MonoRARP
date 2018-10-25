@@ -2,8 +2,7 @@
 This file sacrifices modularity for the purposes of increasing runtime.
 Instead of simulating N rollouts and then calculating risk, which involves not
 only storing all N rollouts in memory but also performing many deepcopies along
-the way, this class will calculate risk while rolling out, and only have to do
-N deepcopies (for the initialization).
+the way, this class will calculate risk while rolling out.
 """
 
 import time

@@ -7,7 +7,7 @@ key to the object, you're out of luck.
 It is basically a wrapper to a dictionary, but supports future extensions.
 """
 
-class vehicle_state:
+class VehicleState:
     def __init__(self):
         self.quantities = {}
         self.update_time = None

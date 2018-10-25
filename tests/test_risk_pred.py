@@ -6,7 +6,7 @@ sys.path.append("..")
 import obj_det_state
 import risk_pred
 
-STATE = obj_det_state.state()
+STATE = obj_det_state.State()
 
 assert risk_pred.calculate_ttc(STATE) is None
 

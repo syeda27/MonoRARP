@@ -35,7 +35,7 @@ def mph_to_mps(mph):
 def mps_to_mph(mps):
     return mps / 0.44704
 
-class timing:
+class Timing:
     def __init__(self):
         self.start_times = {}
         self.durations = defaultdict(int)

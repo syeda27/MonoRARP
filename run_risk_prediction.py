@@ -21,13 +21,13 @@ sys.path.append(os.path.dirname(__file__))
 
 import obj_det_state
 import risk_predictor
-import sim_and_risk
+import embedded_risk_predictor
 import tracker
 import display
 from driver_risk_utils import argument_utils, general_utils, gps_utils
 
 
-class launcher:
+class Launcher:
     """
     Handles the args, which will eventually be a config file, and then
     calls an instance of the `runner` class, which does everything interesting.
@@ -74,11 +74,11 @@ class launcher:
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
-                one_time_runner = runner(self, sess)
+                one_time_runner = Runner(self, sess)
                 one_time_runner.run()
 
 
-class runner:
+class Runner:
     """
     This class is tasked with just running one instantiation.
     it is called after tf.Session() is initialized, and is where the interesting
@@ -101,13 +101,13 @@ class runner:
         self.sess = sess
         self.gps_interface = None
         if launcher.all_args.use_gps:
-            self.gps_interface = gps_utils.gps_interface(launcher.all_args.gps_source)
+            self.gps_interface = gps_utils.GPS_Interface(launcher.all_args.gps_source)
 
-        self.state = obj_det_state.state()
+        self.state = obj_det_state.State()
         self.state.set_ego_speed_mph(35)
 
         #self.risk_predictor = risk_predictor.RiskPredictor(
-        self.risk_predictor = sim_and_risk.EmbeddedRiskPredictor(
+        self.risk_predictor = embedded_risk_predictor.EmbeddedRiskPredictor(
             sim_horizon=launcher.all_args.risk_H,
             sim_step=launcher.all_args.risk_step,
             ttc_horizon=launcher.all_args.ttc_H,
@@ -314,7 +314,7 @@ class runner:
         """
         self.timer = None
         if profile:
-            self.timer = general_utils.timing()
+            self.timer = general_utils.Timing()
             self.timer.update_start("AllCalls")
         net_out = None
         if self.tracker_obj.should_reset():
@@ -413,10 +413,10 @@ class runner:
         self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
 
         # Tracker
-        self.tracker_obj = tracker.tracker(
+        self.tracker_obj = tracker.Tracker(
             self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
         # Display
-        self.display_obj = display.display()
+        self.display_obj = display.Display()
 
         # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:
@@ -437,5 +437,5 @@ class runner:
 
 if __name__ == "__main__":
     args = argument_utils.parse_args()
-    launcher_obj = launcher(args)
+    launcher_obj = Launcher(args)
     launcher_obj.launch()
