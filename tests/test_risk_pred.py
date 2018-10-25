@@ -3,10 +3,10 @@ import numpy as np
 import sys
 
 sys.path.append("..")
-import obj_det_state
+import state_history
 import risk_pred
 
-STATE = obj_det_state.State()
+STATE = state_history.StateHistory()
 
 assert risk_pred.calculate_ttc(STATE) is None
 

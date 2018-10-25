@@ -63,7 +63,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
 
         Arguments
           state:
-            A state object to represent the current road scenario--obj_det_state
+            A StateHistory object to represent the road scenario and all information
+            we have collected over time. TODO: this is more info than needed.
           n_sims:
             Integer, if using the `online` method, determins how many sets of
               rollouts to simulate.

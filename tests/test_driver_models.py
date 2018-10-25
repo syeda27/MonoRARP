@@ -6,7 +6,7 @@ import numpy as np
 import sys
 
 sys.path.append("..")
-import obj_det_state
+import state_history
 import scene
 
 
@@ -33,7 +33,7 @@ parser.add_argument("--horizon", type=float, default=0.5) # 0 - 1
 
 
 args = parser.parse_args()
-STATE = obj_det_state.State()
+STATE = state_history.StateHistory()
 
 im_h, im_w = (480, 640)
 left, right, top, bot = (245, 395, 300, 400)

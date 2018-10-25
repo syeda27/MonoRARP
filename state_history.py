@@ -7,7 +7,7 @@ from driver_risk_utils import general_utils
 from driver_risk_utils import state_estimation_utils as s_utils
 import vehicle_state
 
-class State:
+class StateHistory:
     """
     Use the state to keep track of states associated with vehicles over time.
     The "states" are quantaties such as relative position and velocity.

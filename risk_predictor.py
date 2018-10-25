@@ -1,7 +1,7 @@
 """
 This file defines the `RiskPredictor` class.
 
-The main class function works in conjunction with the STATE from obj_det_state
+The main class function works in conjunction with the StateHistory
 
 It uses the information from the state to calculate the automotive risk in
 the future.
@@ -103,7 +103,8 @@ class RiskPredictor:
 
         Arguments
           state:
-            A state object to represent the current road scenario--obj_det_state
+            A StateHistory object to represent the road scenario and all information
+            we have collected over time. TODO: this is more info than needed.
           risk_type:
             String, indicate which method to use to calculate the risk.
           n_sims:

@@ -19,7 +19,7 @@ from object_detection.utils import visualization_utils as vis_util
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-import obj_det_state
+import state_history
 import risk_predictor
 import embedded_risk_predictor
 import tracker
@@ -103,7 +103,7 @@ class Runner:
         if launcher.all_args.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher.all_args.gps_source)
 
-        self.state = obj_det_state.State()
+        self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
 
         #self.risk_predictor = risk_predictor.RiskPredictor(
