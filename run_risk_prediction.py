@@ -364,7 +364,7 @@ class Runner:
             self.timer.update_end("AllCalls")
             self.timer.print_stats()
 
-    def process_frame(self, force_fps=3):
+    def process_frame(self, force_fps=0):
         """
         This is basically called as often as possible. It is the main wrapper
         function for an individual frame from the camera.
@@ -375,7 +375,7 @@ class Runner:
         """
         self.elapsed += 1
         self.fps = general_utils.get_fps(self.start_loop, self.elapsed)
-        if force_fps > 0 and self.fps < force_fps:
+        if self.fps < force_fps:
             print("FPS too low ({}), so frame {} skipped.".format(
                 self.fps,
                 self.elapsed

@@ -44,6 +44,8 @@ USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
+DEVICE='/gpu:0'
+
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
@@ -96,7 +98,7 @@ else
         --risk_H $RISK_H --risk_step $RISK_STEP \
         --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
-        --accept_speed $ACCEPT_SPEED
+        --accept_speed $ACCEPT_SPEED --device $DEVICE
     cd $START_LOC
     for job in $JOBS
     do

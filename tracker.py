@@ -77,7 +77,7 @@ class Tracker:
             self.lables = defaultdict(list)
             state_object.clear()
 
-    def update_one(self, image_index, net_out, buffer_input):
+    def update_one(self, image_index, net_out, buffer_input, verbose=False):
         do_convert = True
         if self.init_tracker:
             self.init_tracker = False
@@ -99,12 +99,11 @@ class Tracker:
         else:
             do_convert = False
             ok, boxes = self.multi_tracker.update(buffer_input[image_index])
-            """
-            print("shape:", buffer_inp[image_index].shape)
-            print("val", buffer_inp[image_index])
-            print("len", len(buffer_inp), " ", i)
-            print(ok)
-            """
+            if verbose:
+                print("shape:", buffer_inp[image_index].shape)
+                print("val", buffer_inp[image_index])
+                print("len", len(buffer_inp), " ", i)
+                print(ok)
             if ok is False: # lost tracking
                 self.init_tracker = True
         return boxes, do_convert, self.labels
