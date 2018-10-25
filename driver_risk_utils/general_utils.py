@@ -8,7 +8,7 @@ from collections import defaultdict
 
 
 def get_fps(start, frames):
-    if frames < 5:
+    if frames <= 1:
         return 1
     elapsed_time = time.time() - start
     return frames / elapsed_time

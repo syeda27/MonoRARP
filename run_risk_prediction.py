@@ -129,6 +129,7 @@ class Runner:
         self.fps = 1
         self.done = False # updated in process_frame()
         self.risk_predictor.reset()
+        self.start_loop = time.time()
 
     def init_camera(self, input):
         """
@@ -363,7 +364,7 @@ class Runner:
             self.timer.update_end("AllCalls")
             self.timer.print_stats()
 
-    def process_frame(self):
+    def process_frame(self, force_fps=3):
         """
         This is basically called as often as possible. It is the main wrapper
         function for an individual frame from the camera.
@@ -373,9 +374,14 @@ class Runner:
         It also handles the speed and all other user input.
         """
         self.elapsed += 1
+        self.fps = general_utils.get_fps(self.start_loop, self.elapsed)
+        if force_fps > 0 and self.fps < force_fps:
+            print("FPS too low ({}), so frame {} skipped.".format(
+                self.fps,
+                self.elapsed
+            ))
+            return
         self.tracker_obj.update_if_init(self.elapsed)
-        self.fps = general_utils.get_fps(self.start, self.elapsed)
-
         self.tracker_obj.check_and_reset_multitracker(self.state)
 
         self.read_image()
@@ -421,6 +427,8 @@ class Runner:
         # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
+
+        self.start_loop = time.time()
 
         while self.camera.isOpened() and not self.done:
             self.process_frame()
