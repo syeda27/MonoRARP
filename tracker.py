@@ -77,7 +77,7 @@ class Tracker:
             self.lables = defaultdict(list)
             state_object.clear()
 
-    def update_one(self, image_index, net_out, buffer_input, verbose=False):
+    def update_one(self, image_index, net_out, image, verbose=False):
         do_convert = True
         if self.init_tracker:
             self.init_tracker = False
@@ -91,18 +91,17 @@ class Tracker:
                 if self.tracker_type == "KCF":
                     self.multi_tracker.add(
                         cv2.TrackerKCF_create(),
-                        buffer_input[image_index],
+                        image,
                         general_utils.convert(self.im_height, self.im_width, box)
                     )
                 else:
                     self.raise_undefined_tracker_type()
         else:
             do_convert = False
-            ok, boxes = self.multi_tracker.update(buffer_input[image_index])
+            ok, boxes = self.multi_tracker.update(image)
             if verbose:
-                print("shape:", buffer_inp[image_index].shape)
-                print("val", buffer_inp[image_index])
-                print("len", len(buffer_inp), " ", i)
+                print("shape:", image.shape)
+                print("val", image)
                 print(ok)
             if ok is False: # lost tracking
                 self.init_tracker = True

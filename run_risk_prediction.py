@@ -19,6 +19,7 @@ from object_detection.utils import visualization_utils as vis_util
 sys.path.append(os.path.dirname(__file__))
 
 import runner
+import threaded_runner
 from driver_risk_utils import argument_utils
 
 
@@ -60,6 +61,7 @@ class Launcher:
                 use_display_name=True)
         self.category_index = label_map_util.create_category_index(categories)
         self.all_args = args
+        self.thread_queue_size = 3 # TODO
 
     def launch(self):
         """
@@ -69,7 +71,14 @@ class Launcher:
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
+                """
+                if self.all_args.threaded:
+                    threaded_runner.ThreadedRunner(self, sess).run()
+                else:
+                    runner.Runner(self, sess).run()
+                """
                 runner.Runner(self, sess).run()
+                #threaded_runner.ThreadedRunner(self, sess).run()
 
 
 

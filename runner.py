@@ -50,6 +50,7 @@ class Runner:
         self.gps_interface = None
         if launcher.all_args.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher.all_args.gps_source)
+        self.thread_queue_size = launcher.thread_queue_size
 
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
@@ -183,16 +184,18 @@ class Runner:
         self.buffer_pre.append(image_np)
         self.tracker_obj.update_im_shape(im_height, im_width)
 
-    def get_detected_objects(self, i, net_out):
+    def get_detected_objects(self, i, net_out, image):
         """
         Gets the detected objects either from the tracker or the network output,
         depending on whether or not we are re-initializing the tracker.
 
         Arguments
           i: the index (int) within the queue that this funciton will process.
+            Important for net_out
           net_out: the dictionary containing the outputs from the object
             detection network.
             Will be None if we are not resetting the tracker.
+          image: the image to process.
 
         Returns
           do_convert: bool of whether the coordinates for the boxes need to
@@ -202,10 +205,9 @@ class Runner:
         """
         # TODO the use of net_out can get somewhat confusing. That means it can
         # be optimized somehow...
-        do_convert = True
 
         if self.tracker_obj.use_tracker:
-            boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, self.buffer_inp)
+            boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, image)
         else:
             boxes = net_out['detection_boxes'][i][np.where(\
                     net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
@@ -213,11 +215,13 @@ class Runner:
                     net_out['detection_classes'][i][np.where(\
                         net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
                     ]
+            do_convert = True
+
         if len(labels) < len(boxes):
             labels.extend([""] * (len(boxes) - len(labels)))
-        im_h, im_w, _ = self.buffer_inp[i].shape
 
         if do_convert:
+            im_h, im_w, _ = image.shape
             for i,b in enumerate(boxes):
                 boxes[i] = general_utils.convert(im_h, im_w, b)
         return boxes, labels
@@ -257,6 +261,40 @@ class Runner:
                 object_key=i,
                 time=frame_time)
 
+    def visualize_one_image(self, net_out, i, frame_time):
+        # Visualization of the results of a detection, not thread safe.
+        if self.timer:
+            self.timer.update_start("DetectObjects")
+        boxes, labels = self.get_detected_objects(i, net_out, self.buffer_inp[i])
+        im_h, im_w, _ = self.buffer_inp[i].shape
+        self.update_state(labels, boxes, im_h, im_w, frame_time)
+        if self.timer:
+            self.timer.update_end("DetectObjects", len(boxes))
+            self.timer.update_start("GetRisk")
+
+        risk = self.get_risk()
+
+        if self.timer:
+            self.timer.update_end("GetRisk", 1)
+            self.timer.update_start("Display")
+        self.display_obj.update_image(self.buffer_inp[i])
+        img = self.display_obj.display_info(
+                self.state.get_current_states_quantities(),
+                risk,
+                self.state.get_ego_speed_mph(),
+                boxes,
+                labels,
+                fps=self.fps,
+                frame_time=frame_time
+            )
+
+        if self.timer:
+            self.timer.update_end("Display", 1)
+
+        if self.launcher.all_args.save:
+            self.videoWriter.write(img)
+        cv2.imshow('', img)
+
     def process_queue(self, frame_time, profile=False):
         """
         Iterate over all images in queue to calculate and display everything.
@@ -282,38 +320,8 @@ class Runner:
                 self.timer.update_end("NeuralNet", 1)
 
         for i in range(self.launcher.all_args.queue):
-            # Visualization of the results of a detection
-            if self.timer:
-                self.timer.update_start("DetectObjects")
-            boxes, labels = self.get_detected_objects(i, net_out)
-            im_h, im_w, _ = self.buffer_inp[i].shape
-            self.update_state(labels, boxes, im_h, im_w, frame_time)
-            if self.timer:
-                self.timer.update_end("DetectObjects", len(boxes))
-                self.timer.update_start("GetRisk")
+            self.visualize_one_image(net_out, i, frame_time)
 
-            risk = self.get_risk()
-
-            if self.timer:
-                self.timer.update_end("GetRisk", 1)
-                self.timer.update_start("Display")
-            self.display_obj.update_image(self.buffer_inp[i])
-            img = self.display_obj.display_info(
-                    self.state.get_current_states_quantities(),
-                    risk,
-                    self.state.get_ego_speed_mph(),
-                    boxes,
-                    labels,
-                    fps=self.fps,
-                    frame_time=frame_time
-                )
-
-            if self.timer:
-                self.timer.update_end("Display", 1)
-
-            if self.launcher.all_args.save:
-                self.videoWriter.write(img)
-            cv2.imshow('', img)
         self.buffer_inp = list()
         self.buffer_pre = list()
         if self.timer:
@@ -345,6 +353,7 @@ class Runner:
         if self.done: return
 
         if self.elapsed % self.launcher.all_args.queue == 0:
+            # this check is pretty deprecated. Careful.
             self.process_queue(time.time())
 
         choice = cv2.waitKey(1)
@@ -387,6 +396,7 @@ class Runner:
 
         while self.camera.isOpened() and not self.done:
             self.process_frame()
+        self.done = True # in case camera closes, but still want to be done.
 
         end = time.time()
         print("Total time: ", end - self.start)
