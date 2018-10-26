@@ -40,6 +40,8 @@ def test_default_args():
     assert args.ttc_step == defaults.TTC_STEP
     assert args.col_tol_x == defaults.COLLISION_TOL_X_m
     assert args.col_tol_y == defaults.COLLISION_TOL_Y_m
+    assert args.embedded_risk == argument_utils.str2bool(defaults.EMBEDDED_RISK)
+    assert args.max_risk_threads == defaults.RISK_THREADS
 
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 

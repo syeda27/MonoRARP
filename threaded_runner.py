@@ -5,22 +5,10 @@ import tensorflow as tf
 import cv2
 import time
 
-from collections import defaultdict
-
-# This is needed since the notebook is stored in the object_detection folder.
-sys.path.append("..")
-from object_detection.utils import ops as utils_ops
-#session_config.gpu_options.per_process_gpu_memory_fraction = 0.6
-from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as vis_util
-
 # Now importing custom packages
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-import state_history
-import risk_predictor
-import embedded_risk_predictor
 import tracker
 import display
 from driver_risk_utils import argument_utils, general_utils, gps_utils
@@ -112,7 +100,7 @@ class ThreadedRunner(Runner):
         im_h, im_w, _ = image.shape
         self.update_state(labels, boxes, im_h, im_w, frame_time)
 
-        risk = self.get_risk(threaded=True)
+        risk = self.get_risk()
 
         self.display_obj.update_image(image)
         img = self.display_obj.display_info(

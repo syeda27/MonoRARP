@@ -55,14 +55,18 @@ class Runner:
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
 
-        #self.risk_predictor = risk_predictor.RiskPredictor(
-        self.risk_predictor = embedded_risk_predictor.EmbeddedRiskPredictor(
+        risk_constructor = risk_predictor.RiskPredictor
+        if launcher.all_args.embedded_risk:
+            risk_constructor = embedded_risk_predictor.EmbeddedRiskPredictor
+
+        self.risk_predictor = risk_constructor(
             sim_horizon=launcher.all_args.risk_H,
             sim_step=launcher.all_args.risk_step,
             ttc_horizon=launcher.all_args.ttc_H,
             ttc_step=launcher.all_args.ttc_step,
             collision_tolerance_x=launcher.all_args.col_tol_x,
             collision_tolerance_y=launcher.all_args.col_tol_y,
+            max_threads=launcher.all_args.max_risk_threads
         )
         self.reset_vars()
 
@@ -229,8 +233,7 @@ class Runner:
     def get_risk(self,
                  risk_type="online",
                  n_sims=50,
-                 verbose=False,
-                 threaded=False):
+                 verbose=False):
         """
         If we want to calculate the risk this frame, we make a wrapper around
         the risk predictor. Otherwise we return the previous risk seen.
@@ -243,8 +246,6 @@ class Runner:
               rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
-          threaded:
-            Boolean, whether or not to thread the calculation of risk.
 
 
         Returns:
@@ -254,7 +255,7 @@ class Runner:
         calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
         if calculate_risk:
             return self.risk_predictor.get_risk(
-                    self.state, risk_type, n_sims, verbose, self.timer, False)
+                    self.state, risk_type, n_sims, verbose, self.timer)
         return self.risk_predictor.prev_risk
 
     def update_state(self, labels, boxes, im_h, im_w, frame_time):

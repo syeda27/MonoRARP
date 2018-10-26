@@ -64,6 +64,9 @@ def add_risk_args(parser):
     parser.add_argument("--ttc_step", type=float, default=defaults.TTC_STEP)
     parser.add_argument("--col_tol_x", type=float, default=defaults.COLLISION_TOL_X_m)
     parser.add_argument("--col_tol_y", type=float, default=defaults.COLLISION_TOL_Y_m)
+    parser.add_argument("--embedded_risk", type=str2bool, default=defaults.EMBEDDED_RISK)
+    parser.add_argument("--max_risk_threads", type=int, default=defaults.RISK_THREADS)
+
 
 """
 parse_args creates a parser object, adds the arguments and default arguments,

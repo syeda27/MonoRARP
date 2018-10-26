@@ -60,8 +60,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                  risk_type="ttc",
                  n_sims=10,
                  verbose=False,
-                 timer=None,
-                 threaded=False):
+                 timer=None):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -79,8 +78,6 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             Boolean, passed to called functions on whether to log.
           timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
-          threaded:
-            Boolean, whether or not to thread the calculation of risk.
 
         Returns
           risk:
@@ -108,8 +105,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                 self.sim_horizon,
                 self.sim_step,
                 verbose,
-                timer,
-                threaded
+                timer
             )
             if timer:
                 timer.update_end("RiskSim", n_sims)
@@ -142,8 +138,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                  H=5,
                  step=0.2,
                  verbose=False,
-                 timer=None,
-                 threaded=False):
+                 timer=None):
         """
         Runs N simulations using the IDM driver model
 
@@ -170,7 +165,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         if timer is not None:
             timer.update_start("Simulating")
 
-        if threaded:
+        if self.max_threads > 1:
             risk = self.get_risk_threaded(N, H, step, verbose, timer)
         else:
             risk = 0
@@ -180,12 +175,12 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             timer.update_end("Simulating", N)
         return risk / N
 
-    def get_risk_threaded(self, N, H, step, verbose, timer=None, max_threads=100):
+    def get_risk_threaded(self, N, H, step, verbose, timer=None):
         risk = 0
         num_sims = 0
-        self.thread_risk_queue = queue.Queue(max_threads)
+        self.thread_risk_queue = queue.Queue(self.max_threads)
         while num_sims < N:
-            num_threads = min(max_threads, N-num_sims)
+            num_threads = min(self.max_threads, N-num_sims)
             list_of_threads = []
             for i in range(num_threads):
                 list_of_threads.append(threading.Thread(

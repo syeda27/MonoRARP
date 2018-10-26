@@ -56,7 +56,8 @@ class RiskPredictor:
                  ttc_horizon=3.0,
                  ttc_step=0.25,
                  collision_tolerance_x=2.0,
-                 collision_tolerance_y=2.0):
+                 collision_tolerance_y=2.0,
+                 max_threads=10):
         """
         Arguments
           sim_horizon:
@@ -71,6 +72,9 @@ class RiskPredictor:
             Float, tolerance (meters) to indicate a collision, laterally.
           collision_tolerance_y:
             Float, tolerance (meters) to indicate a collision, longitudinal
+          max_threads:
+            Int, the maximum number of threads to spawn at any given time.
+            Setting this number to <= 1 will force the non-threaded method.
         """
         self.sim_horizon = sim_horizon
         self.sim_step = sim_step
@@ -83,6 +87,7 @@ class RiskPredictor:
             low_ttc_score=1
         )
         self.prev_risk = 0.0
+        self.max_threads = 10
 
     def reset(self):
         """
@@ -96,8 +101,7 @@ class RiskPredictor:
                  risk_type="ttc",
                  n_sims=10,
                  verbose=False,
-                 timer=None,
-                 threaded=False):
+                 timer=None):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -115,8 +119,6 @@ class RiskPredictor:
             Boolean, passed to called functions on whether to log.
           timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
-          threaded:
-            Boolean, whether or not to thread the calculation of risk.
 
         Returns
           risk:
@@ -141,7 +143,7 @@ class RiskPredictor:
             if timer:
                 timer.update_end("SceneInit")
                 timer.update_start("RiskSim")
-            # TODO use threaded for both making rollouts and calculating risk.
+            # TODO use self.max_threads for both making rollouts and calculating risk.
             rollouts = this_scene.simulate(
                     n_sims,
                     self.sim_horizon,

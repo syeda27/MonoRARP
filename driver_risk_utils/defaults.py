@@ -1,7 +1,7 @@
 """This file tracks default parameters to make it easier to update.
 Many are used in argument_utils.py.
 
-If applicable, the units are appened to the variable name
+If applicable, the units are appened to the variable name TODO
 """
 
 
@@ -32,7 +32,7 @@ DO_TRACKING = "True"
 
 ## GENERAL INPUT AND OUTPUT DEFAULTS ##
 SOURCE = "0"
-SAVE = "TRUE"
+SAVE = "True"
 SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
 
 ## RISK DEFAULTS ##
@@ -42,3 +42,11 @@ TTC_HORIZON = 2  # seconds, for use when calculating low ttc events.
 TTC_STEP = 0.5
 COLLISION_TOL_X_m = 1 # what constitutes a collision?
 COLLISION_TOL_Y_m = 2
+EMBEDDED_RISK = "False"
+"""
+EMBEDDED_RISK indicates whether to simulate and calculate risk at
+the same time.
+It avoids deepcopies and is more efficient, but less modular.
+"""
+RISK_THREADS = 1   # the maximum number of threads to spawn in get_risk().
+                   # setting the value to <= 1 uses the single-threaded method.

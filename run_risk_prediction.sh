@@ -60,7 +60,8 @@ COL_TOL_X=1.0   # meters
 COL_TOL_Y=2.0   # meters
 TTC_H=1.0       # seconds
 TTC_STEP=0.25   # seconds
-
+RISK_THREADS=10  # max number of threads (>1 -> threaded risk calcs)
+EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
@@ -98,6 +99,7 @@ else
         --risk_H $RISK_H --risk_step $RISK_STEP \
         --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
+        --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
         --accept_speed $ACCEPT_SPEED --device $DEVICE
     cd $START_LOC
     for job in $JOBS
