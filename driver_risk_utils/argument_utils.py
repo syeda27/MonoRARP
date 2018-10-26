@@ -56,6 +56,8 @@ def add_general_args(parser):
     # 1 to update every frame
     parser.add_argument("--device", type=str, \
             default=defaults.DEVICE)
+    parser.add_argument("--threaded_runner", type=str, \
+            default=defaults.THREADED_RUNNER)
 
 def add_risk_args(parser):
     parser.add_argument("--risk_H", type=float, default=defaults.RISK_HORIZON)

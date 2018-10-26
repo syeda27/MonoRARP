@@ -1,3 +1,17 @@
+"""
+This file implements the ThreadedRunner class, which supports (ideally) a couple
+different methods for threading the DRIVR system.
+
+Method A:
+Highly decomposed threading.
+NOT IMPLEMENTED
+
+Method B:
+Use the main thread for GPU object detection, and have a queue to communicate
+with the thread doing tracker, risk, display, etc.
+
+"""
+
 import numpy as np
 import os
 import sys
@@ -19,6 +33,7 @@ import threading
 
 from runner import Runner
 
+
 class ThreadedRunner(Runner):
     """
     This class is a subclass of Runner, that implements threaded versions of
@@ -28,70 +43,6 @@ class ThreadedRunner(Runner):
     last go around.
     """
 
-    """
-    Option A:
-    queue of length Q (2)
-
-    Thread 1:
-    while not self.done:
-        read image.
-        send to queue 1
-        update self.done (video ends, etc.)
-        wait for queue 1 to not be full
-
-    Thread 2:
-    while not self.done or queue not empty:
-        take image from <end of> queue 1
-        <empty queue 1? Need to to stay real time and not lag. Maybe do if
-        queue grows too large??? See thread 5>
-        run object detection
-        <update tracker??. its cpu but thread 3 is already maxed...>
-        send image, net_out to queue 2
-        wait for queue 2 to not be full
-
-    Thread 3:
-    while not self.done or queue not empty
-        take image, net_out from queue 2.
-        <update tracker. (its cpu)>
-        Get risk from image + boxes.
-        send image, boxes, risk, state to queue 3
-        wait for queue 3 to not be full
-
-    Thread 4 (display):
-    while not done or queue not empty
-        get box, label, state, risk from queue 3.
-        display image.
-        save image if applicable. etc.
-
-    Thread 5 (queue checker):
-    while not done or queue not empty:
-        check queues.
-            If full for too long, remove the first image.
-
-    """
-
-    """
-    Option B (condensed):
-    queue of length Q (2)
-
-    Thread 1:
-    while not self.done:
-        read image.
-        update self.done (video ends, etc.)
-        run object detection
-        send image, net_out to queue 2
-        wait for queue 2 to not be full
-        If full for too long, remove the first image.
-
-    Thread 2:
-    while not self.done or queue not empty
-        take image, net_out from queue 2.
-        update tracker. (its cpu).
-        Get risk from image + boxes.
-        display image.
-        save image if applicable. etc.
-
-    """
 
 
     def visualize_one_image(self, net_out, image, frame_time):
@@ -129,19 +80,19 @@ class ThreadedRunner(Runner):
                 print("Please enter a float or integer.")
 
 
-    def thread2_fn(self, wait_time=0.05):
-        thread2_elapsed = 0
+    def process_detections_fn(self, wait_time=0.05):
+        process_detections_elapsed = 0
         while not self.done or not self.thread_queue.empty():
             # even if done, will empty queue first
             if self.thread_queue.empty():
                 time.sleep(wait_time)
             else:
                 (image_np, net_out, frame_time) = self.thread_queue.get()
-                self.tracker_obj.update_if_init(thread2_elapsed)
+                self.tracker_obj.update_if_init(process_detections_elapsed)
                 self.tracker_obj.check_and_reset_multitracker(self.state)
                 self.visualize_one_image(net_out, image_np, frame_time)
                 # process image_np and net_out
-                thread2_elapsed += 1
+                process_detections_elapsed += 1
 
 
 
@@ -149,11 +100,11 @@ class ThreadedRunner(Runner):
         self.thread_queue = queue.Queue(queue_len)
         #self.thread1 = threading.Thread(
         #    target=thread1_fn, name="thread1", args=(), kwargs={})
-        self.thread2 = threading.Thread(
-            target=self.thread2_fn, name="thread2", args=([0.1]), kwargs={})
+        self.process_detections = threading.Thread(
+            target=self.process_detections_fn, name="process_detections", args=([0.1]), kwargs={})
 
         #self.thread1.start()
-        self.thread2.start()
+        self.process_detections.start()
 
 
     def block_for_queue(self, max_wait, wait_time):
@@ -166,7 +117,7 @@ class ThreadedRunner(Runner):
             return True
         return False
 
-    def process_frame(self, max_wait=1, wait_time=0.1):
+    def process_frame(self, max_wait=0.5, wait_time=0.05):
         """
         This is Thread1 from method B
         """
@@ -225,7 +176,7 @@ class ThreadedRunner(Runner):
         self.done = True
 
         #self.thread1.join()
-        self.thread2.join()
+        self.process_detections.join()
 
         end = time.time()
         print("Total time: ", end - self.start)
@@ -236,3 +187,68 @@ class ThreadedRunner(Runner):
         self.camera.release()
         if self.using_camera:
             cv2.destroyAllWindows()
+
+"""
+Option A:
+queue of length Q (2)
+
+Thread 1:
+while not self.done:
+    read image.
+    send to queue 1
+    update self.done (video ends, etc.)
+    wait for queue 1 to not be full
+
+Thread 2:
+while not self.done or queue not empty:
+    take image from <end of> queue 1
+    <empty queue 1? Need to to stay real time and not lag. Maybe do if
+    queue grows too large??? See thread 5>
+    run object detection
+    <update tracker??. its cpu but thread 3 is already maxed...>
+    send image, net_out to queue 2
+    wait for queue 2 to not be full
+
+Thread 3:
+while not self.done or queue not empty
+    take image, net_out from queue 2.
+    <update tracker. (its cpu)>
+    Get risk from image + boxes.
+    send image, boxes, risk, state to queue 3
+    wait for queue 3 to not be full
+
+Thread 4 (display):
+while not done or queue not empty
+    get box, label, state, risk from queue 3.
+    display image.
+    save image if applicable. etc.
+
+Thread 5 (queue checker):
+while not done or queue not empty:
+    check queues.
+        If full for too long, remove the first image.
+
+"""
+
+"""
+Option B (condensed):
+queue of length Q (2)
+
+Thread 1:
+while not self.done:
+    read image.
+    update self.done (video ends, etc.)
+    run object detection
+    send image, net_out to queue 2
+    wait for queue 2 to not be full
+    If full for too long, remove the first image.
+
+Thread 2:
+while not self.done or queue not empty
+    take image, net_out from queue 2.
+    update tracker. (its cpu).
+    Get risk from image + boxes.
+    display image.
+    save image if applicable. etc.
+
+"""

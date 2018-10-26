@@ -35,7 +35,6 @@ SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 #SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
 
-
 QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=10
@@ -45,7 +44,7 @@ GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
-
+THREADED_RUNNER='B'         # The runner-level threading method. '' for none.
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
@@ -100,7 +99,8 @@ else
         --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
         --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
-        --accept_speed $ACCEPT_SPEED --device $DEVICE
+        --accept_speed $ACCEPT_SPEED --device $DEVICE \
+       --threaded_runner $THREADED_RUNNER
     cd $START_LOC
     for job in $JOBS
     do

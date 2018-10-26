@@ -1,18 +1,12 @@
-import numpy as np
 import os
 import sys
 import tensorflow as tf
-import cv2
 import time
-
-from collections import defaultdict
 
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
-from object_detection.utils import ops as utils_ops
 #session_config.gpu_options.per_process_gpu_memory_fraction = 0.6
 from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as vis_util
 
 # Now importing custom packages
 # We want to add the directory that contains this file to the path list:
@@ -67,6 +61,9 @@ class Launcher:
         """
         Picks the device, tensorflow graph, and creates the tf session, before
         initializing and runner a runner.
+
+        Raises:
+            ValueError if invalid threaded_runner method passed in.
         """
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
@@ -77,9 +74,15 @@ class Launcher:
                 else:
                     runner.Runner(self, sess).run()
                 """
-                runner.Runner(self, sess).run()
-                #threaded_runner.ThreadedRunner(self, sess).run()
-
+                if self.all_args.threaded_runner is not "":
+                    if self.all_args.threaded_runner.lower() == "b":
+                        threaded_runner.ThreadedRunner(self, sess).run()
+                    else:
+                        raise ValueError(
+                            "Invalid method for threaded runner: {}".format(
+                                self.all_args.threaded_runner.lower()))
+                else:
+                    runner.Runner(self, sess).run()
 
 
 

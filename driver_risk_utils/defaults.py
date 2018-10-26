@@ -20,6 +20,8 @@ LABELS = 'data/kitti_label_map.pbtxt'
 CAR_WIDTH_m = 1.8
 CALC_RISK_EVERY_N_FRAMES = 2
 DEVICE = '/gpu:0'
+THREADED_RUNNER = ''  # leave blank for single threaded, otherwise, one of
+                      # the supported threading methods (see threaded_runner.py)
 
 ## GPS DEFAULTS ##
 USE_GPS = "True"
