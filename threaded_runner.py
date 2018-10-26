@@ -112,7 +112,7 @@ class ThreadedRunner(Runner):
         im_h, im_w, _ = image.shape
         self.update_state(labels, boxes, im_h, im_w, frame_time)
 
-        risk = self.get_risk()
+        risk = self.get_risk(threaded=True)
 
         self.display_obj.update_image(image)
         img = self.display_obj.display_info(

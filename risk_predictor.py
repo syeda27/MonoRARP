@@ -96,7 +96,8 @@ class RiskPredictor:
                  risk_type="ttc",
                  n_sims=10,
                  verbose=False,
-                 timer=None):
+                 timer=None,
+                 threaded=False):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -114,6 +115,8 @@ class RiskPredictor:
             Boolean, passed to called functions on whether to log.
           timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
+          threaded:
+            Boolean, whether or not to thread the calculation of risk.
 
         Returns
           risk:
@@ -138,6 +141,7 @@ class RiskPredictor:
             if timer:
                 timer.update_end("SceneInit")
                 timer.update_start("RiskSim")
+            # TODO use threaded for both making rollouts and calculating risk.
             rollouts = this_scene.simulate(
                     n_sims,
                     self.sim_horizon,

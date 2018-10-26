@@ -226,10 +226,26 @@ class Runner:
                 boxes[i] = general_utils.convert(im_h, im_w, b)
         return boxes, labels
 
-    def get_risk(self):
+    def get_risk(self,
+                 risk_type="online",
+                 n_sims=50,
+                 verbose=False,
+                 threaded=False):
         """
         If we want to calculate the risk this frame, we make a wrapper around
         the risk predictor. Otherwise we return the previous risk seen.
+
+        Arguments:
+          risk_type:
+            String, indicate which method to use to calculate the risk.
+          n_sims:
+            Integer, if using the `online` method, determins how many sets of
+              rollouts to simulate.
+          verbose:
+            Boolean, passed to called functions on whether to log.
+          threaded:
+            Boolean, whether or not to thread the calculation of risk.
+
 
         Returns:
           risk: a float as returned by self.risk_predictor.get_risk() indicating
@@ -237,11 +253,8 @@ class Runner:
         """
         calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
         if calculate_risk:
-            return self.risk_predictor.get_risk(self.state,
-                                                risk_type="online",  # TODO make these args
-                                                n_sims=50,
-                                                verbose=False,
-                                                timer=self.timer)
+            return self.risk_predictor.get_risk(
+                    self.state, risk_type, n_sims, verbose, self.timer, False)
         return self.risk_predictor.prev_risk
 
     def update_state(self, labels, boxes, im_h, im_w, frame_time):

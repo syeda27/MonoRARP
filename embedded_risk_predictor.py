@@ -6,6 +6,10 @@ the way, this class will calculate risk while rolling out.
 """
 
 import time
+import threading
+import queue
+
+from copy import deepcopy
 
 from risk_predictor import RiskPredictor
 from scene import Scene
@@ -56,7 +60,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                  risk_type="ttc",
                  n_sims=10,
                  verbose=False,
-                 timer=None):
+                 timer=None,
+                 threaded=False):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -65,6 +70,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
           state:
             A StateHistory object to represent the road scenario and all information
             we have collected over time. TODO: this is more info than needed.
+          risk_type:
+            String, indicate which method to use to calculate the risk.
           n_sims:
             Integer, if using the `online` method, determins how many sets of
               rollouts to simulate.
@@ -72,6 +79,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             Boolean, passed to called functions on whether to log.
           timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
+          threaded:
+            Boolean, whether or not to thread the calculation of risk.
 
         Returns
           risk:
@@ -99,7 +108,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                 self.sim_horizon,
                 self.sim_step,
                 verbose,
-                timer
+                timer,
+                threaded
             )
             if timer:
                 timer.update_end("RiskSim", n_sims)
@@ -109,7 +119,31 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         self.prev_risk = (risk + self.prev_risk) / 2.0
         return self.prev_risk
 
-    def simulate(self, N=100, H=5, step=0.2, verbose=False, timer=None):
+    def thread_deepcopy(self):
+        new_object = EmbeddedRiskPredictor(
+            sim_horizon=self.sim_horizon,
+            sim_step=self.sim_step,
+            ttc_horizon=self.risk_args.H,
+            ttc_step=self.risk_args.step,
+            collision_tolerance_x=self.risk_args.collision_tolerance_x,
+            collision_tolerance_y=self.risk_args.collision_tolerance_y
+        )
+        new_object.scene = deepcopy(self.scene)
+        new_object.lane_width_m = self.lane_width_m
+        new_object.vehicle_states = deepcopy(self.vehicle_states)
+        new_object.ego_vel = deepcopy(self.ego_vel)
+        new_object.ego_accel = deepcopy(self.ego_accel)
+        new_object.means = deepcopy(self.means)
+        new_object.variances = deepcopy(self.variances)
+        return new_object
+
+    def simulate(self,
+                 N=100,
+                 H=5,
+                 step=0.2,
+                 verbose=False,
+                 timer=None,
+                 threaded=False):
         """
         Runs N simulations using the IDM driver model
 
@@ -124,6 +158,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             Whether or not to log various occurrences.
           timer: general_utils.timing object.
             The object that is keeping track of various timing qualities.
+          threaded:
+            Boolean, whether or not to thread the calculation of risk.
 
         Returns:
           risk: float
@@ -131,15 +167,50 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         if verbose:
             print("Simulating {} paths for horizon {} by steps of {}".format(
                 N, H, step))
-        risk = 0 # list of N paths, which are snapshots of the scenes
         if timer is not None:
             timer.update_start("Simulating")
 
-        for i in range(N):  # TODO modularize
-            risk += self.simulate_one_path(H, step, verbose, timer)
+        if threaded:
+            risk = self.get_risk_threaded(N, H, step, verbose, timer)
+        else:
+            risk = 0
+            for i in range(N):  # TODO thread
+                risk += self.simulate_one_path(H, step, verbose, timer)
         if timer is not None:
             timer.update_end("Simulating", N)
         return risk / N
+
+    def get_risk_threaded(self, N, H, step, verbose, timer=None, max_threads=100):
+        risk = 0
+        num_sims = 0
+        self.thread_risk_queue = queue.Queue(max_threads)
+        while num_sims < N:
+            num_threads = min(max_threads, N-num_sims)
+            list_of_threads = []
+            for i in range(num_threads):
+                list_of_threads.append(threading.Thread(
+                    target=self.simulate_one_threaded,
+                    name="path{}".format(i),
+                    args=([self.thread_deepcopy(),
+                           H,
+                           step,
+                           verbose,
+                           timer]) # only N deepcopies
+                ))
+                list_of_threads[i].start()
+            for t in list_of_threads:
+                t.join()
+            for i in range(num_threads):
+                risk += self.thread_risk_queue.get()
+            num_sims += num_threads
+        return risk
+
+    def simulate_one_threaded(self, scene_copy, H, step, verbose, timer=None):
+        """
+        scene_copy is actually a copy of this whole class...
+        """
+        risk = scene_copy.simulate_one_path(H, step, verbose, timer)
+        self.thread_risk_queue.put(risk)
 
     def simulate_one_path(self, H, step, verbose, timer):
         """
