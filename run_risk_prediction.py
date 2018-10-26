@@ -74,16 +74,15 @@ class Launcher:
                 else:
                     runner.Runner(self, sess).run()
                 """
-                if self.all_args.threaded_runner is not "":
+                if self.all_args.threaded_runner.lower() == "none":
+                    runner.Runner(self, sess).run()
+                else:
                     if self.all_args.threaded_runner.lower() == "b":
                         threaded_runner.ThreadedRunner(self, sess).run()
                     else:
                         raise ValueError(
                             "Invalid method for threaded runner: {}".format(
                                 self.all_args.threaded_runner.lower()))
-                else:
-                    runner.Runner(self, sess).run()
-
 
 
 if __name__ == "__main__":

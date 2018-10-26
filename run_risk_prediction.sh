@@ -44,7 +44,7 @@ GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
-THREADED_RUNNER='B'         # The runner-level threading method. '' for none.
+THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
