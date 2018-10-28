@@ -33,12 +33,16 @@ def test_default_args():
     assert args.carW == defaults.CAR_WIDTH_m
     assert args.calc_risk_n == defaults.CALC_RISK_EVERY_N_FRAMES
     assert args.device == defaults.DEVICE
+    assert args.threaded_runner == defaults.THREADED_RUNNER
 
     assert args.risk_H == defaults.RISK_HORIZON
     assert args.risk_step == defaults.RISK_STEP
+    assert args.ttc_H == defaults.TTC_HORIZON
+    assert args.ttc_step == defaults.TTC_STEP
     assert args.col_tol_x == defaults.COLLISION_TOL_X_m
     assert args.col_tol_y == defaults.COLLISION_TOL_Y_m
-    assert args.ttc_tol == defaults.TTC_TOL
+    assert args.embedded_risk == argument_utils.str2bool(defaults.EMBEDDED_RISK)
+    assert args.max_risk_threads == defaults.RISK_THREADS
 
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 

@@ -5,14 +5,47 @@ on that information, it must be passed in. This allows the functions to be
 used when no risk_predictor object is defined. Thus, they are utilities.
 """
 
+class RiskArgs:
+    """
+    risk_args is a class to help track some important arguments for the risk
+    predictor utilties.
+    """
+    def __init__(self,
+                 H=10.0,
+                 step=0.1,
+                 collision_tolerance_x=2.0,
+                 collision_tolerance_y=2.0,
+                 collision_score=10.0,
+                 low_ttc_score=1.0):
+        """
+        H:
+          Float, the horizon to compute to, in seconds. This will be used for
+          finding low ttc events. We check the time up to H, and if no
+          collisions, we know there are no low ttc events.
+        step:
+          Float, the granularity of the state propagation, in seconds.
+        collision_tolerance_x:
+          Float, the collision tolerance, laterally, in meters.
+          A distance less than this to another object will be considered a collision.
+        collision_tolerance_y:
+          Float, the collision tolerance, longitudinally (forward and back), in meters.
+        collision_score:
+          Float. The score assigned to a collision event when calculating risk.
+        low_ttc_score:
+          Float. The score assigned to a low time to collision event when
+          calculating risk.
+        """
+        self.H = H
+        self.step = step
+        self.collision_tolerance_x = collision_tolerance_x
+        self.collision_tolerance_y = collision_tolerance_y
+        self.collision_score = collision_score
+        self.low_ttc_score = low_ttc_score
+
 def calculate_ttc(
             state,
-            H=10.0,
-            step=0.1,
-            collision_tolerance_x=2.0,
-            collision_tolerance_y=2.0,
-            verbose=True,
-            collision_tolerance=None):
+            risk_args,
+            verbose=True):
     """
     This first method to calculate ttc (time-to-collision) is just brute force.
 
@@ -25,15 +58,9 @@ def calculate_ttc(
     Arguments:
         state:
           the State object that is used to get current positions / speeds for vehicles.
-        H:
-          Float, the horizon to compute to, in seconds.
-        step:
-          Float, the granularity of the state propagation, in seconds.
-        collision_tolerance_x:
-          Float, the collision tolerance, laterally, in meters.
-          A distance less than this to another object will be considered a collision.
-        collision_tolerance_y:
-          Float, the collision tolerance, longitudinally (forward and back), in meters.
+        risk_args:
+          the parameters class for risk predictor, containing parameters like
+          collisions tolerances, horizon to use, etc.
         verbose:
           Bool, whether or not to print logging messages.
         collision_tolerance:
@@ -44,12 +71,9 @@ def calculate_ttc(
       Time to collision, or None if no collision within the given H.
 
     """
-    if collision_tolerance is not None:
-        collision_tolerance_x = collision_tolerance
-        collision_tolerance_y = collision_tolerance
     t = 0
-    while (t < H):
-        t += step
+    while (t < risk_args.H):
+        t += risk_args.step
         ego_pos_x = 0 # for now, assume no lateral motion.
         ego_pos_y = state.get_ego_speed() * t
         for veh_id in state.states.keys():
@@ -62,9 +86,9 @@ def calculate_ttc(
                 new_pos_y = this_state["distance_y"] + this_state["speed_y"]*t
 
             if (new_pos_x is not None and \
-                    abs(new_pos_x - ego_pos_x) <= collision_tolerance_x) \
+                    abs(new_pos_x - ego_pos_x) <= risk_args.collision_tolerance_x) \
                     and (new_pos_y is not None and \
-                    abs(new_pos_y - ego_pos_y) <= collision_tolerance_y):
+                    abs(new_pos_y - ego_pos_y) <= risk_args.collision_tolerance_y):
                 if verbose:
                     print("calculate_ttc")
                     print(new_pos_x, ego_pos_x)
@@ -74,13 +98,7 @@ def calculate_ttc(
     return None
 
 
-def calculate_ttc_veh(veh_dict,
-        H=10,
-        step=0.1,
-        collision_tolerance_x=2,
-        collision_tolerance_y=2,
-        verbose=True,
-        collision_tolerance=None):
+def calculate_ttc_veh(veh_dict, risk_args, verbose=True):
     """
     This second method to calculate ttc (time-to-collision) is just brute force.
     It is the same as calculate_ttc, but with vehicles instead of states.
@@ -94,35 +112,23 @@ def calculate_ttc_veh(veh_dict,
     Arguments:
         veh_dict:
           A dictionary of all of the vehicles in the scene, with their information.
-        H:
-          Float, the horizon to compute to, in seconds.
-        step:
-          Float, the granularity of the state propagation, in seconds.
-        collision_tolerance_x:
-          Float, the collision tolerance, laterally, in meters.
-          A distance less than this to another object will be considered a collision.
-        collision_tolerance_y:
-          Float, the collision tolerance, longitudinally (forward and back), in meters.
+        risk_args:
+          the parameters class for risk predictor, containing parameters like
+          collisions tolerances, horizon to use, etc.
         verbose:
           Bool, whether or not to print logging messages.
-        collision_tolerance:
-          Float (or None), the collision tolerance for both lateral and
-          longitudinal directions.
 
     Returns:
       Time to collision, or None if no collision within the given H.
     """
-    if collision_tolerance is not None:
-        collision_tolerance_x = collision_tolerance
-        collision_tolerance_y = collision_tolerance
     t = 0
-    while (t < H):
-        t += step
+    while (t < risk_args.H):
+        t += risk_args.step
         collision, veh_id = check_collisions(
             veh_dict,
             t,
-            collision_tolerance_x,
-            collision_tolerance_y)
+            risk_args.collision_tolerance_x,
+            risk_args.collision_tolerance_y)
         if collision:
             if verbose:
                 print("In calculate_ttc:")
@@ -168,9 +174,7 @@ def check_collisions(veh_dict,
     return False, "No collisions detected."
 
 def calculate_risk(rollouts,
-                   collision_tolerance_x,
-                   collision_tolerance_y,
-                   tolerance_ttc,
+                   risk_args,
                    verbose=False):
     """
     Calculates automotive risk from a series of rollouts.
@@ -180,49 +184,77 @@ def calculate_risk(rollouts,
           A list of paths that were simulated.
           Each path is a list of scenes.
           Each scene is the vehicle dictionary we see in previous functions.
-        collision_tolerance_x:
-          Float, the collision tolerance, laterally, in meters.
-          A distance less than this to another object will be considered a collision.
-        collision_tolerance_y:
-          Float, the collision tolerance, longitudinally (forward and back), in meters.
-        tolerance_ttc:
-          Float, a time-to-collision less than this value is considered a "low
-            time to collision event" for the purposes of risk calculation.
+        risk_args:
+          the parameters class for risk predictor, containing parameters like
+          collisions tolerances, horizon to use, etc.
         verbose:
           Bool, whether or not to print logging messages.
 
     Returns
-      Risk: float score for the estimated automotive risk in the give rollouts.
+      Risk: float score for the estimated automotive risk in the given rollouts.
     """
     risk = 0.0
     lowest_ttc = 10000
     for path in rollouts:
-        rollout_risk = 0.0
-        for curr_scene in path:
-            colliding, vehid = check_collisions(
-                curr_scene,
-                0.0,
-                collision_tolerance_x,
-                collision_tolerance_y)
-            if colliding:
-                rollout_risk += 10.0        # TODO args
-            else:
-                ttc = calculate_ttc_veh(
-                    curr_scene,
-                    2.0,                    # TODO args
-                    0.2,                    # TODO args
-                    collision_tolerance_x,
-                    collision_tolerance_y,
-                    verbose)
-                if ttc:
-                    if ttc < lowest_ttc:
-                        lowest_ttc = ttc
-                    if ttc < tolerance_ttc:
-                        rollout_risk += 1.0 # TODO args
-        risk += rollout_risk / len(path)
+        risk_from_path, lowest_ttc = calculate_risk_one_rollout(
+            path, risk_args, lowest_ttc, verbose)
+        risk += risk_from_path
     risk = risk / len(rollouts)
     if verbose:
         if risk > 0:
             print("lowest ttc:", lowest_ttc)
             print("risk:", risk)
     return risk
+
+def calculate_risk_one_rollout(path, risk_args, lowest_ttc=1000, verbose=False):
+    """
+    Calculates automotive risk for a single rollout. This is the estimated
+    risk for the given path.
+    We define the risk, for now, to be:
+      (A) risk_args.collision_score for each scene with a collision.
+      (B) risk_args.low_ttc_score for each scene with at least one low time
+          to collision event including the ego vehicle.
+    This risk is averaged over the number of scenes in the path.
+
+    Arguments
+        path:
+          A list of scenes.
+          Each scene is the vehicle dictionary we see in previous functions.
+        risk_args:
+          the parameters class for risk predictor, containing parameters like
+          collisions tolerances, horizon to use, etc.
+        lowest_ttc:
+          Used exclusively for logging purposes. Keeps track of what the lowest
+          time to collision we have encountered is.
+        verbose:
+          Bool, whether or not to print logging messages.
+
+    Returns
+      Risk: float score for the estimated automotive risk in the path.
+    """
+    rollout_risk = 0.0
+    for curr_scene in path:
+        scene_risk, lowest_ttc = calculate_risk_one_scene(
+            curr_scene, risk_args, lowest_ttc, verbose)
+        rollout_risk += scene_risk
+    return rollout_risk / len(path), lowest_ttc
+
+def calculate_risk_one_scene(curr_scene, risk_args, lowest_ttc, verbose):
+    risk = 0
+    colliding, vehid = check_collisions(
+        curr_scene,
+        0.0,
+        risk_args.collision_tolerance_x,
+        risk_args.collision_tolerance_y)
+    if colliding:
+        return risk_args.collision_score, lowest_ttc
+    else:
+        # we simulate forward in time using constant velocities.
+        ttc = calculate_ttc_veh(curr_scene,
+                                risk_args,
+                                verbose)
+        if ttc: # means we encountered a collision in less than risk_args.H
+            lowest_ttc = min(ttc, lowest_ttc)
+            risk = risk_args.low_ttc_score
+
+    return risk, lowest_ttc

@@ -7,7 +7,7 @@ A vehicle class to encapsulate features and driver models
 Everything is relative to the ego vehicle.
 Assume the ego vehicle is at (0,0) position, so rel_x == x
 """
-class vehicle:
+class Vehicle:
     veh_id = "I do not exist muahahahah"
     rel_x = 0   # lateral distance to ego car
     rel_y = 0   # longitudinal distance to ego car
@@ -35,9 +35,9 @@ class vehicle:
                  delta_b=0):
         self.veh_id = veh_id
         self.set_values(state_dict)
-        self.longitudinal_model = driver_models.idm_model(
+        self.longitudinal_model = driver_models.IDM_Model(
             des_v, hdwy_t, min_gap, accel, deccel)
-        self.lateral_model = driver_models.mobil_model(
+        self.lateral_model = driver_models.MOBIL_Model(
             p, b_safe, a_thr, delta_b)
 
     def set_values(self, state_dict):

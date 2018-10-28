@@ -31,7 +31,7 @@ def get_fore_vehicle(lane_width, current_scene, me, verbose=False):
                 closest_y = gap
                 best = them
     if best is None:
-        best = vehicle.vehicle("fake_veh",
+        best = vehicle.Vehicle("fake_veh",
             {"speed_x": me.rel_vx,
              "speed_y": me.rel_vy,          # same speed
              "distance_y": me.rel_y + 1000, # largest gap
@@ -89,7 +89,7 @@ def get_back_vehicle(lane_width, current_scene, me, left=True, verbose=False):
         lane_x = lane_width
         if left:
             lane_x = -lane_x
-        best = vehicle.vehicle("fake_veh",
+        best = vehicle.Vehicle("fake_veh",
             {"speed_x": me.rel_vx,
              "speed_y": me.rel_vy,              # same speed
              "distance_y": me.rel_y - 1000,     # largest gap

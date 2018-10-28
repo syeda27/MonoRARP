@@ -1,7 +1,8 @@
-# This file will hold a tracker class, which itself will call some other trackers,
-# such as the OpenCV or special trackers.
-# It is essentially a wrapper class to make the main file have consistent API
-# '''
+"""
+This file will hold a tracker class, which itself will call some other trackers,
+such as the OpenCV or special trackers.
+It is essentially a wrapper class to make the main file have consistent API
+"""
 
 import cv2
 import numpy as np
@@ -9,8 +10,8 @@ from collections import defaultdict
 from driver_risk_utils import general_utils
 
 
-class tracker:
-    '''
+class Tracker:
+    """
     Tracker class that serves as the interface between our system and openCV or other
     trackers that we have implemented.
 
@@ -31,7 +32,7 @@ class tracker:
     Main function is `update_one`:
         It updates one of the trackers with the output from a network,
             the input image queue, and an index for the image.
-    '''
+    """
 
     def __init__(self,
                  args,
@@ -76,7 +77,7 @@ class tracker:
             self.lables = defaultdict(list)
             state_object.clear()
 
-    def update_one(self, image_index, net_out, buffer_input):
+    def update_one(self, image_index, net_out, image, verbose=False):
         do_convert = True
         if self.init_tracker:
             self.init_tracker = False
@@ -90,20 +91,18 @@ class tracker:
                 if self.tracker_type == "KCF":
                     self.multi_tracker.add(
                         cv2.TrackerKCF_create(),
-                        buffer_input[image_index],
+                        image,
                         general_utils.convert(self.im_height, self.im_width, box)
                     )
                 else:
                     self.raise_undefined_tracker_type()
         else:
             do_convert = False
-            ok, boxes = self.multi_tracker.update(buffer_input[image_index])
-            '''
-            print("shape:", buffer_inp[image_index].shape)
-            print("val", buffer_inp[image_index])
-            print("len", len(buffer_inp), " ", i)
-            print(ok)
-            '''
+            ok, boxes = self.multi_tracker.update(image)
+            if verbose:
+                print("shape:", image.shape)
+                print("val", image)
+                print(ok)
             if ok is False: # lost tracking
                 self.init_tracker = True
         return boxes, do_convert, self.labels

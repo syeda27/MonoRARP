@@ -17,7 +17,6 @@ TF_LOC='/home/derek/env_tf_models_research/object_detection'
 if [ "$1" != "" ]; then
     TF_LOC=$1
 fi
-echo $TF_LOC
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
@@ -36,7 +35,6 @@ SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 #SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
 
-
 QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=10
@@ -45,6 +43,8 @@ USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
+DEVICE='/gpu:0'
+THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
@@ -53,12 +53,14 @@ MIN_CAMERA_ANGLE=54.5       # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
 RELATIVE_HORIZON=0.5        # between 0 and 1
 
-RISK_H=5      # seconds
-RISK_STEP=0.2 # seconds
-COL_TOL_X=2.0 # meters
-COL_TOL_Y=2.0 # meters
-TTC_TOL=1.0   # seconds
-
+RISK_H=5        # seconds
+RISK_STEP=0.25  # seconds
+COL_TOL_X=1.0   # meters
+COL_TOL_Y=2.0   # meters
+TTC_H=1.0       # seconds
+TTC_STEP=0.25   # seconds
+RISK_THREADS=10  # max number of threads (>1 -> threaded risk calcs)
+EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
@@ -93,9 +95,12 @@ else
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
-        --risk_H $RISK_H --risk_step $RISK_STEP --ttc_tol $TTC_TOL \
+        --risk_H $RISK_H --risk_step $RISK_STEP \
+        --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
-        --accept_speed $ACCEPT_SPEED
+        --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
+        --accept_speed $ACCEPT_SPEED --device $DEVICE \
+       --threaded_runner $THREADED_RUNNER
     cd $START_LOC
     for job in $JOBS
     do

@@ -5,15 +5,15 @@ import numpy as np
 # This file is intended not to start the gps but rather to read and parse
 # a file that a separate process is already producing.
 # For our use case, we need to get the time, longitude, latitude,
-# and then convert two or more consequtive readings into speed. 
+# and then convert two or more consequtive readings into speed.
 # We assume it is called from another script and has filename passed in.
 
 
-class gps_interface:
+class GPS_Interface:
     last_readings = []
 
-    def __init__(self, filename, 
-            readings_for_speed=2, 
+    def __init__(self, filename,
+            readings_for_speed=2,
             gps_format='NMEA'):
         self.filename = filename
         self.n_readings = readings_for_speed
@@ -25,12 +25,12 @@ class gps_interface:
     # mostly for test
     def change_file(self, new_name):
         self.filename = new_name
-    
+
     # reading is (time, lat, lon)
     def add_reading(self, reading, verbose = False):
         if len(self.last_readings) > 0 and \
-                reading[0] == self.last_readings[-1][0]: 
-            if verbose: 
+                reading[0] == self.last_readings[-1][0]:
+            if verbose:
                 print("Reading not added because no time change")
             return
         # do not add, if time is the same
@@ -77,12 +77,12 @@ class gps_interface:
         with open(new_file, "r") as f:
             for line in reversed(f.readlines()):
                 if self.format == "NMEA":
-                    if line.split(",")[0] == "gpsd:IO: <= GPS: $GPRMC": 
+                    if line.split(",")[0] == "gpsd:IO: <= GPS: $GPRMC":
                         return line
                 else:
                     print("Unsupported format")
                     return ""
-    
+
     # also checks validity
     def get_last_valid_reading_line(self, new_file):
         with open(new_file, "r") as f:
@@ -96,7 +96,7 @@ class gps_interface:
                     return ""
 
     def parse_line(self, line, verbose=False):
-        if line is None: 
+        if line is None:
             if verbose:
                 print("no line passed to parse_line()")
             return (-1,-1,-1)
@@ -119,20 +119,20 @@ class gps_interface:
             deg_lon = lon[:-7]
             minutes_lon = lon[len(deg_lon):]
             hem_lon = splits[6]
-            return (time, (deg_lat, minutes_lat, hem_lat), 
+            return (time, (deg_lat, minutes_lat, hem_lat),
                           (deg_lon, minutes_lon, hem_lon))
         else:
             print("Unsupported format")
             return (-1, -1, -1)
 
     def calc_speed(self, time, lat, lon, verbose=False):
-        if len(self.last_readings) == 0: 
+        if len(self.last_readings) == 0:
             if verbose:
                 print("No prior readings.")
             return 0
         time1, lat1, lon1 = self.last_readings[-1]
         dt = float(time) - float(time1)
-        if dt == 0: 
+        if dt == 0:
             if verbose:
                 print("No time change in readings, aka no new reading")
             return 0
