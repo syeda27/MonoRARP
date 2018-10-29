@@ -13,24 +13,45 @@
 using namespace std;
 using namespace cv;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// TRACKER FUNCTION
-//
-// The function below implements the method to track a vehicle trough importance sampling (particle filtering). The procedure starts by generating 10 random particles (current cloud) around a
-// previously determined initial cloud of particles that corresponds to the previous frame. Then an evaluation is performed to determine the closest bounding box in distance to the current particle cloud.
-// Once we find the closest vehicle bounding box its centroid is used to perform the update part of importance sampling. Thus an updated distribution is generated based on the influence of the new
-// information provided by the found bounding box. A new cloud of particles is generated based on the updated distribution. The new cloud captures the state of current vehicle position as the best estimate
-// given previous and current information and the new cloud is expected to be used as an initial cloud for the next image frame tracking processing.
-//
-// Two control methods are implemented in this function. One method provides a mechanism to use the cloud of particles to preserve vehicle information positioning when the bounding box detection for
-// such vehicle dissapears. When the boudning box re-appears again the cloud information allows the proper identification without mistakingly assigning a different bounding box. The second control method
-// allows to avoid taking a bounding box that was already assigned to another tracker even if there was no bounding box dissapearance (this avoids the problem of tracker merging). These control
-// methods are governed by the heuristics of vehicle trajetory.
-//
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+*
+* TRACKER FUNCTION
+*
+* The function below implements the method to track a vehicle trough importance sampling (particle filtering).
+* The procedure starts by generating 10 random particles (current cloud) around a
+* previously determined initial cloud of particles that corresponds to the previous frame.
+* Then an evaluation is performed to determine the closest bounding box in distance to the current particle cloud.
+* Once we find the closest vehicle bounding box its centroid is used to perform the update part of importance sampling.
+* Thus an updated distribution is generated based on the influence of the new
+* information provided by the found bounding box.
+* A new cloud of particles is generated based on the updated distribution.
+* The new cloud captures the state of current vehicle position as the best estimate
+* given previous and current information and the new cloud is expected to be used as an initial cloud for the next image frame tracking processing.
+*
+* Two control methods are implemented in this function.
+* One method provides a mechanism to use the cloud of particles to preserve vehicle information positioning when the bounding box detection for such vehicle dissapears.
+* When the boudning box re-appears again the cloud information allows the proper identification without mistakingly assigning a different bounding box.
+* The second control method allows to avoid taking a bounding box that was already assigned to another tracker even if there was no bounding box dissapearance (this avoids the problem of tracker merging).
+* These control methods are governed by the heuristics of vehicle trajetory.
+*
+*/
 
-void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>> &y_particle_vehicles,vector<double> &delta_x_vehicles,vector<double> &delta_y_vehicles,int Number_of_objects,vector<double>  &centroid_x_previous, vector<double> &centroid_y_previous,vector<int> &initialize_vehicles,vector<int> &count_holding_vehicles,vector< vector<double>> &distance_to_particle_identified_previous_input,int trackerID,int count_tracked_vehicles,vector<double> &cx_tracked,vector<double> &cy_tracked,Mat &frame2,vector< vector<int>> d)
+void tracker(vector< vector<double>> &x_particle_vehicles,
+             vector< vector<double>> &y_particle_vehicles,
+             vector<double> &delta_x_vehicles,
+             vector<double> &delta_y_vehicles,
+             int Number_of_objects,
+             vector<double>  &centroid_x_previous,
+             vector<double> &centroid_y_previous,
+             vector<int> &initialize_vehicles,
+             vector<int> &count_holding_vehicles,
+             vector< vector<double>> &distance_to_particle_identified_previous_input,
+             int trackerID,
+             int count_tracked_vehicles,
+             vector<double> &cx_tracked,
+             vector<double> &cy_tracked,
+             Mat &frame2,
+             vector< vector<int>> d)
 {
 
       /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,10 +98,9 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
       int initialization_delta;
       int merging_conflict;
 
-
-
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //I) GENERATION OF 10 RANDOM PARTICLES
+      /*
+       * I) GENERATION OF 10 RANDOM PARTICLES
+       */
 
       for (int k1=0; k1<10; k1++)
       {
@@ -116,8 +136,10 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
 
 
 
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //II) IDENTIFYING THE BOUNDING BOX THROUGH THE PARTICLES: WHICH BOUNDING BOX CORRESPONDS TO THESE PARTICLES
+      /*
+      II) IDENTIFYING THE BOUNDING BOX THROUGH THE PARTICLES:
+            WHICH BOUNDING BOX CORRESPONDS TO THESE PARTICLES
+      */
 
       min_average_distance = 10000;
 
@@ -163,8 +185,9 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
 
 
 
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //III) TRACKER CONTROL I: PROCESS TO RESOLVE BOUNDING BOX DISSAPEARANCE
+      /*
+      III) TRACKER CONTROL I: PROCESS TO RESOLVE BOUNDING BOX DISSAPEARANCE
+      */
 
       if  (count_holding_vehicles[trackerID]==0)
       {
@@ -231,8 +254,9 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
 
               else //the bounding box corresponding to this tracker may have reappeared
               {
-                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                   //IV) TRACKER CONTROL II: RESOLVING CONFLICT ON REASSIGNMENT OF BOUNDING BOX AFTER DISSAPEARNCE DUE TO CANDIDATE BOUNDING BOX BELONGING TO ANTHER TRACKER
+                   /*
+                   IV) TRACKER CONTROL II: RESOLVING CONFLICT ON REASSIGNMENT OF BOUNDING BOX AFTER DISSAPEARNCE DUE TO CANDIDATE BOUNDING BOX BELONGING TO ANTHER TRACKER
+                   */
 
                    merging_conflict = 0;
                    for ( int k4 = 1; k4 < count_tracked_vehicles+1; k4++)
@@ -269,8 +293,9 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
 
       cout<<"tracker"<<endl;
 
-      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //V) IMPORTANCE SAMPLING PROCESSING TO UPDATE DISTRIBUTION TO BE USED TO GENERATE THE NEXT CLOUD OF PARTICLES FOR THE NEXT FRAME
+      /*
+      V) IMPORTANCE SAMPLING PROCESSING TO UPDATE DISTRIBUTION TO BE USED TO GENERATE THE NEXT CLOUD OF PARTICLES FOR THE NEXT FRAME
+      */
 
       //reindexing
       vector<pair<double,double> > vector_pairs;
@@ -330,8 +355,9 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
       }
 
 
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      //VI) FINAL PROCESSINGS FOR THIS CURRENT FRAME ON THE CURRENT TRACKER, AND PREPARATION FOR NEXT FRAME
+      /*
+      VI) FINAL PROCESSINGS FOR THIS CURRENT FRAME ON THE CURRENT TRACKER, AND PREPARATION FOR NEXT FRAME
+      */
 
       if (initialize_vehicles[trackerID] == 0) //This tracker is being shutdown and it will go through a new vehicle assignment process
       {
@@ -362,25 +388,21 @@ void tracker(vector< vector<double>> &x_particle_vehicles,vector< vector<double>
 }
 
 
-//////////////////////////////////// MAIN TRACKING ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// The procedure below provides the main steps necessary to provide continuous tracking of vehicles through several image frames.
-// The first part of the procedure loads pre-recorded bounding-box detections recorded as coordinate values on a text file. The
-// Final implementation of this tracker assumes that this step will be substituted by a procedure that will provide the information coming
-// from the actual vehicle detector being used.
-//
-// The second step is tracker initialization which is performed taking into account bounding boxes previously assigned to other trackers so
-// that only unassigned bounding boxes are available for every new tracker. In this context if a previously assgined tracker is going through a
-// problematic situation/event such as dealing with the dissapearance of its assigned bounding box, then the initialization attempts to avoid
-// the bounding box associated with the problematic situation. It could happen that the tracker seeking initialization could "steal" the bounding
-// box from a tracker which is experiencing problems. This helps to avoid a "racing" condition between trackers.
-//
-// For trackers succesully initialized the third step invokes the Tracker function which delivers tracking procedures for the current frame.
-//
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-main(){
-
+/* MAIN TRACKING
+* The procedure below provides the main steps necessary to provide continuous tracking of vehicles through several image frames.
+* The first part of the procedure loads pre-recorded bounding-box detections recorded as coordinate values on a text file. The
+* Final implementation of this tracker assumes that this step will be substituted by a procedure that will provide the information coming
+* from the actual vehicle detector being used.
+*
+* The second step is tracker initialization which is performed taking into account bounding boxes previously assigned to other trackers so
+* that only unassigned bounding boxes are available for every new tracker. In this context if a previously assgined tracker is going through a
+* problematic situation/event such as dealing with the dissapearance of its assigned bounding box, then the initialization attempts to avoid
+* the bounding box associated with the problematic situation. It could happen that the tracker seeking initialization could "steal" the bounding
+* box from a tracker which is experiencing problems. This helps to avoid a "racing" condition between trackers.
+*
+* For trackers succesully initialized the third step invokes the Tracker function which delivers tracking procedures for the current frame.
+*/
+int main(int argc, char const *argv[]) {
       ////////////////////////////////////////////////
       // Variable Initialization
 

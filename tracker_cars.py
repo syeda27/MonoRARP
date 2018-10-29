@@ -49,7 +49,11 @@ def create_cdf(distance_to_particle_identified, w, cdf):
         cdf[i]=sum_cdf
     return (indexes_sorted, cdf, w)
 
-def create_uniform(n_p, indexes_sorted, cdf, x_particle_resampled, y_particle_resampled):
+def create_uniform(n_p,
+                   indexes_sorted,
+                   cdf,
+                   x_particle_resampled,
+                   y_particle_resampled):
     #uniform: use prescribed distribution function based on cumulative distribution function previously built
     #This way the particles are drawn from a distribution induced by the weights
     draw_uniform=np.random.uniform(0,1)
@@ -60,7 +64,11 @@ def create_uniform(n_p, indexes_sorted, cdf, x_particle_resampled, y_particle_re
                 y_particle_resampled[i]=y_particle_next[indexes_sorted[j]]
                 break
 
-def delta_output(initialize_flag, cx_identified, cy_identified, centroid_x_previous, centroid_y_previous):
+def delta_output(initialize_flag,
+                 cx_identified,
+                 cy_identified,
+                 centroid_x_previous,
+                 centroid_y_previous):
     if initialize_flag==0: #This tracker is being shutdown and it will go through a new vehicle assignment process
         delta_x_out=0
         delta_y_out=0
@@ -70,7 +78,11 @@ def delta_output(initialize_flag, cx_identified, cy_identified, centroid_x_previ
         initialization_delta=1
     return delta_x_out, delta_y_out
 
-def resample_particles(distance_to_particle_identified, w, cdf, x_particle_resampled, y_particle_resampled):
+def resample_particles(distance_to_particle_identified,
+                       w,
+                       cdf,
+                       x_particle_resampled,
+                       y_particle_resampled):
     # create_cdf
     indexes_sorted, cdf, w = create_cdf(distance_to_particle_identified, w, cdf)
     # create uniform
@@ -78,7 +90,17 @@ def resample_particles(distance_to_particle_identified, w, cdf, x_particle_resam
 
     return x_particle_resampled, y_particle_resampled
 
-def tracker(x_particles_input,y_particles_input,delta_x_input,delta_y_input,Number_of_objects,centroid_x_previous,centroid_y_previous,initialize_flag,count_holding_input,distance_to_particle_identified_previous_input,trackerID):
+def tracker(x_particles_input,
+            y_particles_input,
+            delta_x_input,
+            delta_y_input,
+            Number_of_objects,
+            centroid_x_previous,
+            centroid_y_previous,
+            initialize_flag,
+            count_holding_input,
+            distance_to_particle_identified_previous_input,
+            trackerID):
     n_p = 10 #n_p = number of particles
     (x_particle_out, y_particle_out, x_particle_next, y_particle_next, distance_to_particle,
     distance_to_particle_identified, w, cdf, x_particle_resampled, y_particle_resampled) = init_tracker(n_p)
@@ -214,7 +236,12 @@ def init(n_v):
 
     return (index, box_info, cx_previous_vehicles, cy_previous_vehicles, cx_tracked, cy_tracked, count_tracked_vehicles, )
 
-def uninitialized_vehicle(d, Lc, count_tracked_vehicles, cx_tracked, cy_tracked, count_holding_vehicles):
+def uninitialized_vehicle(d,
+                          Lc,
+                          count_tracked_vehicles,
+                          cx_tracked,
+                          cy_tracked,
+                          count_holding_vehicles):
     vehicle_found_for_initialization=0  #succesful initialization of this tracker
     vehicle_index_for_initialization=0
     for k2 in range(0,Lc):
@@ -285,7 +312,7 @@ def tracking_main(n_v, n_p):
             #########  Tracker Initialization  #############
             ##pick on vehicle
             if initialize_vehicles[veh]==0:
-                uninitialized_vehicle((d, Lc, count_tracked_vehicles, cx_tracked, cy_tracked, count_holding_vehicles)
+                uninitialized_vehicle(d, Lc, count_tracked_vehicles, cx_tracked, cy_tracked, count_holding_vehicles)
             else:
                 initialized_vehicle(veh)
             cv2.namedWindow('Tracking',cv2.WINDOW_NORMAL)
