@@ -55,7 +55,7 @@ class Launcher:
                 use_display_name=True)
         self.category_index = label_map_util.create_category_index(categories)
         self.all_args = args
-        self.thread_queue_size = 3 # TODO
+        self.thread_queue_size = 10 # TODO
 
     def launch(self):
         """
