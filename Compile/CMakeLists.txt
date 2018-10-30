@@ -19,13 +19,14 @@ add_library(Vehicle ${CMAKE_BINARY_DIR}/src/vehicle.cpp)
 add_library(State ${CMAKE_BINARY_DIR}/src/obj_det_state.cpp)
 add_library(Risk ${CMAKE_BINARY_DIR}/src/risk_predictor.cpp)
 add_library(Types ${CMAKE_BINARY_DIR}/src/types.cpp)
-
+add_library(VehicleState ${CMAKE_BINARY_DIR}/src/vehicle_state.cpp)
 
 target_link_libraries (Test Scene)
 target_link_libraries (Test Vehicle)
 target_link_libraries (Test State)
 target_link_libraries (Test Risk)
 target_link_libraries (Test Types)
+target_link_libraries (Test VehicleState)
 
 # add the install targets
 install (TARGETS Test DESTINATION bin)
