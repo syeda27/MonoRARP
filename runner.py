@@ -75,8 +75,7 @@ class Runner:
         reset some tracking variables used throughout the class.
         """
         # Buffers to allow for batch demo
-        self.buffer_inp = list()
-        self.buffer_pre = list()
+        self.input_buffer = list()
         self.elapsed = 0
         self.start = time.time()
         self.fps = 1
@@ -172,7 +171,7 @@ class Runner:
         Read an image from the camera into the internal variables.
 
         Updates internal variables for:
-          buffer_inp and buffer_pre: appends this image.
+          input_buffer: appends this image.
           tracker_obj: updates the shape based on this image.
           done: Set to true when the video ends (only triggered on file sources)
         """
@@ -183,8 +182,7 @@ class Runner:
             return
 
         #image_np_expanded = np.expand_dims(image_np, axis=0)
-        self.buffer_inp.append(image_np)
-        self.buffer_pre.append(image_np)
+        self.input_buffer.append(image_np)
 
     def get_detected_objects(self, i, net_out, image):
         """
@@ -274,8 +272,8 @@ class Runner:
         # Visualization of the results of a detection, not thread safe.
         if self.timer:
             self.timer.update_start("DetectObjects")
-        boxes, labels = self.get_detected_objects(i, net_out, self.buffer_inp[i])
-        im_h, im_w, _ = self.buffer_inp[i].shape
+        boxes, labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
+        im_h, im_w, _ = self.input_buffer[i].shape
         self.update_state(labels, boxes, im_h, im_w, frame_time)
         if self.timer:
             self.timer.update_end("DetectObjects", len(boxes))
@@ -286,7 +284,7 @@ class Runner:
         if self.timer:
             self.timer.update_end("GetRisk", 1)
             self.timer.update_start("Display")
-        self.display_obj.update_image(self.buffer_inp[i])
+        self.display_obj.update_image(self.input_buffer[i])
         img = self.display_obj.display_info(
                 self.state.get_current_states_quantities(),
                 risk,
@@ -310,7 +308,9 @@ class Runner:
         This function includes the call to run the object detection network,
         the detection of the objects, the risk, and the display calls.
 
-        Note: resets self.buffer_inp and self.buffer_pre to empty lists.
+        TODO: do one at a time, never need the buffer.
+
+        Note: resets self.input_buffer to an empty list.
         """
         self.timer = None
         if profile:
@@ -324,15 +324,13 @@ class Runner:
             if self.timer:
                 self.timer.update_start("NeuralNet")
             net_out = self.sess.run(self.tensor_dict,
-                                    feed_dict={self.image_tensor: self.buffer_pre})
+                                    feed_dict={self.image_tensor: self.input_buffer})
             if self.timer:
                 self.timer.update_end("NeuralNet", 1)
 
-        for i in range(self.launcher.all_args.queue):
-            self.visualize_one_image(net_out, i, frame_time)
+        self.visualize_one_image(net_out, 0, frame_time)
 
-        self.buffer_inp = list()
-        self.buffer_pre = list()
+        self.input_buffer = list()
         if self.timer:
             self.timer.update_end("AllCalls")
             self.timer.print_stats()

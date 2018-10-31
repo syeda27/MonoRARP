@@ -43,8 +43,6 @@ class ThreadedRunner(Runner):
     last go around.
     """
 
-
-
     def visualize_one_image(self, net_out, image, frame_time):
         # Visualization of the results of a detection
         boxes, labels = self.get_detected_objects(0, net_out, image)
