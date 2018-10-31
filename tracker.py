@@ -7,8 +7,8 @@ It is essentially a wrapper class to make the main file have consistent API
 import cv2
 import numpy as np
 from collections import defaultdict
-from driver_risk_utils import general_utils
-
+from driver_risk_utils import general_utils, tracker_utils
+import multi_trackers
 
 class Tracker:
     """
@@ -57,9 +57,13 @@ class Tracker:
 
     def create_multi_tracker(self):
         if self.tracker_type == "KCF":
-            self.multi_tracker = cv2.MultiTracker_create()
+            self.multi_tracker = multi_trackers.OpenCVMultiTracker(
+                self.tracker_type
+            )
+        elif self.tracker_type == "Particle":
+            self.multi_tracker = None # TODO ParticleTracker()
         else:
-            self.raise_undefined_tracker_type()
+            tracker_utils.raise_undefined_tracker_type(self.tracker_type)
 
     def update_if_init(self, elapsed_frames):
         self.init_tracker = elapsed_frames % self.tracker_refresh == 1
@@ -87,25 +91,10 @@ class Tracker:
                     net_out['detection_classes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
                     ]
-            for box in boxes:
-                if self.tracker_type == "KCF":
-                    self.multi_tracker.add(
-                        cv2.TrackerKCF_create(),
-                        image,
-                        general_utils.convert(self.im_height, self.im_width, box)
-                    )
-                else:
-                    self.raise_undefined_tracker_type()
+            self.multi_tracker.initalize_tracker(image, boxes)
         else:
             do_convert = False
-            ok, boxes = self.multi_tracker.update(image)
-            if verbose:
-                print("shape:", image.shape)
-                print("val", image)
-                print(ok)
+            ok, boxes = self.multi_tracker.update_all(image, verbose)
             if ok is False: # lost tracking
                 self.init_tracker = True
         return boxes, do_convert, self.labels
-
-    def raise_undefined_tracker_type(self):
-        raise ValueError("Invalid tracker type: {}".format(self.tracker_type))
