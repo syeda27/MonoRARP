@@ -57,11 +57,12 @@ class Tracker:
 
     def create_multi_tracker(self):
         if self.tracker_type == "KCF":
-            self.multi_tracker = multi_trackers.OpenCVMultiTracker(
+            self.multi_tracker = multi_trackers.OpenCVMultiTrackerWrapper(
                 self.tracker_type
             )
         elif self.tracker_type == "Particle":
-            self.multi_tracker = None # TODO ParticleTracker()
+            self.multi_tracker = multi_trackers.ParticleTrackerWrapper()
+                # TODO update args
         else:
             tracker_utils.raise_undefined_tracker_type(self.tracker_type)
 
@@ -83,10 +84,12 @@ class Tracker:
 
     def update_one(self, image_index, net_out, image, verbose=False):
         do_convert = True
-        if self.init_tracker:
-            self.init_tracker = False
+        boxes = []
+        if net_out is not None:
             boxes = net_out['detection_boxes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
+        if self.init_tracker:
+            self.init_tracker = False
             self.labels = [self.category_index[key]['name'] for key in \
                     net_out['detection_classes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
@@ -94,7 +97,7 @@ class Tracker:
             self.multi_tracker.initalize_tracker(image, boxes)
         else:
             do_convert = False
-            ok, boxes = self.multi_tracker.update_all(image, verbose)
+            ok, boxes = self.multi_tracker.update_all(image, boxes, verbose)
             if ok is False: # lost tracking
                 self.init_tracker = True
         return boxes, do_convert, self.labels
