@@ -2,6 +2,7 @@ import cv2
 import math
 import numpy as np
 
+from absolute_speed import absolute_speed_estimation
 from scanning_region import scan_region
 from road_sampling import brightness_sampling
 from outlayer_removal_and_average_brightness import outlayer_removal_and_average_brightness_computation
@@ -324,7 +325,79 @@ for image_number in range(1085,2665):
     ######## FILTERING WHITE ROAD MARKS TO REMOVE FALSE DETECTIONS AND CORRECTION OF THE TWO LANES #########
     mux_lane_vec_final1,muy_lane_vec_final1,base_ptx_lane_vec_final1,base_pty_lane_vec_final1,mux_lane_vec_final2,muy_lane_vec_final2,base_ptx_lane_vec_final2,base_pty_lane_vec_final2,x1_lane_group1,x1_lane_group2 = filtering(count_lane_group1,count_lane_group2,x1_lane_group1,x1_lane_group2,H,initial_frame_was_processed_flag,mux_lane_vec_final1,muy_lane_vec_final1,base_ptx_lane_vec_final1,base_pty_lane_vec_final1,mux_lane_vec_final1_previous,muy_lane_vec_final1_previous,base_ptx_lane_vec_final1_previous,base_pty_lane_vec_final1_previous,mux_lane_vec_final2,muy_lane_vec_final2,base_ptx_lane_vec_final2,base_pty_lane_vec_final2,mux_lane_vec_final2_previous,muy_lane_vec_final2_previous,base_ptx_lane_vec_final2_previous,base_pty_lane_vec_final2_previous)
 
-     
+
+
+
+    ######## ABSOLUTE SPEED DETERMINATION ########
+
+
+    #Speed on left track (group2)    
+    if count_lane_group2>=1:
+         muy_lane_vec_final2_speed=muy_lane_vec_final2
+         mux_lane_vec_final2_speed=mux_lane_vec_final2   
+         base_ptx_lane_vec_final2_speed=base_ptx_lane_vec_final2
+         base_pty_lane_vec_final2_speed=base_pty_lane_vec_final2
+    else:
+         muy_lane_vec_final2_speed=muy_lane_vec_final2_previous
+         mux_lane_vec_final2_speed=mux_lane_vec_final2_previous   
+         base_ptx_lane_vec_final2_speed=base_ptx_lane_vec_final2_previous
+         base_pty_lane_vec_final2_speed=base_pty_lane_vec_final2_previous
+    
+    
+    speed,road_nomark,capture_frameindex_for_speed,frameindex_for_speed,white_mark_hit,speed_read_flag,count_scanned_lines_reverse_for_speed = absolute_speed_estimation(muy_lane_vec_final2_speed,mux_lane_vec_final2_speed,base_ptx_lane_vec_final2_speed,base_pty_lane_vec_final2_speed,h1,capture_frameindex_for_speed,frameindex_for_speed_previous,frameindex_for_speed,image_number,white_mark_hit,count_scanned_lines_reverse_for_speed_previous,count_scanned_lines_reverse_for_speed,img6,img2)    
+   
+    #Update Speed reading
+    if speed_read_flag==1:
+        speed_official=speed
+        first_reading_available_flag=1
+
+    if road_nomark==1 and white_mark_hit==1:
+        count_road_nomark=count_road_nomark+1
+        
+
+    # Detecting ending of white road mark (the marker is over the pavement)
+    if count_road_nomark==5:
+        white_mark_hit=0
+        count_road_nomark=0
+        capture_frameindex_for_speed=0
+        frameindex_for_speed_previous=frameindex_for_speed
+        count_scanned_lines_reverse_for_speed_previous=count_scanned_lines_reverse_for_speed
+        prev_s=0
+        
+
+        
+    #Speed on right track (group1)   
+    if count_lane_group1>=1:
+        muy_lane_vec_final1_speed=muy_lane_vec_final1
+        mux_lane_vec_final1_speed=mux_lane_vec_final1   
+        base_ptx_lane_vec_final1_speed=base_ptx_lane_vec_final1
+        base_pty_lane_vec_final1_speed=base_pty_lane_vec_final1
+    else:
+        muy_lane_vec_final1_speed=muy_lane_vec_final1_previous
+        mux_lane_vec_final1_speed=mux_lane_vec_final1_previous   
+        base_ptx_lane_vec_final1_speed=base_ptx_lane_vec_final1_previous
+        base_pty_lane_vec_final1_speed=base_pty_lane_vec_final1_previous
+
+    speed_1,road_nomark_1,capture_frameindex_for_speed_1,frameindex_for_speed_1,white_mark_hit_1,speed_read_flag_1,count_scanned_lines_reverse_for_speed_1 = absolute_speed_estimation(muy_lane_vec_final1_speed,mux_lane_vec_final1_speed,base_ptx_lane_vec_final1_speed,base_pty_lane_vec_final1_speed,h1,capture_frameindex_for_speed_1,frameindex_for_speed_previous_1,frameindex_for_speed_1,image_number,white_mark_hit_1,count_scanned_lines_reverse_for_speed_previous_1,count_scanned_lines_reverse_for_speed_1,img6,img2)    
+   
+
+    #Update Speed reading
+    if speed_read_flag_1==1:
+        speed_official=speed_1
+        first_reading_available_flag=1
+        
+    if road_nomark_1==1 and white_mark_hit_1==1:
+        count_road_nomark_1=count_road_nomark_1+1
+        
+    # Detecting ending of white road mark (the marker is over the pavement)
+    if count_road_nomark_1==5:
+        white_mark_hit_1=0
+        count_road_nomark_1=0
+        capture_frameindex_for_speed_1=0
+        frameindex_for_speed_previous_1=frameindex_for_speed_1
+        count_scanned_lines_reverse_for_speed_previous_1=count_scanned_lines_reverse_for_speed_1
+
+         
         
     ######## RECORDING OF CURRENTLY DETECTED LANES ########        
         
