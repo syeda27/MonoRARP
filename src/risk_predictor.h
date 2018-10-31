@@ -4,7 +4,6 @@
  * Tracker and scene.simulate are the slow ones.
  */
 # pragma once
-
 #include <string>
 #include "obj_det_state.h"
 
