@@ -183,10 +183,8 @@ class Runner:
             return
 
         #image_np_expanded = np.expand_dims(image_np, axis=0)
-        im_height, im_width, _ = image_np.shape
         self.buffer_inp.append(image_np)
         self.buffer_pre.append(image_np)
-        self.tracker_obj.update_im_shape(im_height, im_width)
 
     def get_detected_objects(self, i, net_out, image):
         """
@@ -202,16 +200,15 @@ class Runner:
           image: the image to process.
 
         Returns
-          do_convert: bool of whether the coordinates for the boxes need to
-            be converted. See display_utils.display() for use.
           boxes: list of the detected object bounding boxes in this image.
+            Will be in absolute pixel value coordinates.
           labels: list of the corresponding class labels for each box.
         """
         # TODO the use of net_out can get somewhat confusing. That means it can
         # be optimized somehow...
 
         if self.tracker_obj.use_tracker:
-            boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, image)
+            boxes, labels = self.tracker_obj.update_one(i, net_out, image)
         else:
             boxes = net_out['detection_boxes'][i][np.where(\
                     net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
@@ -219,15 +216,13 @@ class Runner:
                     net_out['detection_classes'][i][np.where(\
                         net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
                     ]
-            do_convert = True
+            im_h, im_w, _ = image.shape
+            for box_index, box in enumerate(boxes):
+                boxes[box_index] = general_utils.convert(im_h, im_w, box)
 
         if len(labels) < len(boxes):
             labels.extend([""] * (len(boxes) - len(labels)))
 
-        if do_convert:
-            im_h, im_w, _ = image.shape
-            for i,b in enumerate(boxes):
-                boxes[i] = general_utils.convert(im_h, im_w, b)
         return boxes, labels
 
     def get_risk(self,

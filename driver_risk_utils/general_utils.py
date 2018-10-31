@@ -6,6 +6,15 @@ estimation system.
 import time
 from collections import defaultdict
 
+# TODO:
+"""
+class box:
+    def __init__(self, box):
+        self.left, self.right, self.top, self.bot = b
+
+    def get_box():
+        return (self.left, self.right, self.top, self.bot)
+"""
 
 def get_fps(start, frames):
     """

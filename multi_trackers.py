@@ -11,25 +11,36 @@ from driver_risk_utils import general_utils, tracker_utils
 class MultiTrackerWrapper:
     """
     Default to handling OpenCV multi_tracker with KCF.
-    Inherit the class to use
+    Inherit the class and implement the functions before using.
     """
     def __init__(self):
-        pass
+        raise NotImplementedError("Please implement me!")
 
     def initialize_tracker(self, image, boxes=None):
         """
         Main API call #1 from tracker.py
+
+        Arguments
+          image: a np 2D array containing pixel values.
+          boxes: list of boxes detected in the image. Can be none.
+            Each box is a tuple (left, right, top, bottom)
         """
-        pass
+        raise NotImplementedError("Please implement me!")
 
     def update_all(self, image, boxes=None):
         """
         Main API call #2 from tracker.py
-        Must return:
-          Ok or not
-          Boxes for current image
+
+        Arguments
+          image: a np 2D array containing pixel values.
+          boxes: list of boxes detected in the image. Can be none.
+            Each box is a tuple (left, right, top, bottom)
+
+        Returns:
+          ok: boolean that is false if tracker lost a vehicle.
+          boxes: A list of boxes, potentially adjusted from the input boxes.
         """
-        pass
+        raise NotImplementedError("Please implement me!")
 
 
 class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
@@ -62,10 +73,10 @@ class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
 class ParticleTrackerWrapper(MultiTrackerWrapper):
     def __init__(self):
         #self.multi_tracker = particle_tracker.ParticleTracker(n_p=10,)
-        pass
+        raise NotImplementedError("Please implement me!")
 
     def initialize_tracker(self, image, boxes=None):
-        pass
+        raise NotImplementedError("Please implement me!")
 
     def update_all(self, image, boxes=None):
-        pass
+        raise NotImplementedError("Please implement me!")
