@@ -32,9 +32,7 @@ def filtering(count_lane_group1,
               muy_lane_vec_final2_previous,
               base_ptx_lane_vec_final2_previous,
               base_pty_lane_vec_final2_previous):
-
     if count_lane_group1 >= 1:
-
         if initial_frame == 1:
             angle1 = 180 * (
                 math.atan(muy_lane_vec_final1 / mux_lane_vec_final1)) / 3.14159
