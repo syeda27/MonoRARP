@@ -20,10 +20,8 @@ def eliminate_duplicate_road_marks(mux_lane_vec,
 #we will elminate duplicates on the tracked lines
     count_tracked_lanes2 = 0
     if count_lanes != 0:
-
         #count_tracked_lanes2 = 0
         for lanes in range(0, count_lanes):
-
             if lanes >= 1:
                 repeat = 0
                 for lanes2 in range(0, lanes):
@@ -31,7 +29,6 @@ def eliminate_duplicate_road_marks(mux_lane_vec,
                         repeat = 1 #we found a repeat, the repeats exist because the scanning region detects more than once
                         break
                 if repeat == 0:
-
                     mux_lane_vec_aggregated[count_tracked_lanes2] = \
                         mux_lane_vec[lanes]
                     muy_lane_vec_aggregated[count_tracked_lanes2] = \
@@ -42,7 +39,7 @@ def eliminate_duplicate_road_marks(mux_lane_vec,
                         base_pty_lane_vec[lanes]
                     angle_lanes[count_tracked_lanes2] = math.atan(
                             muy_lane_vec[lanes]/mux_lane_vec[lanes]
-                        )*180 / math.pi
+                        ) * 180 / math.pi
                     count_tracked_lanes2 += 1
             else:
                 mux_lane_vec_aggregated[count_tracked_lanes2] = \
@@ -55,8 +52,8 @@ def eliminate_duplicate_road_marks(mux_lane_vec,
                     base_pty_lane_vec[lanes]
                 angle_lanes[count_tracked_lanes2] = math.atan(
                         muy_lane_vec[lanes]/mux_lane_vec[lanes]
-                    )*180 / math.pi
-                count_tracked_lanes2 = count_tracked_lanes2 + 1
+                    ) * 180 / math.pi
+                count_tracked_lanes2 += 1
 
     return mux_lane_vec_aggregated, \
            muy_lane_vec_aggregated, \

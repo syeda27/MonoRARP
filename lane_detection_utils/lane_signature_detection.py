@@ -29,7 +29,6 @@ def lane_signature_detection(road1_average,
                              muy_lane_vec,
                              base_ptx_lane_vec,
                              base_pty_lane_vec,
-                             count_lanes_previous,
                              count_lanes,
                              H,
                              img6):
@@ -71,21 +70,6 @@ def lane_signature_detection(road1_average,
                                  (0, 255, 0),
                                  1,
                                  cv2.LINE_AA)
-                        if count_lanes_previous != 0:
-                            for lanes in range(0, count_lanes_previous):
-                                #intersecting with top of image
-                                Lintersection = \
-                                    -base_pty_lane_vec_previous[lanes] / \
-                                    muy_lane_vec_previous[lanes]
-                                x1_lane = base_ptx_lane_vec_previous[lanes] + \
-                                    Lintersection*mux_lane_vec_previous[lanes]
-                                #intersection with bottom of image
-                                Lintersection = (
-                                    H - base_pty_lane_vec_previous[lanes]
-                                ) / muy_lane_vec_previous[lanes]
-                                x2_lane = base_ptx_lane_vec_previous[lanes] + \
-                                          Lintersection * \
-                                          mux_lane_vec_previous[lanes]
                         mux_lane_vec[count_lanes] = mux_lane
                         muy_lane_vec[count_lanes] = muy_lane
                         base_ptx_lane_vec[count_lanes] = rx1[top_left]

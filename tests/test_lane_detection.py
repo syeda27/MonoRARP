@@ -47,19 +47,11 @@ from long_term_average import long_term_average_of_lanes
 
 ##################### INITIALIZATION OF VARIABLES ###########################
 
-count_lanes_previous = 0
 mux_lane_vec_previous = np.zeros(40)
 muy_lane_vec_previous = np.zeros(40)
 base_ptx_lane_vec_previous = np.zeros(40)
 base_pty_lane_vec_previous = np.zeros(40)
 
-count_lanes_previous2 = 0
-mux_lane_vec_previous2 = np.zeros(40)
-muy_lane_vec_previous2 = np.zeros(40)
-base_ptx_lane_vec_previous2 = np.zeros(40)
-base_pty_lane_vec_previous2 = np.zeros(40)
-
-count_lanes_aggregated = 0
 mux_lane_vec_aggregated = np.zeros(40)
 muy_lane_vec_aggregated = np.zeros(40)
 base_ptx_lane_vec_aggregated = np.zeros(40)
@@ -140,7 +132,7 @@ scan_y_step = 20
 
 #size of the rectangular window used for the scanning
 scanning_window_width = 120
-scanning_window_lenght = 160
+scanning_window_length = 160
 
 
 ########### BEGINNING OF LANE DETECTION ################
@@ -200,7 +192,7 @@ for image_number in range(1085, 2665):
                 dlines,
                 xregion,
                 yregion,
-                scanning_window_lenght,
+                scanning_window_length,
                 scanning_window_width)
             if count_angles_per_region >= 2:  #perform all the following processing only if 2 or more line-segments exists per scanning region
                 # b) From all the lines we found inside a scaning region we find the two top line-segments (closest to the top of the frame).
@@ -311,7 +303,6 @@ for image_number in range(1085, 2665):
                         muy_lane_vec,
                         base_ptx_lane_vec,
                         base_pty_lane_vec,
-                        count_lanes_previous,
                         count_lanes,
                         H,
                         img6)
