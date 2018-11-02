@@ -1,5 +1,5 @@
 **There were many paragraph-like descriptions of the lane detection files, so I
-moved them here to keep everything concise in the code. - djp42**
+moved them here to keep everything ~concise in the code. - djp42**
 Author: Juan Carlos Aragon - Allstate
 
 # ABSOLUTE SPEED ESTIMATION
@@ -79,7 +79,7 @@ we obtain the coordinates of the line's end-points and the line's angle.
 
 
 # LANE DETECTION
-The python script below delivers lane detection based on the LSD (line segment detector) algorithm and its application to the detection of white road markings. The main idea is to sample the 
+The python script below delivers lane detection based on the LSD (line segment detector) algorithm and its application to the detection of white road markings. The main idea is to sample the
 brightness of the pixels around the borders of the potential white road mark and extract specific charcateristics/features of the pixels arranged around. Based on these features a particular
 signature for a white road mark is detected. Based on the detected white road marks a line representing the lane is determined by finding the line that crosses all the detected white marks on each
 side (either left or right).

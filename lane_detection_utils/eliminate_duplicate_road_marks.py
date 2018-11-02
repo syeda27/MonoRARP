@@ -24,7 +24,7 @@ def eliminate_duplicate_road_marks(mux_lane_vec,
         #count_tracked_lanes2 = 0
         for lanes in range(0, count_lanes):
 
-            if lanes> = 1:
+            if lanes >= 1:
                 repeat = 0
                 for lanes2 in range(0, lanes):
                     if mux_lane_vec[lanes2] == mux_lane_vec[lanes]:

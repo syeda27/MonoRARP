@@ -36,10 +36,10 @@ def lane_signature_detection(road1_average,
 
     signature_detected = 0
 
-    if abs(road1_average-road2_average) / road2_average < 0.15 and ⁠⁠\
-            delta_road1_average < 10 and ⁠\
-            delta_road2_average < 10:
-        if abs(road3_average - road4_average) / road4_average < 0.15 ⁠\ 
+    if abs(road1_average-road2_average) / road2_average < 0.15 \
+            and delta_road1_average < 10 \
+            and delta_road2_average < 10:
+        if abs(road3_average - road4_average) / road4_average < 0.15 \
                 and delta_road3_average < 16 \
                 and delta_road4_average < 16:
             if whitemarkings_average / road1_average > 1.5:
@@ -48,7 +48,7 @@ def lane_signature_detection(road1_average,
                         print("Lane Detected")
                         signature_detected = 1
                         L_lane = (
-                            (rx1[top_left]-rx2[top_left])**2 + ⁠\
+                            (rx1[top_left]-rx2[top_left])**2 + \
                             (ry1[top_left]-ry2[top_left])**2
                         )**0.5
                         mux_lane = (rx1[top_left] - rx2[top_left]) / L_lane
@@ -74,7 +74,7 @@ def lane_signature_detection(road1_average,
                         if count_lanes_previous != 0:
                             for lanes in range(0, count_lanes_previous):
                                 #intersecting with top of image
-                                Lintersection = ⁠⁠\
+                                Lintersection = \
                                     -base_pty_lane_vec_previous[lanes] / \
                                     muy_lane_vec_previous[lanes]
                                 x1_lane = base_ptx_lane_vec_previous[lanes] + \
@@ -83,8 +83,8 @@ def lane_signature_detection(road1_average,
                                 Lintersection = (
                                     H - base_pty_lane_vec_previous[lanes]
                                 ) / muy_lane_vec_previous[lanes]
-                                x2_lane = base_ptx_lane_vec_previous[lanes] + ⁠\
-                                          Lintersection * ⁠\
+                                x2_lane = base_ptx_lane_vec_previous[lanes] + \
+                                          Lintersection * \
                                           mux_lane_vec_previous[lanes]
                         mux_lane_vec[count_lanes] = mux_lane
                         muy_lane_vec[count_lanes] = muy_lane
