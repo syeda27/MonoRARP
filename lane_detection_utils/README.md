@@ -33,6 +33,14 @@ white marking as a valid one later.
 Tho position of the scanning region could capture the same white road mark due to the size of the region and the step for the scanning.
 We remove the duplicates generated in this way to proceed with a cleaner processing on the subsequent steps.
 
+# Filtering
+Once the lanes have been generated we compare such lanes with previously generated lanes for the corresponding side (left or rith). If the deviation
+in terms of angle and distance with the lane generated on a previous frame is significant we discard the lane detected in the current frame and we
+assign as the current lane the one detected on a previous frame. The separation in distance is obtained by looking at the intersept of the lane and the
+bottom of the image frame for both the current lane and for the one detected on th previous frame. In the horizontal distance between instercepts is too 
+high we discard the current detection.
+
+
 TODO
 
 # Long Term Average
