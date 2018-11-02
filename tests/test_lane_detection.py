@@ -42,7 +42,7 @@ from eliminate_duplicate_road_marks import eliminate_duplicate_road_marks
 from merging_all_road_marks import merging_all_road_marks
 from filtering import filtering
 from long_term_average import long_term_average_of_lanes
-
+import lane_args_utils
 
 
 ##################### INITIALIZATION OF VARIABLES ###########################
@@ -144,14 +144,14 @@ for image_number in range(1085, 2665):
 
     #Reading of Image Frame
     image_name = '../tests/Hwy101_frames/'+str(image_number)+'.jpg'
+    image = cv2.imread(image_name)                     #image for visualization of results (in color)
+    img_subframe = image[1500:1800, 0:3849]                     #image subframe for visualization of results (in color)
 
-    img = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE) #image for processing algorithm
-    img3 = cv2.imread(image_name)                     #image for visualization of results (in color)
-    img2 = img[1500:1800, 0:3849]			      #image subframe that is closer to the bottom part of the frame where markings are more visible.
-    img4 = img3[1500:1800, 0:3849]                     #image subframe for visualization of results (in color)
+    img_subframe_gray = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)[1500:1800, 0:3849]	 #image for processing algorithm
+    #img_subframe_gray = img[1500:1800, 0:3849]			      #image subframe that is closer to the bottom part of the frame where markings are more visible.
 
-    H, W  = img.shape
-    h1, w1 =  img2.shape
+    H, W, _  = image.shape
+    h1, w1 =  img_subframe_gray.shape
 
     count_lanes = 0
 
@@ -171,16 +171,13 @@ for image_number in range(1085, 2665):
     lsd = cv2.createLineSegmentDetector(0)
 
     #LSD line segment detection
-    dlines = lsd.detect(img2)  #dlines holds the lines that have been detected by LSD
+    dlines = lsd.detect(img_subframe_gray)  #dlines holds the lines that have been detected by LSD
     for dline in dlines[0]:
         x0 = int(round(dline[0][0]))
         y0 = int(round(dline[0][1]))
         x1 = int(round(dline[0][2]))
         y1 = int(round(dline[0][3]))
-        cv2.line(img2, (x0, y0), (x1, y1), 255, 1, cv2.LINE_AA)  #we are redrawing the lines to emphasize their borders
-
-    img6 = img4.copy()
-
+        cv2.line(img_subframe_gray, (x0, y0), (x1, y1), 255, 1, cv2.LINE_AA)  #we are redrawing the lines to emphasize their borders
 
 
     ######## SCANNING OF THE IMAGE AND DETECTION OF ROAD MARK SIGNATURE ########
@@ -188,28 +185,29 @@ for image_number in range(1085, 2665):
     for xregion in range(scan_x_ini, scan_x_end, scan_x_step):
         for yregion in range(scan_y_ini, scan_y_end, scan_y_step):
             # a) Scan region and generate line segments
-            rx1, rx2, ry1, ry2, angles, count_angles_per_region = scan_region(
+            scan_args = scan_region(
                 dlines,
                 xregion,
                 yregion,
                 scanning_window_length,
                 scanning_window_width)
-            if count_angles_per_region >= 2:  #perform all the following processing only if 2 or more line-segments exists per scanning region
+            if scan_args.count_angles_per_region >= 2:
+                #perform all the following processing only if 2 or more line-segments exists per scanning region
                 # b) From all the lines we found inside a scaning region we find the two top line-segments (closest to the top of the frame).
                 first_top = -1
                 second_top = -1
                 top = 10000
-                for k1 in range(0, count_angles_per_region):
-                     if ry1[k1] < top:
-                         top = ry1[k1]
+                for k1 in range(0, scan_args.count_angles_per_region):
+                     if scan_args.ry1[k1] < top:
+                         top = scan_args.ry1[k1]
                          first_top = k1
                 top = 10000
-                for k1 in range(0, count_angles_per_region):
-                     if ry1[k1] < top and k1 != first_top:
-                         top = ry1[k1]
+                for k1 in range(0, scan_args.count_angles_per_region):
+                     if scan_args.ry1[k1] < top and k1 != first_top:
+                         top = scan_args.ry1[k1]
                          second_top = k1
                 # There will be one top segment on the left and another on the right. Out of the two top segments indetify which segment is to the left and which to the right
-                if rx1[first_top] < rx1[second_top]:
+                if scan_args.rx1[first_top] < scan_args.rx1[second_top]:
                     top_left = first_top
                     top_right = second_top
                 else:
@@ -220,19 +218,19 @@ for image_number in range(1085, 2665):
                 # criteria that must be complied with to proceed to the sampling:
                 # 1) the top-left line and the top-right line should be aliged vertically so that horizontal lines would intersect both of them (at least for some portion of both)
                 # 2) The difference between the top-left line's angle and the top-right line's angle should be less than 6 degrees
-                if ry2[top_left] > ry1[top_right] \
-                        and ry2[top_right] > ry1[top_left] \
-                        and abs(angles[top_right] - angles[top_left]) < 6:
+                if scan_args.ry2[top_left] > scan_args.ry1[top_right] \
+                        and scan_args.ry2[top_right] > scan_args.ry1[top_left] \
+                        and abs(scan_args.angles[top_right] - scan_args.angles[top_left]) < 6:
                     # c1) Brightness Sampling in groups of 5 pixels (sample types: 4 samples for pavement and 1 sample for white road mark). One vector per sample type holding samples across vertical dim.
                     (road1_vec, road2_vec, road3_vec, road4_vec,
                      whitemarkings_vec, counter_scanning) = brightness_sampling(
-                        rx1,
-                        rx2,
-                        ry1,
-                        ry2,
+                        scan_args.rx1,
+                        scan_args.rx2,
+                        scan_args.ry1,
+                        scan_args.ry2,
                         top_left,
                         top_right,
-                        img2)
+                        img_subframe_gray)
                     # c2) Artifact Removal and Computation of Average Brightness across the vertical dimension for each sample type
                     (road1_average, road2_average, road3_average, road4_average,
                     whitemarkings_average, removed3,
@@ -264,8 +262,8 @@ for image_number in range(1085, 2665):
                     # c4) Verification of alignment of the left top line segment with the lane tracked in the previous frame (important information to be used later)
                     aligned_to_tracked_lane = determination_of_parallelism(
                         top_left,
-                        rx1,
-                        ry1,
+                        scan_args.rx1,
+                        scan_args.ry1,
                         count_lane_group1,
                         count_lane_group2,
                         whitemarkings_average,
@@ -278,7 +276,7 @@ for image_number in range(1085, 2665):
                         base_pty_lane_vec_final2,
                         mux_lane_vec_final2,
                         muy_lane_vec_final2,
-                        angles)
+                        scan_args.angles)
                     # c5) Road Mark Signature Detetion for the two-top lines segments previously extracted from the scanning region
                     (lane_signature_detected, mux_lane_vec, muy_lane_vec,
                     base_ptx_lane_vec, base_pty_lane_vec,
@@ -293,10 +291,10 @@ for image_number in range(1085, 2665):
                         delta_road4_average,
                         whitemarkings_average,
                         delta_whitemarkings_average,
-                        rx1,
-                        rx2,
-                        ry1,
-                        ry2,
+                        scan_args.rx1,
+                        scan_args.rx2,
+                        scan_args.ry1,
+                        scan_args.ry2,
                         top_left,
                         top_right,
                         mux_lane_vec,
@@ -305,38 +303,38 @@ for image_number in range(1085, 2665):
                         base_pty_lane_vec,
                         count_lanes,
                         H,
-                        img6)
+                        img_subframe)
                     # c6) If Signature Detection fails but the two-top line segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
                     if lane_signature_detected == 0 and \
                             aligned_to_tracked_lane == 1:
                         L_lane = (
-                                    (rx1[top_left] - rx2[top_left])**2 +
-                                    (ry1[top_left] - ry2[top_left])**2
+                                    (scan_args.rx1[top_left] - scan_args.rx2[top_left])**2 +
+                                    (scan_args.ry1[top_left] - scan_args.ry2[top_left])**2
                                  )**0.5
-                        mux_lane = (rx1[top_left] - rx2[top_left]) / L_lane
-                        muy_lane = (ry1[top_left] - ry2[top_left]) / L_lane
+                        mux_lane = (scan_args.rx1[top_left] - scan_args.rx2[top_left]) / L_lane
+                        muy_lane = (scan_args.ry1[top_left] - scan_args.ry2[top_left]) / L_lane
                         #intersecting with top of image
-                        Lintersection = -ry1[top_left] / muy_lane
-                        x1_lane = rx1[top_left] + Lintersection * mux_lane
+                        Lintersection = -scan_args.ry1[top_left] / muy_lane
+                        x1_lane = scan_args.rx1[top_left] + Lintersection * mux_lane
                         #intersection with bottom of image
-                        Lintersection = (H - ry1[top_left]) / muy_lane
-                        x2_lane = rx1[top_left] + Lintersection * mux_lane
-                        cv2.line(img6,
-                                 (int(rx1[top_left]), int(ry1[top_left])),
-                                 (int(rx2[top_left]), int(ry2[top_left])),
+                        Lintersection = (H - scan_args.ry1[top_left]) / muy_lane
+                        x2_lane = scan_args.rx1[top_left] + Lintersection * mux_lane
+                        cv2.line(img_subframe,
+                                 (int(scan_args.rx1[top_left]), int(scan_args.ry1[top_left])),
+                                 (int(scan_args.rx2[top_left]), int(scan_args.ry2[top_left])),
                                  (0, 0, 255),
                                  1,
                                  cv2.LINE_AA)
-                        cv2.line(img6,
-                                 (int(rx1[top_right]), int(ry1[top_right])),
-                                 (int(rx2[top_right]), int(ry2[top_right])),
+                        cv2.line(img_subframe,
+                                 (int(scan_args.rx1[top_right]), int(scan_args.ry1[top_right])),
+                                 (int(scan_args.rx2[top_right]), int(scan_args.ry2[top_right])),
                                  (0, 255, 0),
                                  1,
                                  cv2.LINE_AA)
                         mux_lane_vec[count_lanes] = mux_lane
                         muy_lane_vec[count_lanes] = muy_lane
-                        base_ptx_lane_vec[count_lanes] = rx1[top_left]
-                        base_pty_lane_vec[count_lanes] = ry1[top_left]
+                        base_ptx_lane_vec[count_lanes] = scan_args.rx1[top_left]
+                        base_pty_lane_vec[count_lanes] = scan_args.ry1[top_left]
                         count_lanes += 1
 
     ######## ELIMINATION OF WHITE ROAD MARK DUPLICATES ########
@@ -423,8 +421,8 @@ for image_number in range(1085, 2665):
         white_mark_hit,
         count_scanned_lines_reverse_for_speed_previous,
         count_scanned_lines_reverse_for_speed,
-        img6,
-        img2)
+        img_subframe,
+        img_subframe_gray)
 
     #Update Speed reading
     if speed_read_flag == 1:
@@ -470,8 +468,8 @@ for image_number in range(1085, 2665):
         white_mark_hit_1,
         count_scanned_lines_reverse_for_speed_previous_1,
         count_scanned_lines_reverse_for_speed_1,
-        img6,
-        img2)
+        img_subframe,
+        img_subframe_gray)
 
     #Update Speed reading
     if speed_read_flag_1 == 1:
@@ -524,13 +522,13 @@ for image_number in range(1085, 2665):
         muy_lane_vec_final2,
         base_ptx_lane_vec_final2,
         base_pty_lane_vec_final2,
-        img6,
+        img_subframe,
         H)
 
     initial_frame_was_processed_flag = 1
     ############## DISPLAY #################
     #resizing image for displaying purposes
-    img7 = img6
+    img7 = img_subframe
     dim = (3840, 2880)
     resized = cv2.resize(img7, dim, interpolation = cv2.INTER_CUBIC)
 

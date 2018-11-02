@@ -5,6 +5,27 @@ sense to create a set of classes for them...
 
 import numpy as np
 
+class scan_region_output_args:
+    def __init__(self):
+        #Initializing vectors to be used for collection of the lines inside the region
+        self.rx1 = np.zeros(100)
+        self.rx2 = np.zeros(100)
+        self.ry1 = np.zeros(100)
+        self.ry2 = np.zeros(100)
+        #Initializing vector for angle collection
+        self.angles = np.zeros(100)
+        self.count_angles_per_region = 0
+
+    def print(self):
+        print(
+            self.rx1,
+            self.rx2,
+            self.ry1,
+            self.angles,
+            self.count_angles_per_region
+        )
+
+
 def initialize_lane_detector_members(lane_detector_object):
     lane_detector_object.mux_lane_vec_previous = np.zeros(40)
     lane_detector_object.muy_lane_vec_previous = np.zeros(40)

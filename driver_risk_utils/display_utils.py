@@ -40,6 +40,14 @@ class DisplayArgs:
             return self.thick
         return int( int((self.im_height + self.im_width) // self.thickness) / 3)
 
+def make_line(im, p1, p2, color=255, thickness=1, type=cv2.LINE_AA):
+    cv2.line(im,
+             (int(p1[0]), int(p1[1])),
+             (int(p2[0]), int(p2[1])),
+             color,
+             thickness,
+             type)
+
 def make_rectangle(im, b, color, thickness):
     #   (left, right, top, bot) = b
     cv2.rectangle(im,
