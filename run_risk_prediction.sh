@@ -20,7 +20,7 @@ fi
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
-SOURCE=${START_LOC}/videos/Untitled2.mov
+#SOURCE=${START_LOC}/videos/Untitled2.mov
 
 # FOR WEBCAMS:
 #SOURCE=0
@@ -52,6 +52,8 @@ CAMERA_HEIGHT=1.15          # meters
 MIN_CAMERA_ANGLE=54.5       # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
 RELATIVE_HORIZON=0.5        # between 0 and 1
+
+DETECT_LANES='false'
 
 RISK_H=5        # seconds
 RISK_STEP=0.25  # seconds
@@ -100,6 +102,7 @@ else
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
         --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
         --accept_speed $ACCEPT_SPEED --device $DEVICE \
+        --detect_lanes $DETECT_LANES \
        --threaded_runner $THREADED_RUNNER
     cd $START_LOC
     for job in $JOBS

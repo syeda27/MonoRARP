@@ -23,6 +23,9 @@ DEVICE = '/gpu:0'
 THREADED_RUNNER = 'None'  # "None" for single threaded, otherwise, one of
                           # the supported threading methods (see threaded_runner.py)
 
+# LANE DETECTION DEFAULTS ##
+DETECT_LANES = "False"
+
 ## GPS DEFAULTS ##
 USE_GPS = "True"
 GPS_SOURCE = "gps_logging.txt"

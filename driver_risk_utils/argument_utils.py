@@ -40,6 +40,10 @@ def add_input_output_args(parser):
     parser.add_argument("--save_path", type=str, \
                     default=defaults.SAVE_PATH)
 
+def add_lane_detection_args(parser):
+    parser.add_argument("--detect_lanes", type=str2bool, \
+            default=defaults.DETECT_LANES)
+
 def add_general_args(parser):
     parser.add_argument("--queue", type=int, default=defaults.QUEUE)
     parser.add_argument("--det_thresh", type=float, \
@@ -84,6 +88,7 @@ def parse_args():
     add_tracker_args(parser)
     add_gps_args(parser)
     add_input_output_args(parser)
+    add_lane_detection_args(parser)
     add_general_args(parser)
     add_risk_args(parser)
     args = parser.parse_args()
