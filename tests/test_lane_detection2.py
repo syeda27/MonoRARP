@@ -36,6 +36,10 @@ for image_file in os.listdir(DIR_WITH_FRAMES):
     print(os.path.join(DIR_WITH_FRAMES, image_file))
     image = cv2.imread(os.path.join(DIR_WITH_FRAMES, image_file)) # (in color)
     LANE_DETECTOR.handle_image(image)
+    try:
+        print("Official speed: {}".format(LANE_DETECTOR.speed_official))
+    except AttributeError:
+        print("No official speed.")
     LANE_DETECTOR.display()
     num_images += 1
 

@@ -137,18 +137,14 @@ class LaneDetctor:
                     #intersection with bottom of image
                     Lintersection = (self.H - scan_args.ry1[top_left]) / muy_lane
                     x2_lane = scan_args.rx1[top_left] + Lintersection * mux_lane
-                    cv2.line(self.img_subframe,
-                             (int(scan_args.rx1[top_left]), int(scan_args.ry1[top_left])),
-                             (int(scan_args.rx2[top_left]), int(scan_args.ry2[top_left])),
-                             (0, 0, 255),
-                             1,
-                             cv2.LINE_AA)
-                    cv2.line(self.img_subframe,
-                             (int(scan_args.rx1[top_right]), int(scan_args.ry1[top_right])),
-                             (int(scan_args.rx2[top_right]), int(scan_args.ry2[top_right])),
-                             (0, 255, 0),
-                             1,
-                             cv2.LINE_AA)
+                    display_utils.make_line(self.img_subframe,
+                        (scan_args.rx1[top_left], scan_args.ry1[top_left]),
+                        (scan_args.rx2[top_left], scan_args.ry2[top_left]),
+                        (0, 0, 255))
+                    display_utils.make_line(self.img_subframe,
+                        (scan_args.rx1[top_right], scan_args.ry1[top_right]),
+                        (scan_args.rx2[top_right], scan_args.ry2[top_right]),
+                        (0, 255, 0))
                     self.mux_lane_vec[self.count_lanes] = mux_lane
                     self.muy_lane_vec[self.count_lanes] = muy_lane
                     self.base_ptx_lane_vec[self.count_lanes] = scan_args.rx1[top_left]
