@@ -2,6 +2,22 @@
 The purpose of this file is to create a usable class out of the lane detection
 scripts that Juan Carlos wrote, and integrate it with the DRIVR system.
 
+I) IMAGE READING
+II) LSD ALGORITHM
+III) SCANNING OF THE IMAGE AND DETECTION OF ROAD MARK SIGNATURE
+IV) ELIMINATION OF WHITE ROAD MARK DUPLICATES
+V) MERGING ALL WHITE ROAD MARKS PREVIOUSLY DETECTED AND GENERATION OF TWO LANES
+VI) FILTERING WHITE ROAD MARKS TO REMOVE FALSE DETECTIONS AND CORRECTION OF THE TWO LANES
+VII) RECORDING OF CURRENTLY DETECTED LANES
+VIII) GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES
+IX) DISPLAY
+
+Author: Juan Carlos Aragon  -  Allstate
+Minor Editing: djp42  -  Stanford
+
+See lane_detection_utils/README for more details.
+
+
 """
 
 import cv2
