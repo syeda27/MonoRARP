@@ -31,7 +31,7 @@ DIR_WITH_FRAMES = "Hwy101_frames"
 start = time.time()
 num_images = 0
 
-LANE_DETECTOR = lane_detector.LaneDetctor()
+LANE_DETECTOR = lane_detector.LaneDetector()
 for image_file in os.listdir(DIR_WITH_FRAMES):
     print(os.path.join(DIR_WITH_FRAMES, image_file))
     image = cv2.imread(os.path.join(DIR_WITH_FRAMES, image_file)) # (in color)

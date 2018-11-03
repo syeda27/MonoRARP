@@ -32,11 +32,13 @@ from lane_detection_utils import lane_args_utils, absolute_speed, \
     outlayer_removal_and_average_brightness, road_sampling, scanning_region
 from driver_risk_utils import display_utils
 
-class LaneDetctor:
+class LaneDetector:
     def __init__(self,
                  scan_x_params=(1480, 2720, 80),
                  scan_y_params=(100, 250, 20),
-                 scan_window_sz=(120, 160)):
+                 scan_window_sz=(120, 160),
+                 subframe_dims=(1500, 1800, 0, 3849)):
+        self.subframe_dims = subframe_dims
         lane_args_utils.initialize_lane_detector_members(self)
         #inital and end points for the scanning in the x-direction within the image subframe, and step of the scanning
         self.scan_x_ini, self.scan_x_end, self.scan_x_step = scan_x_params
@@ -45,6 +47,8 @@ class LaneDetctor:
         #size of the rectangular window used for the scanning
         self.scanning_window_width, self.scanning_window_length = scan_window_sz
         self.image_number = 0
+        self.display_dlines = False
+        self.display_lane_lines = False # If false, handle_image returns the lines
 
     def _reset_each_image_vars(self):
         self.count_lanes = 0
@@ -55,22 +59,24 @@ class LaneDetctor:
         self.angle_lanes = np.zeros(40)
 
     def handle_image(self, image):
-        self.image = image
-        self.img_subframe = self.image[1500:1800, 0:3849]
+        self.img = image
+        self.img_subframe = self.img[self.subframe_dims[0]:self.subframe_dims[1],
+                                     self.subframe_dims[2]:self.subframe_dims[3],
+                                    ] # [1500:1800, 0:3849]
         self.img_subframe_gray = cv2.cvtColor(
-            self.image, cv2.COLOR_BGR2GRAY)[1500:1800, 0:3849]
-        self.H, self.W, _ = self.image.shape
+            self.img_subframe, cv2.COLOR_BGR2GRAY)
+        self.H, self.W, _ = self.img.shape
         self.h1, self.w1 = self.img_subframe_gray.shape
         self._reset_each_image_vars()
-        self._do_line_segments(self.img_subframe_gray, display=True)
+        self._do_line_segments(self.img_subframe_gray)
         self._scan_image_wrapper()
         self._everything_else()
         self.image_number += 1
 
-    def _do_line_segments(self, img_subframe_gray, display=True):
+    def _do_line_segments(self, img_subframe_gray):
         self.dlines = cv2.createLineSegmentDetector(0).detect(img_subframe_gray)
         #dlines holds the lines that have been detected by LSD
-        if not display: return
+        if not self.display_dlines: return
         for dline in self.dlines[0]:
             x0 = int(round(dline[0][0]))
             y0 = int(round(dline[0][1]))
@@ -142,9 +148,9 @@ class LaneDetctor:
                 if self.lane_signature_detected == 0 and \
                         self.aligned_to_tracked_lane == 1:
                     L_lane = (
-                                (scan_args.rx1[top_left] - scan_args.rx2[top_left])**2 +
-                                (scan_args.ry1[top_left] - scan_args.ry2[top_left])**2
-                             )**0.5
+                        (scan_args.rx1[top_left] - scan_args.rx2[top_left])**2 +
+                        (scan_args.ry1[top_left] - scan_args.ry2[top_left])**2
+                    )**0.5
                     mux_lane = (scan_args.rx1[top_left] - scan_args.rx2[top_left]) / L_lane
                     muy_lane = (scan_args.ry1[top_left] - scan_args.ry2[top_left]) / L_lane
                     #intersecting with top of image
@@ -153,19 +159,40 @@ class LaneDetctor:
                     #intersection with bottom of image
                     Lintersection = (self.H - scan_args.ry1[top_left]) / muy_lane
                     x2_lane = scan_args.rx1[top_left] + Lintersection * mux_lane
-                    display_utils.make_line(self.img_subframe,
+
+                    # To display:
+                    self.left_lane_points = [
                         (scan_args.rx1[top_left], scan_args.ry1[top_left]),
                         (scan_args.rx2[top_left], scan_args.ry2[top_left]),
-                        (0, 0, 255))
-                    display_utils.make_line(self.img_subframe,
+                    ]
+                    self.right_lane_points = [
                         (scan_args.rx1[top_right], scan_args.ry1[top_right]),
                         (scan_args.rx2[top_right], scan_args.ry2[top_right]),
-                        (0, 255, 0))
+                    ]
+
+                    if self.display_lane_lines:
+                        self.draw_lane_lines(self.img_subframe)
+
                     self.mux_lane_vec[self.count_lanes] = mux_lane
                     self.muy_lane_vec[self.count_lanes] = muy_lane
                     self.base_ptx_lane_vec[self.count_lanes] = scan_args.rx1[top_left]
                     self.base_pty_lane_vec[self.count_lanes] = scan_args.ry1[top_left]
                     self.count_lanes += 1
+
+    def draw_lane_lines(self, image_to_draw_on, verbose=True):
+        try:
+            display_utils.make_line(image_to_draw_on,
+                self.left_lane_points[0],
+                self.left_lane_points[1],
+                (0, 0, 255))
+            display_utils.make_line(image_to_draw_on,
+                self.right_lane_points[0],
+                self.right_lane_points[1],
+                (0, 255, 0))
+        except AttributeError:
+            if verbose:
+                print("No lanes detected.")
+            return
 
     def _everything_else(self):
         ######## ELIMINATION OF WHITE ROAD MARK DUPLICATES ########
@@ -175,29 +202,32 @@ class LaneDetctor:
         merging_all_road_marks.merging_all_road_marks_w(self)
 
         ######## FILTERING WHITE ROAD MARKS TO REMOVE FALSE DETECTIONS AND CORRECTION OF THE TWO LANES #########
-        filtering.filtering_w(self)
+        if self.count_lanes > 0:
+            filtering.filtering_w(self)
 
-        ######## ABSOLUTE SPEED DETERMINATION ########
-        absolute_speed.abs_speed_wrapper(self)
+            ######## ABSOLUTE SPEED DETERMINATION ########
+            absolute_speed.abs_speed_wrapper(self)
 
-        ######## RECORDING OF CURRENTLY DETECTED LANES ########
-        self.mux_lane_vec_final2_previous = self.mux_lane_vec_final2
-        self.muy_lane_vec_final2_previous = self.muy_lane_vec_final2
-        self.base_ptx_lane_vec_final2_previous = self.base_ptx_lane_vec_final2
-        self.base_pty_lane_vec_final2_previous = self.base_pty_lane_vec_final2
+            ######## RECORDING OF CURRENTLY DETECTED LANES ########
+            self.mux_lane_vec_final2_previous = self.mux_lane_vec_final2
+            self.muy_lane_vec_final2_previous = self.muy_lane_vec_final2
+            self.base_ptx_lane_vec_final2_previous = self.base_ptx_lane_vec_final2
+            self.base_pty_lane_vec_final2_previous = self.base_pty_lane_vec_final2
 
-        self.mux_lane_vec_final1_previous = self.mux_lane_vec_final1
-        self.muy_lane_vec_final1_previous = self.muy_lane_vec_final1
-        self.base_ptx_lane_vec_final1_previous = self.base_ptx_lane_vec_final1
-        self.base_pty_lane_vec_final1_previous = self.base_pty_lane_vec_final1
+            self.mux_lane_vec_final1_previous = self.mux_lane_vec_final1
+            self.muy_lane_vec_final1_previous = self.muy_lane_vec_final1
+            self.base_ptx_lane_vec_final1_previous = self.base_ptx_lane_vec_final1
+            self.base_pty_lane_vec_final1_previous = self.base_pty_lane_vec_final1
 
-        ######## GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES ########
-        long_term_average.long_term_average_of_lanes_w(self)
+            ######## GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES ########
+            long_term_average.long_term_average_of_lanes_w(self)
+
         self.initial_frame_was_processed_flag = 1
 
-
-
     def display(self):
+        """
+        This is a bad way of doing things, so basically unused except in testing.
+        """
         #resizing image for displaying purposes
         img7 = self.img_subframe
         dim = (3840, 2880)

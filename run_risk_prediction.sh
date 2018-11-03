@@ -20,7 +20,7 @@ fi
 
 SOURCE=${START_LOC}/videos/kitti_5s.mp4
 SOURCE=${START_LOC}/videos/test_1.avi
-#SOURCE=${START_LOC}/videos/Untitled2.mov
+SOURCE=${START_LOC}/videos/Untitled2.mov
 
 # FOR WEBCAMS:
 #SOURCE=0
@@ -44,7 +44,7 @@ GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
-THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
+THREADED_RUNNER='None'         # The runner-level threading method, or 'None'
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters

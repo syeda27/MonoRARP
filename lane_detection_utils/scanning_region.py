@@ -11,7 +11,10 @@ We scan the image with a rectangular region 120 by 160 so that we can analyze th
 import cv2
 import math
 import numpy as np
-import lane_args_utils
+try:
+    from lane_detection_utils import lane_args_utils
+except ImportError:  # For testing
+    import lane_args_utils
 
 def scan_region(dlines, xregion, yregion, region_length, region_width):
     args = lane_args_utils.scan_region_output_args()
