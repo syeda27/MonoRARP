@@ -9,6 +9,42 @@ Minor Editing: djp42  -  Stanford
 See README for more details.
 
 """
+
+def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_right):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.lane_signature_detected,
+     lane_detector_object.mux_lane_vec,
+     lane_detector_object.muy_lane_vec,
+     lane_detector_object.base_ptx_lane_vec,
+     lane_detector_object.base_pty_lane_vec,
+     lane_detector_object.count_lanes) = lane_signature_detection(
+        lane_detector_object.road1_average,
+        lane_detector_object.road2_average,
+        lane_detector_object.road3_average,
+        lane_detector_object.road4_average,
+        lane_detector_object.delta_road1_average,
+        lane_detector_object.delta_road2_average,
+        lane_detector_object.delta_road3_average,
+        lane_detector_object.delta_road4_average,
+        lane_detector_object.whitemarkings_average,
+        lane_detector_object.delta_whitemarkings_average,
+        scan_args.rx1,
+        scan_args.rx2,
+        scan_args.ry1,
+        scan_args.ry2,
+        top_left,
+        top_right,
+        lane_detector_object.mux_lane_vec,
+        lane_detector_object.muy_lane_vec,
+        lane_detector_object.base_ptx_lane_vec,
+        lane_detector_object.base_pty_lane_vec,
+        lane_detector_object.count_lanes,
+        lane_detector_object.H,
+        lane_detector_object.img_subframe)
+    # c6) If Signature Detection fa
+
 def lane_signature_detection(road1_average,
                              road2_average,
                              road3_average,

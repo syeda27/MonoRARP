@@ -10,6 +10,29 @@ This is a measure of dispersion for each sample type within the scanning region.
 
 import cv2
 
+def average_delta_w(lane_detector_object):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.delta_road1_average,
+     lane_detector_object.delta_road2_average,
+     lane_detector_object.delta_road3_average,
+     lane_detector_object.delta_road4_average,
+     lane_detector_object.delta_whitemarkings_average) = average_delta(
+        lane_detector_object.road1_vec,
+        lane_detector_object.road2_vec,
+        lane_detector_object.road3_vec,
+        lane_detector_object.road4_vec,
+        lane_detector_object.whitemarkings_vec,
+        lane_detector_object.road1_average,
+        lane_detector_object.road2_average,
+        lane_detector_object.road3_average,
+        lane_detector_object.road4_average,
+        lane_detector_object.whitemarkings_average,
+        lane_detector_object.removed3,
+        lane_detector_object.removed4,
+        lane_detector_object.counter_scanning)
+
 def average_delta(road1_vec,
                   road2_vec,
                   road3_vec,

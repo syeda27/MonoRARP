@@ -9,6 +9,26 @@ Merging by averaging the base points of the white marks.
 """
 import numpy as np
 
+def merging_all_road_marks_w(lane_detector_object):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.mux_lane_vec_final1,
+     lane_detector_object.muy_lane_vec_final1,
+     lane_detector_object.base_ptx_lane_vec_final1,
+     lane_detector_object.base_pty_lane_vec_final1,
+     lane_detector_object.mux_lane_vec_final2,
+     lane_detector_object.muy_lane_vec_final2,
+     lane_detector_object.base_ptx_lane_vec_final2,
+     lane_detector_object.base_pty_lane_vec_final2,
+     lane_detector_object.count_lane_group1,
+     lane_detector_object.count_lane_group2) = merging_all_road_marks(
+        lane_detector_object.angle_lanes,
+        lane_detector_object.count_tracked_lanes2,
+        lane_detector_object.mux_lane_vec_aggregated,
+        lane_detector_object.muy_lane_vec_aggregated,
+        lane_detector_object.base_ptx_lane_vec_aggregated,
+        lane_detector_object.base_pty_lane_vec_aggregated)
 
 def merging_all_road_marks(angle_lanes,
                            count_tracked_lanes2,

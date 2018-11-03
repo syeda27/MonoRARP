@@ -9,6 +9,38 @@ See README for more details.
 """
 import cv2
 
+def long_term_average_of_lanes_w(lane_detector_object):
+    (lane_detector_object.count_lanes_average_vec,
+     lane_detector_object.count_lanes_average_vec2,
+     lane_detector_object.mux_lane_vec_average,
+     lane_detector_object.muy_lane_vec_average,
+     lane_detector_object.base_ptx_lane_vec_average,
+     lane_detector_object.base_pty_lane_vec_average,
+     lane_detector_object.mux_lane_vec_average2,
+     lane_detector_object.muy_lane_vec_average2,
+     lane_detector_object.base_ptx_lane_vec_average2,
+     lane_detector_object.base_pty_lane_vec_average2) = long_term_average_of_lanes(
+        lane_detector_object.count_lanes_average_vec,
+        lane_detector_object.count_lanes_average_vec2,
+        lane_detector_object.mux_lane_vec_average,
+        lane_detector_object.muy_lane_vec_average,
+        lane_detector_object.base_ptx_lane_vec_average,
+        lane_detector_object.base_pty_lane_vec_average,
+        lane_detector_object.mux_lane_vec_average2,
+        lane_detector_object.muy_lane_vec_average2,
+        lane_detector_object.base_ptx_lane_vec_average2,
+        lane_detector_object.base_pty_lane_vec_average2,
+        lane_detector_object.mux_lane_vec_final1,
+        lane_detector_object.muy_lane_vec_final1,
+        lane_detector_object.base_ptx_lane_vec_final1,
+        lane_detector_object.base_pty_lane_vec_final1,
+        lane_detector_object.mux_lane_vec_final2,
+        lane_detector_object.muy_lane_vec_final2,
+        lane_detector_object.base_ptx_lane_vec_final2,
+        lane_detector_object.base_pty_lane_vec_final2,
+        lane_detector_object.img_subframe,
+        lane_detector_object.H)
+
 
 def long_term_average_of_lanes(count_lanes_average_vec,
                                count_lanes_average_vec2,

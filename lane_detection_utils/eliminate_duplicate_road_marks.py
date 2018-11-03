@@ -6,6 +6,25 @@ See README for more details.
 """
 import math
 
+def eliminate_duplicate_road_marks_w(lane_detector_object):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.mux_lane_vec_aggregated, lane_detector_object.muy_lane_vec_aggregated,
+     lane_detector_object.base_ptx_lane_vec_aggregated, lane_detector_object.base_pty_lane_vec_aggregated,
+     lane_detector_object.angle_lanes, lane_detector_object.count_tracked_lanes2) = \
+        eliminate_duplicate_road_marks(
+            lane_detector_object.mux_lane_vec,
+            lane_detector_object.muy_lane_vec,
+            lane_detector_object.base_ptx_lane_vec,
+            lane_detector_object.base_pty_lane_vec,
+            lane_detector_object.count_lanes,
+            lane_detector_object.mux_lane_vec_aggregated,
+            lane_detector_object.muy_lane_vec_aggregated,
+            lane_detector_object.base_ptx_lane_vec_aggregated,
+            lane_detector_object.base_pty_lane_vec_aggregated,
+            lane_detector_object.angle_lanes)
+
 def eliminate_duplicate_road_marks(mux_lane_vec,
                                    muy_lane_vec,
                                    base_ptx_lane_vec,

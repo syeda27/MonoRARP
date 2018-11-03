@@ -9,6 +9,24 @@ Minor Editing: djp42  -  Stanford
 See README for more details.
 """
 
+def brightness_sampling_w(lane_detector_object, scan_args, top_left, top_right):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.road1_vec,
+     lane_detector_object.road2_vec,
+     lane_detector_object.road3_vec,
+     lane_detector_object.road4_vec,
+     lane_detector_object.whitemarkings_vec,
+     lane_detector_object.counter_scanning) = brightness_sampling(
+        scan_args.rx1,
+        scan_args.rx2,
+        scan_args.ry1,
+        scan_args.ry2,
+        top_left,
+        top_right,
+        lane_detector_object.img_subframe_gray)
+
 def brightness_sampling(rx1, rx2, ry1, ry2, top_left, top_right, img2):
     #Initializing vectors for collection of road samples
     road1_vec = np.zeros(100)

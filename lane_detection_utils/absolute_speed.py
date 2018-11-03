@@ -10,6 +10,112 @@ This procedure relies on a "marker" which is a small imaginary horizontal line t
 """
 import cv2
 
+# TODO: make this a class
+def abs_speed_wrapper(lane_detector_object):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    #Speed on left track (group2)
+    if lane_detector_object.count_lane_group2 >= 1:
+        lane_detector_object.muy_lane_vec_final2_speed = lane_detector_object.muy_lane_vec_final2
+        lane_detector_object.mux_lane_vec_final2_speed = lane_detector_object.mux_lane_vec_final2
+        lane_detector_object.base_ptx_lane_vec_final2_speed = lane_detector_object.base_ptx_lane_vec_final2
+        lane_detector_object.base_pty_lane_vec_final2_speed = lane_detector_object.base_pty_lane_vec_final2
+    else:
+        lane_detector_object.muy_lane_vec_final2_speed = lane_detector_object.muy_lane_vec_final2_previous
+        lane_detector_object.mux_lane_vec_final2_speed = lane_detector_object.mux_lane_vec_final2_previous
+        lane_detector_object.base_ptx_lane_vec_final2_speed = lane_detector_object.base_ptx_lane_vec_final2_previous
+        lane_detector_object.base_pty_lane_vec_final2_speed = lane_detector_object.base_pty_lane_vec_final2_previous
+
+    (lane_detector_object.speed, lane_detector_object.road_nomark,
+     lane_detector_object.capture_frameindex_for_speed,
+     lane_detector_object.frameindex_for_speed,
+     lane_detector_object.white_mark_hit,
+     lane_detector_object.speed_read_flag,
+     lane_detector_object.count_scanned_lines_reverse_for_speed) = absolute_speed_estimation(
+        lane_detector_object.muy_lane_vec_final2_speed,
+        lane_detector_object.mux_lane_vec_final2_speed,
+        lane_detector_object.base_ptx_lane_vec_final2_speed,
+        lane_detector_object.base_pty_lane_vec_final2_speed,
+        lane_detector_object.h1,
+        lane_detector_object.capture_frameindex_for_speed,
+        lane_detector_object.frameindex_for_speed_previous,
+        lane_detector_object.frameindex_for_speed,
+        lane_detector_object.image_number,
+        lane_detector_object.white_mark_hit,
+        lane_detector_object.count_scanned_lines_reverse_for_speed_previous,
+        lane_detector_object.count_scanned_lines_reverse_for_speed,
+        lane_detector_object.img_subframe,
+        lane_detector_object.img_subframe_gray)
+
+    #Update Speed reading
+    if lane_detector_object.speed_read_flag == 1:
+        lane_detector_object.speed_official = lane_detector_object.speed
+        lane_detector_object.first_reading_available_flag = 1
+
+    if lane_detector_object.road_nomark == 1 and lane_detector_object.white_mark_hit == 1:
+        lane_detector_object.count_road_nomark += 1
+
+    # Detecting ending of white road mark (the marker is over the pavement)
+    if lane_detector_object.count_road_nomark == 5:
+        lane_detector_object.white_mark_hit = 0
+        lane_detector_object.count_road_nomark = 0
+        lane_detector_object.capture_frameindex_for_speed = 0
+        lane_detector_object.frameindex_for_speed_previous = lane_detector_object.frameindex_for_speed
+        lane_detector_object.count_scanned_lines_reverse_for_speed_previous = lane_detector_object.count_scanned_lines_reverse_for_speed
+        lane_detector_object.prev_s = 0
+
+    #Speed on right track (group1)
+    if lane_detector_object.count_lane_group1 >= 1:
+        lane_detector_object.muy_lane_vec_final1_speed = lane_detector_object.muy_lane_vec_final1
+        lane_detector_object.mux_lane_vec_final1_speed = lane_detector_object.mux_lane_vec_final1
+        lane_detector_object.base_ptx_lane_vec_final1_speed = lane_detector_object.base_ptx_lane_vec_final1
+        lane_detector_object.base_pty_lane_vec_final1_speed = lane_detector_object.base_pty_lane_vec_final1
+    else:
+        lane_detector_object.muy_lane_vec_final1_speed = lane_detector_object.muy_lane_vec_final1_previous
+        lane_detector_object.mux_lane_vec_final1_speed = lane_detector_object.mux_lane_vec_final1_previous
+        lane_detector_object.base_ptx_lane_vec_final1_speed = lane_detector_object.base_ptx_lane_vec_final1_previous
+        lane_detector_object.base_pty_lane_vec_final1_speed = lane_detector_object.base_pty_lane_vec_final1_previous
+
+    (lane_detector_object.speed_1, lane_detector_object.road_nomark_1,
+     lane_detector_object.capture_frameindex_for_speed_1,
+     lane_detector_object.frameindex_for_speed_1,
+     lane_detector_object.white_mark_hit_1,
+     lane_detector_object.speed_read_flag_1,
+     lane_detector_object.count_scanned_lines_reverse_for_speed_1) = absolute_speed_estimation(
+        lane_detector_object.muy_lane_vec_final1_speed,
+        lane_detector_object.mux_lane_vec_final1_speed,
+        lane_detector_object.base_ptx_lane_vec_final1_speed,
+        lane_detector_object.base_pty_lane_vec_final1_speed,
+        lane_detector_object.h1,
+        lane_detector_object.capture_frameindex_for_speed_1,
+        lane_detector_object.frameindex_for_speed_previous_1,
+        lane_detector_object.frameindex_for_speed_1,
+        lane_detector_object.image_number,
+        lane_detector_object.white_mark_hit_1,
+        lane_detector_object.count_scanned_lines_reverse_for_speed_previous_1,
+        lane_detector_object.count_scanned_lines_reverse_for_speed_1,
+        lane_detector_object.img_subframe,
+        lane_detector_object.img_subframe_gray)
+
+    #Update Speed reading
+    if lane_detector_object.speed_read_flag_1 == 1:
+        lane_detector_object.speed_official = lane_detector_object.speed_1
+        lane_detector_object.first_reading_available_flag = 1
+
+    if lane_detector_object.road_nomark_1 == 1 and lane_detector_object.white_mark_hit_1 == 1:
+        lane_detector_object.count_road_nomark_1 += 1
+
+    # Detecting ending of white road mark (the marker is over the pavement)
+    if lane_detector_object.count_road_nomark_1 == 5:
+        lane_detector_object.white_mark_hit_1 = 0
+        lane_detector_object.count_road_nomark_1 = 0
+        lane_detector_object.capture_frameindex_for_speed_1 = 0
+        lane_detector_object.frameindex_for_speed_previous_1 = lane_detector_object.frameindex_for_speed_1
+        lane_detector_object.count_scanned_lines_reverse_for_speed_previous_1 = \
+            lane_detector_object.count_scanned_lines_reverse_for_speed_1
+
+
 def absolute_speed_estimation(muy_lane_vec_speed,
                               mux_lane_vec_speed,
                               base_ptx_lane_vec_speed,

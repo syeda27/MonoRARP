@@ -9,6 +9,42 @@ See README for more details.
 """
 import math
 
+def filtering_w(lane_detector_object):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.mux_lane_vec_final1,
+     lane_detector_object.muy_lane_vec_final1,
+     lane_detector_object.base_ptx_lane_vec_final1,
+     lane_detector_object.base_pty_lane_vec_final1,
+     lane_detector_object.mux_lane_vec_final2,
+     lane_detector_object.muy_lane_vec_final2,
+     lane_detector_object.base_ptx_lane_vec_final2,
+     lane_detector_object.base_pty_lane_vec_final2,
+     lane_detector_object.x1_lane_group1,
+     lane_detector_object.x1_lane_group2) = filtering(
+        lane_detector_object.count_lane_group1,
+        lane_detector_object.count_lane_group2,
+        lane_detector_object.x1_lane_group1,
+        lane_detector_object.x1_lane_group2,
+        lane_detector_object.H,
+        lane_detector_object.initial_frame_was_processed_flag,
+        lane_detector_object.mux_lane_vec_final1,
+        lane_detector_object.muy_lane_vec_final1,
+        lane_detector_object.base_ptx_lane_vec_final1,
+        lane_detector_object.base_pty_lane_vec_final1,
+        lane_detector_object.mux_lane_vec_final1_previous,
+        lane_detector_object.muy_lane_vec_final1_previous,
+        lane_detector_object.base_ptx_lane_vec_final1_previous,
+        lane_detector_object.base_pty_lane_vec_final1_previous,
+        lane_detector_object.mux_lane_vec_final2,
+        lane_detector_object.muy_lane_vec_final2,
+        lane_detector_object.base_ptx_lane_vec_final2,
+        lane_detector_object.base_pty_lane_vec_final2,
+        lane_detector_object.mux_lane_vec_final2_previous,
+        lane_detector_object.muy_lane_vec_final2_previous,
+        lane_detector_object.base_ptx_lane_vec_final2_previous,
+        lane_detector_object.base_pty_lane_vec_final2_previous)
 
 def filtering(count_lane_group1,
               count_lane_group2,

@@ -8,6 +8,28 @@ We assess in this function wheather or not the white marking is sufficiently par
 """
 import math
 
+def determination_of_parallelism_w(lane_detector_object, scan_args, top_left):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    lane_detector_object.aligned_to_tracked_lane = determination_of_parallelism(
+        top_left,
+        scan_args.rx1,
+        scan_args.ry1,
+        lane_detector_object.count_lane_group1,
+        lane_detector_object.count_lane_group2,
+        lane_detector_object.whitemarkings_average,
+        lane_detector_object.road1_average,
+        lane_detector_object.base_ptx_lane_vec_final1,
+        lane_detector_object.base_pty_lane_vec_final1,
+        lane_detector_object.mux_lane_vec_final1,
+        lane_detector_object.muy_lane_vec_final1,
+        lane_detector_object.base_ptx_lane_vec_final2,
+        lane_detector_object.base_pty_lane_vec_final2,
+        lane_detector_object.mux_lane_vec_final2,
+        lane_detector_object.muy_lane_vec_final2,
+        scan_args.angles)
+
 def determination_of_parallelism(top_left,
                                  rx1,
                                  ry1,

@@ -9,6 +9,24 @@ Minor Editing: djp42 - Stanford
 See README for more details.
 """
 
+def o_r_a_a_b_c_wrap(lane_detector_object):
+    """
+    A wrapper to make this function ~relatively~ modular and work with a class.
+    """
+    (lane_detector_object.road1_average,
+     lane_detector_object.road2_average,
+     lane_detector_object.road3_average,
+     lane_detector_object.road4_average,
+     lane_detector_object.whitemarkings_average,
+     lane_detector_object.removed3,
+     lane_detector_object.removed4) = outlayer_removal_and_average_brightness_computation(
+        lane_detector_object.road1_vec,
+        lane_detector_object.road2_vec,
+        lane_detector_object.road3_vec,
+        lane_detector_object.road4_vec,
+        lane_detector_object.whitemarkings_vec,
+        lane_detector_object.counter_scanning)
+
 def outlayer_removal_and_average_brightness_computation(road1_vec,
                                                         road2_vec,
                                                         road3_vec,
