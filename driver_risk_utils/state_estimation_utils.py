@@ -1,6 +1,36 @@
 """
 This file contains helper functions for things like calculating the
 distance to bounding boxes.
+
+Simple diagram to help with coordinates:
+An image with 5 detected objects
+
+Top_left: (0,0)
+Top_right: (im_width, 0)
+Bottom_left: (0, im_height)
+Bottom_right: (im_width, im_height)
+
+rel_horizon ~= 0.5 
+   __________________________________   <---- Top of image
+  |                                  |
+  |                           <sun>  |
+  |                                  |
+  |    <cloud>                       |
+  |                                  |
+  |             <bridge>             |
+  |                                  |
+  |----------------------------------|   <---- Horizon line
+  |  ___           /\     __         |
+  | |_C_|         /  \   |_B|        |   <---- Box B.bot == Box C.bot
+  |              /    \              |
+  |             / ___  \  ____       |   <---- Box E.top == Box A.top
+  |    _____   / | E |  \|  A |      |
+  |   |  D  | /  |___|   \____|      |
+  |   |_____|/            \          |
+  |_________/______________\_________|   <---- Bottom of image == im_height
+            ^              ^
+            |              |
+     A lane line         A lane line
 """
 
 import numpy as np
@@ -99,6 +129,9 @@ def bottom_bounding_box_distance(
     is also a horizontal line in the image.
     Assumes: flat ground.
 
+    Approximates: camera's tilt angle ~= 0, captured by rel_horizon
+    Approximates: ph for 90-camera_min_angle. TODO use arctan and tan.
+
     Arguments:
       box: (int, int, int, int)
         (left, right, top, bottom) coordinates of a box in the image.
@@ -157,6 +190,8 @@ def triangle_for_x(
     to get the distance to the center of the car.
     Must have the longitudinal distance to the object.
 
+    Approximates: beta using small-angle-approximation. TODO use atan and tan instead.
+
     Arguments:
       box: (int, int, int, int)
         (left, right, top, bottom) coordinates of a box in the image.
@@ -191,11 +226,12 @@ def bottom_bounding_box_distance2(
         box,
         im_h,
         im_w,
+        rel_horizon=0.5,
         camera_focal_len=1000,
         camera_height=1.0,
         carW=1.8,
         verbose=False,
-        millimeters_per_pixel=0.285):
+        Xs_per_pixel=None):
     """
     Arguments:
       box: (int, int, int, int)
@@ -204,16 +240,21 @@ def bottom_bounding_box_distance2(
         The height of the image, in pixels.
       im_w: int
         The width of the image, in pixels.
+      rel_horizon: float
+        The relative location of the horizon in the image.
+        0.5 means the horizon is in the middle of the image.
+        0.0 means the horizon is at the bottom of the image.
       camera_focal_len: int
-        The focal length of the camera
+        The focal length of the camera. In pixels.
+        If in another unit X, pass in the Xs_per_pixel argument.
       camera_height: float
         The height of the camera off the ground, in real life. Meters.
       carW: float
         The object width, in meters
       verbose: boolean
         Whether or not to log extra information.
-      millimeters_per_pixel: float
-        The number of millimeters per pixel...
+      Xs_per_pixel: float
+        The number of some unit X per pixel. Default to None.
 
     Return: (dy, dx)
         dy: float
@@ -222,10 +263,15 @@ def bottom_bounding_box_distance2(
           Lateral distance (perpendicular to centerline) to object. Meters.
     """
     (left, right, top, bot) = box
-    d_image = im_h - bot # distance from bottom of image
-    if d_image == 0 or camera_focal_len == 0: return (0, 0)
-    d = bot * millimeters_per_pixel
-    d += 1e-10                      # so no division by 0
+    horizon_p = rel_horizon * im_h # horizon in pixels from the top of img.
+    d_image = im_h - bot # distance from bottom of image in pixels
+    if d_image > horizon_p:
+        if verbose: print("this box is floating. ignoring. check horizon")
+        return None
+    d = (horizon_p - d_image)
+    if Xs_per_pixel is not None:
+        d *= Xs_per_pixel
+    # d is distance from the horizon to the bottom of the bounding box.
     dy = (camera_height * camera_focal_len) / d
     distance_to_far_box_edge = get_distance_far_box_edge(box, im_w)
     dx = (dy * distance_to_far_box_edge) / camera_focal_len
