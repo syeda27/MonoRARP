@@ -85,15 +85,13 @@ class GPS_Interface:
 
     # also checks validity
     def get_last_valid_reading_line(self, new_file):
+        if self.format != "NMEA":
+            raise ValueError("Unsupported Format: {}".format(self.format))
         with open(new_file, "r") as f:
             for line in reversed(f.readlines()):
-                if self.format == "NMEA":
-                    if line.split(",")[0] == "gpsd:IO: <= GPS: $GPRMC":
-                        if line.split(",")[2] == "A":
-                            return line
-                else:
-                    print("Unsupported format")
-                    return ""
+                if line.split(",")[0] == "gpsd:IO: <= GPS: $GPRMC":
+                    if line.split(",")[2] == "A":
+                        return line
 
     def parse_line(self, line, verbose=False):
         if line is None:

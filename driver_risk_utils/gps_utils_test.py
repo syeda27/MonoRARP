@@ -27,6 +27,10 @@ with open(new_file, "r") as f:
 last_reading_line = GPS_INTERFACE.get_last_reading_line(new_file)
 assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,183423.000,A,3725.2744,N,12210.4042,W,0.00,264.67,030618,,,A*7A\n"
 
+last_reading_line = GPS_INTERFACE.get_last_valid_reading_line(new_file)
+assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,183423.000,A,3725.2744,N,12210.4042,W,0.00,264.67,030618,,,A*7A\n"
+
+
 (time, lat, lon) = GPS_INTERFACE.parse_line(last_reading_line)
 print(time)
 print(lat)
