@@ -66,7 +66,12 @@ def add_thread_args(parser):
             default=defaults.THREADED_RUNNER)
     parser.add_argument("--thread_queue_size", type=int, \
             default=defaults.THREAD_QUEUE_SIZE)
-    parser.add_argument("--max_risk_threads", type=int, default=defaults.RISK_THREADS)
+    parser.add_argument("--thread_wait_time", type=float, \
+            default=defaults.THREAD_WAIT_TIME)
+    parser.add_argument("--thread_max_wait", type=float, \
+            default=defaults.THREAD_MAX_WAIT)
+    parser.add_argument("--max_risk_threads", type=int, \
+            default=defaults.RISK_THREADS)
 
 
 def add_risk_args(parser):

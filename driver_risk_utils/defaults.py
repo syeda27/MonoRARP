@@ -27,6 +27,8 @@ THREADED_RUNNER = 'None'  # "None" for single threaded, otherwise, one of
 THREAD_QUEUE_SIZE = 10    # The size for queues in the threaded runner.
 RISK_THREADS = 1   # the maximum number of threads to spawn in get_risk().
                    # setting the value to <= 1 uses the single-threaded method.
+THREAD_WAIT_TIME = 0.05
+THREAD_MAX_WAIT = 0.5
 
 # LANE DETECTION DEFAULTS ##
 DETECT_LANES = "False"

@@ -51,7 +51,6 @@ class Runner:
         self.gps_interface = None
         if launcher.all_args.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher.all_args.gps_source)
-        self.thread_queue_size = launcher.thread_queue_size
 
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
@@ -72,6 +71,9 @@ class Runner:
             max_threads=launcher.all_args.max_risk_threads
         )
         self.reset_vars()
+        self.thread_queue_size = launcher.all_args.thread_queue_size
+        self.thread_wait_time = launcher.all_args.thread_wait_time
+        self.thread_max_wait = launcher.all_args.thread_max_wait
 
     def reset_vars(self):
         """

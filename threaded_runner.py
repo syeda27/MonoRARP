@@ -111,7 +111,7 @@ class ThreadedRunner(Runner):
             return True
         return False
 
-    def process_frame(self, max_wait=0.5, wait_time=0.05):
+    def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
         """
         This is Thread1 from method B
         """
@@ -133,7 +133,7 @@ class ThreadedRunner(Runner):
 
         # update queue
         image_was_removed = self.block_for_queue(max_wait, wait_time)
-        if image_was_removed:
+        if image_was_removed and verbose:
             print("Blocked for too long, image {} removed.".format(
                 self.elapsed - self.thread_queue_size))
         self.thread_queue.put((image_np, net_out, time.time()))
@@ -166,7 +166,7 @@ class ThreadedRunner(Runner):
         self.start_loop = time.time()
 
         while self.camera.isOpened() and not self.done:
-            self.process_frame()
+            self.process_frame(self.thread_max_wait, self.thread_wait_time)
         self.done = True
 
         #self.thread1.join()

@@ -42,6 +42,8 @@ def test_default_args():
 
     assert args.threaded_runner == defaults.THREADED_RUNNER
     assert args.thread_queue_size == defaults.THREAD_QUEUE_SIZE
+    assert args.thread_wait_time == defaults.THREAD_WAIT_TIME
+    assert args.thread_max_wait == defaults.THREAD_MAX_WAIT
     assert args.max_risk_threads == defaults.RISK_THREADS
 
     assert args.risk_H == defaults.RISK_HORIZON
