@@ -68,6 +68,9 @@ def filtering(count_lane_group1,
               muy_lane_vec_final2_previous,
               base_ptx_lane_vec_final2_previous,
               base_pty_lane_vec_final2_previous):
+    if muy_lane_vec_final1_previous == 0:
+        print("Filtering: muy_lane_vec_final1_previous is 0")
+        muy_lane_vec_final1_previous += 1e-10
     if count_lane_group1 >= 1:
         if initial_frame == 1:
             angle1 = 180 * (
@@ -132,6 +135,9 @@ def filtering(count_lane_group1,
 
 
     if count_lane_group2 >= 1:
+        if mux_lane_vec_final2_previous == 0:
+            print("Filtering: mux_lane_vec_final2_previous is 0")
+            mux_lane_vec_final2_previous += 1e-10
         if initial_frame == 1:
             angle1 = 180 * (
                 math.atan(muy_lane_vec_final2 / mux_lane_vec_final2)) / 3.14159
@@ -173,6 +179,9 @@ def filtering(count_lane_group1,
                           Lintersection * mux_lane_vec_final2
         x1_lane_group2 = x1_lane
     else:
+        if muy_lane_vec_final2_previous == 0:
+            print("Filtering: muy_lane_vec_final2_previous is 0")
+            muy_lane_vec_final2_previous += 1e-10
         #intersecting with top of image
         Lintersection =  -base_pty_lane_vec_final2_previous / muy_lane_vec_final2_previous
         x1_lane = base_ptx_lane_vec_final2_previous + Lintersection*mux_lane_vec_final2_previous

@@ -51,6 +51,7 @@ def abs_speed_wrapper(lane_detector_object):
     #Update Speed reading
     if lane_detector_object.speed_read_flag == 1:
         lane_detector_object.speed_official = lane_detector_object.speed
+        print("official_speed:", lane_detector_object.speed_official)
         lane_detector_object.first_reading_available_flag = 1
 
     if lane_detector_object.road_nomark == 1 and lane_detector_object.white_mark_hit == 1:
@@ -101,6 +102,7 @@ def abs_speed_wrapper(lane_detector_object):
     #Update Speed reading
     if lane_detector_object.speed_read_flag_1 == 1:
         lane_detector_object.speed_official = lane_detector_object.speed_1
+        print("official_speed:", lane_detector_object.speed_official)
         lane_detector_object.first_reading_available_flag = 1
 
     if lane_detector_object.road_nomark_1 == 1 and lane_detector_object.white_mark_hit_1 == 1:
@@ -132,6 +134,9 @@ def absolute_speed_estimation(muy_lane_vec_speed,
                               img2):
     speed_read_flag = 0
     speed = 0
+    if muy_lane_vec_speed == 0:
+        print("0 muy lane vec speed")
+        muy_lane_vec_speed += 1e-10
 
     #Intersection between the Lane and the marker
     Lintersection = (0.8 * h1-base_pty_lane_vec_speed) / muy_lane_vec_speed

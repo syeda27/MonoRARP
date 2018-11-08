@@ -37,7 +37,8 @@ class LaneDetector:
                  scan_x_params=(1480, 2720, 80),
                  scan_y_params=(100, 250, 20),
                  scan_window_sz=(120, 160),
-                 subframe_dims=(1500, 1800, 0, 3849)):
+                 subframe_dims=(1500, 1800, 0, 3840),
+                 display_lane_lines=False):
         self.subframe_dims = subframe_dims
         lane_args_utils.initialize_lane_detector_members(self)
         #inital and end points for the scanning in the x-direction within the image subframe, and step of the scanning
@@ -47,8 +48,7 @@ class LaneDetector:
         #size of the rectangular window used for the scanning
         self.scanning_window_width, self.scanning_window_length = scan_window_sz
         self.image_number = 0
-        self.display_dlines = False
-        self.display_lane_lines = False # If false, handle_image returns the lines
+        self.display_lane_lines = display_lane_lines # If false, handle_image returns the lines
 
     def _reset_each_image_vars(self):
         self.count_lanes = 0
@@ -60,9 +60,10 @@ class LaneDetector:
 
     def handle_image(self, image):
         self.img = image
-        self.img_subframe = self.img[self.subframe_dims[0]:self.subframe_dims[1],
-                                     self.subframe_dims[2]:self.subframe_dims[3],
-                                    ] # [1500:1800, 0:3849]
+        self.img_subframe = self.img[
+            self.subframe_dims[0]:self.subframe_dims[1],
+            self.subframe_dims[2]:self.subframe_dims[3],
+        ] # [1500:1800, 0:3849]
         self.img_subframe_gray = cv2.cvtColor(
             self.img_subframe, cv2.COLOR_BGR2GRAY)
         self.H, self.W, _ = self.img.shape
@@ -76,12 +77,7 @@ class LaneDetector:
     def _do_line_segments(self, img_subframe_gray):
         self.dlines = cv2.createLineSegmentDetector(0).detect(img_subframe_gray)
         #dlines holds the lines that have been detected by LSD
-        if not self.display_dlines: return
         for dline in self.dlines[0]:
-            x0 = int(round(dline[0][0]))
-            y0 = int(round(dline[0][1]))
-            x1 = int(round(dline[0][2]))
-            y1 = int(round(dline[0][3]))
             display_utils.make_line(img_subframe_gray,
                 (round(dline[0][0]), round(dline[0][1])),
                 (round(dline[0][2]), round(dline[0][3])))

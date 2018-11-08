@@ -533,6 +533,7 @@ for image_number in range(1085, 2665):
     resized = cv2.resize(img7, dim, interpolation = cv2.INTER_CUBIC)
 
     if first_reading_available_flag != 0:
+        print("Official speed:", speed_official)
         speed_text = 'Speed: '+str(int(speed_official))+' miles/hr'
         cv2.putText(resized,
                     speed_text,
