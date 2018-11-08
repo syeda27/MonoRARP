@@ -77,7 +77,6 @@ class ThreadedRunner(Runner):
             except ValueError:
                 print("Please enter a float or integer.")
 
-
     def process_detections_fn(self, wait_time=0.05):
         process_detections_elapsed = 0
         while not self.done or not self.thread_queue.empty():
@@ -92,8 +91,6 @@ class ThreadedRunner(Runner):
                 # process image_np and net_out
                 process_detections_elapsed += 1
 
-
-
     def spawn_threads(self, queue_len=3):
         self.thread_queue = queue.Queue(queue_len)
         #self.thread1 = threading.Thread(
@@ -103,7 +100,6 @@ class ThreadedRunner(Runner):
 
         #self.thread1.start()
         self.process_detections.start()
-
 
     def block_for_queue(self, max_wait, wait_time):
         if not self.thread_queue.full(): return False

@@ -174,7 +174,7 @@ class StateHistory:
         return self.state_histories[object_key][-1]
 
     # Private
-    def _update_distance(self, args, box, im_h, im_w, object_key, verbose=True):
+    def _update_distance(self, args, box, im_h, im_w, object_key, verbose=False):
         """
         For the given object key and associated detection box, we update our
         state information, but only the distances.

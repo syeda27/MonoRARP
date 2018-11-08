@@ -20,8 +20,13 @@ LABELS = 'data/kitti_label_map.pbtxt'
 CAR_WIDTH_m = 1.8
 CALC_RISK_EVERY_N_FRAMES = 2
 DEVICE = '/gpu:0'
+
+## THREADING DEFAULTS ##
 THREADED_RUNNER = 'None'  # "None" for single threaded, otherwise, one of
                           # the supported threading methods (see threaded_runner.py)
+THREAD_QUEUE_SIZE = 10    # The size for queues in the threaded runner.
+RISK_THREADS = 1   # the maximum number of threads to spawn in get_risk().
+                   # setting the value to <= 1 uses the single-threaded method.
 
 # LANE DETECTION DEFAULTS ##
 DETECT_LANES = "False"
@@ -53,5 +58,3 @@ EMBEDDED_RISK indicates whether to simulate and calculate risk at
 the same time.
 It avoids deepcopies and is more efficient, but less modular.
 """
-RISK_THREADS = 1   # the maximum number of threads to spawn in get_risk().
-                   # setting the value to <= 1 uses the single-threaded method.

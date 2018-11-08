@@ -60,8 +60,14 @@ def add_general_args(parser):
     # 1 to update every frame
     parser.add_argument("--device", type=str, \
             default=defaults.DEVICE)
+
+def add_thread_args(parser):
     parser.add_argument("--threaded_runner", type=str, \
             default=defaults.THREADED_RUNNER)
+    parser.add_argument("--thread_queue_size", type=int, \
+            default=defaults.THREAD_QUEUE_SIZE)
+    parser.add_argument("--max_risk_threads", type=int, default=defaults.RISK_THREADS)
+
 
 def add_risk_args(parser):
     parser.add_argument("--risk_H", type=float, default=defaults.RISK_HORIZON)
@@ -71,7 +77,6 @@ def add_risk_args(parser):
     parser.add_argument("--col_tol_x", type=float, default=defaults.COLLISION_TOL_X_m)
     parser.add_argument("--col_tol_y", type=float, default=defaults.COLLISION_TOL_Y_m)
     parser.add_argument("--embedded_risk", type=str2bool, default=defaults.EMBEDDED_RISK)
-    parser.add_argument("--max_risk_threads", type=int, default=defaults.RISK_THREADS)
 
 
 """
@@ -91,6 +96,7 @@ def parse_args():
     add_lane_detection_args(parser)
     add_general_args(parser)
     add_risk_args(parser)
+    add_thread_args(parser)
     args = parser.parse_args()
 
     return do_arg_checks(args)
