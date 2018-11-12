@@ -11,5 +11,10 @@
         - You will need to download the pretrained model
 * Need openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
+    - If using pip:
+      - `pip install --user <package_name>`
+        - `opencv-contrib-python`
+        - `matplotlib`
+        - `Pillow`
 
 *This research was funded by The Allstate Corporation.*
