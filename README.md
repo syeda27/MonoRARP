@@ -11,6 +11,7 @@
         - You will need to download the pretrained model
 * Need openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
+
 * See [Docs/Install.md](Docs/Install.md) for full instructions
 
 ## Running Guide

@@ -174,7 +174,7 @@ class StateHistory:
         return self.state_histories[object_key][-1]
 
     # Private
-    def _update_distance(self, args, box, im_h, im_w, object_key):
+    def _update_distance(self, args, box, im_h, im_w, object_key, verbose=False):
         """
         For the given object key and associated detection box, we update our
         state information, but only the distances.
@@ -191,6 +191,8 @@ class StateHistory:
             The width of the image, in pixels.
           object_key: string
             The key that corresponds to this detected object.
+          verbose: boolean
+            Flag on whether or not to print extra logs.
 
         """
         state_dict = dict()
@@ -198,18 +200,28 @@ class StateHistory:
             # when further off center than this, we do not trust this distance.
             state_dict["distance_y_t"] = s_utils.triangle_similarity_distance(
                 box, args.focal, args.carW)
-        d_bbb = s_utils.bottom_bounding_box_distance(box, im_h, im_w,
-                camera_height=args.cameraH,
-                camera_min_angle=args.cameraMinAngle,
-                camera_beta_max=args.cameraMaxHorizAngle,
-                carW = args.carW,
-                rel_horizon=args.horizon)
+        d_bbb = s_utils.bottom_bounding_box_distance(
+            box,
+            im_h,
+            im_w,
+            camera_height=args.cameraH,
+            camera_min_angle=args.cameraMinAngle,
+            camera_beta_max=args.cameraMaxHorizAngle,
+            carW = args.carW,
+            rel_horizon=args.horizon,
+            verbose=verbose)
         if d_bbb is not None:
             state_dict["distance_y_b"], state_dict["distance_x_b"] = d_bbb
         state_dict["distance_y_b2"], state_dict["distance_x_b2"] = \
-                s_utils.bottom_bounding_box_distance2(box, im_h, im_w,
-                        camera_focal_len = args.focal,
-                        camera_height = args.cameraH, carW=args.carW)
+                s_utils.bottom_bounding_box_distance2(
+                    box,
+                    im_h,
+                    im_w,
+                    rel_horizon=args.horizon,
+                    camera_focal_len=args.focal,
+                    camera_height=args.cameraH,
+                    carW=args.carW,
+                    verbose=verbose)
 
         new_vehicle_state = vehicle_state.VehicleState()
         new_vehicle_state.quantities["distance_x"] = \
@@ -284,8 +296,9 @@ class StateHistory:
             carW = args.carW,
             rel_horizon=args.horizon, verbose=True)
         print("Bounding Box 2")
-        s_utils.bottom_bounding_box_distance2(box, im_h, im_w, args.focal,
-                args.cameraH, carW=args.carW, verbose=True)
+        s_utils.bottom_bounding_box_distance2(box, im_h, im_w,
+                rel_horizon=args.horizonargs.focal,
+                camera_focal_len=args.cameraH, carW=args.carW, verbose=True)
         print("Average distance y:", self.state_histories[object_key][-1]["distance_y"])
         print("Average distance x:", self.state_histories[object_key][-1]["distance_x"])
         s_utils.calc_speed(self.state_histories[object_key], verbose=True)

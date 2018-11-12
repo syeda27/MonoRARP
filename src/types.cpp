@@ -5,22 +5,4 @@
 
  */
 
- namespace DRIVR {
-
- struct Args {
-     float focal;
-     float carW;
-     float cameraH;
-     float cameraMinAngle;
-     float cameraMaxHorizAngle;
-     float horizon;
- };
-
- struct Box {
-     float left;
-     float right;
-     float top;
-     float bottom;
- };
-
-} // end DRIVR
+#include "types.h"

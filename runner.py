@@ -23,6 +23,7 @@ import risk_predictor
 import embedded_risk_predictor
 import tracker
 import display
+import lane_detector
 from driver_risk_utils import argument_utils, general_utils, gps_utils
 
 
@@ -50,10 +51,11 @@ class Runner:
         self.gps_interface = None
         if launcher.all_args.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher.all_args.gps_source)
-        self.thread_queue_size = launcher.thread_queue_size
 
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
+
+        self.lane_detector_object = lane_detector.LaneDetector()
 
         risk_constructor = risk_predictor.RiskPredictor
         if launcher.all_args.embedded_risk:
@@ -69,14 +71,16 @@ class Runner:
             max_threads=launcher.all_args.max_risk_threads
         )
         self.reset_vars()
+        self.thread_queue_size = launcher.all_args.thread_queue_size
+        self.thread_wait_time = launcher.all_args.thread_wait_time
+        self.thread_max_wait = launcher.all_args.thread_max_wait
 
     def reset_vars(self):
         """
         reset some tracking variables used throughout the class.
         """
         # Buffers to allow for batch demo
-        self.buffer_inp = list()
-        self.buffer_pre = list()
+        self.input_buffer = list()
         self.elapsed = 0
         self.start = time.time()
         self.fps = 1
@@ -172,7 +176,7 @@ class Runner:
         Read an image from the camera into the internal variables.
 
         Updates internal variables for:
-          buffer_inp and buffer_pre: appends this image.
+          input_buffer: appends this image.
           tracker_obj: updates the shape based on this image.
           done: Set to true when the video ends (only triggered on file sources)
         """
@@ -183,10 +187,7 @@ class Runner:
             return
 
         #image_np_expanded = np.expand_dims(image_np, axis=0)
-        im_height, im_width, _ = image_np.shape
-        self.buffer_inp.append(image_np)
-        self.buffer_pre.append(image_np)
-        self.tracker_obj.update_im_shape(im_height, im_width)
+        self.input_buffer.append(image_np)
 
     def get_detected_objects(self, i, net_out, image):
         """
@@ -202,16 +203,15 @@ class Runner:
           image: the image to process.
 
         Returns
-          do_convert: bool of whether the coordinates for the boxes need to
-            be converted. See display_utils.display() for use.
           boxes: list of the detected object bounding boxes in this image.
+            Will be in absolute pixel value coordinates.
           labels: list of the corresponding class labels for each box.
         """
         # TODO the use of net_out can get somewhat confusing. That means it can
         # be optimized somehow...
 
         if self.tracker_obj.use_tracker:
-            boxes, do_convert, labels = self.tracker_obj.update_one(i, net_out, image)
+            boxes, labels = self.tracker_obj.update_one(i, net_out, image)
         else:
             boxes = net_out['detection_boxes'][i][np.where(\
                     net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
@@ -219,15 +219,13 @@ class Runner:
                     net_out['detection_classes'][i][np.where(\
                         net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
                     ]
-            do_convert = True
+            im_h, im_w, _ = image.shape
+            for box_index, box in enumerate(boxes):
+                boxes[box_index] = general_utils.convert(im_h, im_w, box)
 
         if len(labels) < len(boxes):
             labels.extend([""] * (len(boxes) - len(labels)))
 
-        if do_convert:
-            im_h, im_w, _ = image.shape
-            for i,b in enumerate(boxes):
-                boxes[i] = general_utils.convert(im_h, im_w, b)
         return boxes, labels
 
     def get_risk(self,
@@ -279,8 +277,8 @@ class Runner:
         # Visualization of the results of a detection, not thread safe.
         if self.timer:
             self.timer.update_start("DetectObjects")
-        boxes, labels = self.get_detected_objects(i, net_out, self.buffer_inp[i])
-        im_h, im_w, _ = self.buffer_inp[i].shape
+        boxes, labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
+        im_h, im_w, _ = self.input_buffer[i].shape
         self.update_state(labels, boxes, im_h, im_w, frame_time)
         if self.timer:
             self.timer.update_end("DetectObjects", len(boxes))
@@ -291,7 +289,9 @@ class Runner:
         if self.timer:
             self.timer.update_end("GetRisk", 1)
             self.timer.update_start("Display")
-        self.display_obj.update_image(self.buffer_inp[i])
+        self.display_obj.update_image(self.input_buffer[i])
+        if self.lane_detector_object:
+            self.lane_detector_object.draw_lane_lines(self.input_buffer[i])
         img = self.display_obj.display_info(
                 self.state.get_current_states_quantities(),
                 risk,
@@ -315,12 +315,19 @@ class Runner:
         This function includes the call to run the object detection network,
         the detection of the objects, the risk, and the display calls.
 
-        Note: resets self.buffer_inp and self.buffer_pre to empty lists.
+        TODO: do one at a time, never need the buffer.
+
+        Note: resets self.input_buffer to an empty list.
         """
         self.timer = None
         if profile:
             self.timer = general_utils.Timing()
             self.timer.update_start("AllCalls")
+
+        if self.lane_detector_object:
+            self.lane_detector_object.handle_image(self.input_buffer[0])
+            if hasattr(self.lane_detector_object, 'speed_official'):
+                self.state.set_ego_speed_mph(self.lane_detector_object.speed_official)
 
         self.tracker_obj.update_if_init(self.elapsed)
         self.tracker_obj.check_and_reset_multitracker(self.state)
@@ -329,15 +336,13 @@ class Runner:
             if self.timer:
                 self.timer.update_start("NeuralNet")
             net_out = self.sess.run(self.tensor_dict,
-                                    feed_dict={self.image_tensor: self.buffer_pre})
+                                    feed_dict={self.image_tensor: self.input_buffer})
             if self.timer:
                 self.timer.update_end("NeuralNet", 1)
 
-        for i in range(self.launcher.all_args.queue):
-            self.visualize_one_image(net_out, i, frame_time)
+        self.visualize_one_image(net_out, 0, frame_time)
 
-        self.buffer_inp = list()
-        self.buffer_pre = list()
+        self.input_buffer = list()
         if self.timer:
             self.timer.update_end("AllCalls")
             self.timer.print_stats()
@@ -401,6 +406,22 @@ class Runner:
             self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
+        # Lane Detector
+        print(self.launcher.all_args.detect_lanes)
+        if self.launcher.all_args.detect_lanes:
+            print("Creating lane detector")
+            self.lane_detector_object = lane_detector.LaneDetector(
+                scan_x_params=(int(self.width / 1),
+                               int(2*self.width / 2),
+                               int(self.width / 20)),
+                scan_y_params=(self.height,
+                               int(self.height * 1),
+                               int(self.height / 1)),
+                scan_window_sz=(int(self.width / 1), int(self.height / 1)),
+                subframe_dims=(0, -1, 0, -1)
+            )
+        else:
+            self.lane_detector_object = None
 
         # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:

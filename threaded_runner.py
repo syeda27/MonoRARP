@@ -25,6 +25,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import tracker
 import display
+import lane_detector
 from driver_risk_utils import argument_utils, general_utils, gps_utils
 
 
@@ -43,15 +44,23 @@ class ThreadedRunner(Runner):
     last go around.
     """
 
-
-
     def visualize_one_image(self, net_out, image, frame_time):
         # Visualization of the results of a detection
         boxes, labels = self.get_detected_objects(0, net_out, image)
         im_h, im_w, _ = image.shape
+
+        if self.lane_detector_object:
+            self.lane_detector_object.handle_image(image)
+            if hasattr(self.lane_detector_object, 'speed_official'):
+                self.state.set_ego_speed_mph(
+                    self.lane_detector_object.speed_official)
+
         self.update_state(labels, boxes, im_h, im_w, frame_time)
 
         risk = self.get_risk()
+
+        if self.lane_detector_object:
+            self.lane_detector_object.draw_lane_lines(image)
 
         self.display_obj.update_image(image)
         img = self.display_obj.display_info(
@@ -79,7 +88,6 @@ class ThreadedRunner(Runner):
             except ValueError:
                 print("Please enter a float or integer.")
 
-
     def process_detections_fn(self, wait_time=0.05):
         process_detections_elapsed = 0
         while not self.done or not self.thread_queue.empty():
@@ -94,8 +102,6 @@ class ThreadedRunner(Runner):
                 # process image_np and net_out
                 process_detections_elapsed += 1
 
-
-
     def spawn_threads(self, queue_len=3):
         self.thread_queue = queue.Queue(queue_len)
         #self.thread1 = threading.Thread(
@@ -105,7 +111,6 @@ class ThreadedRunner(Runner):
 
         #self.thread1.start()
         self.process_detections.start()
-
 
     def block_for_queue(self, max_wait, wait_time):
         if not self.thread_queue.full(): return False
@@ -117,7 +122,7 @@ class ThreadedRunner(Runner):
             return True
         return False
 
-    def process_frame(self, max_wait=0.5, wait_time=0.05):
+    def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
         """
         This is Thread1 from method B
         """
@@ -139,7 +144,7 @@ class ThreadedRunner(Runner):
 
         # update queue
         image_was_removed = self.block_for_queue(max_wait, wait_time)
-        if image_was_removed:
+        if image_was_removed and verbose:
             print("Blocked for too long, image {} removed.".format(
                 self.elapsed - self.thread_queue_size))
         self.thread_queue.put((image_np, net_out, time.time()))
@@ -163,6 +168,22 @@ class ThreadedRunner(Runner):
             self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
+        # Lane Detector
+        if self.launcher.all_args.detect_lanes:
+            print("Creating lane detector")
+            self.lane_detector_object = lane_detector.LaneDetector(
+                scan_x_params=(self.width - int(self.width / 4),
+                               int(self.width / 4),
+                               int(self.width / 30)),
+                scan_y_params=(int(self.height / 21),
+                               int(self.height / 8),
+                               int(self.height / 50)),
+                scan_window_sz=(int(self.width / 18), int(self.height / 20)),
+                subframe_dims=(int(7*self.height/10), int(17*self.height/20), 0, self.width)
+
+            )
+        else:
+            self.lane_detector_object = None
 
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
@@ -172,7 +193,7 @@ class ThreadedRunner(Runner):
         self.start_loop = time.time()
 
         while self.camera.isOpened() and not self.done:
-            self.process_frame()
+            self.process_frame(self.thread_max_wait, self.thread_wait_time)
         self.done = True
 
         #self.thread1.join()

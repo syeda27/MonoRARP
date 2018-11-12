@@ -1,18 +1,12 @@
 #pragma once
-
 #include <unordered_map>
 #include <string>
 #include <vector>
 #include <iostream>
-
-#include "types.cpp"
+#include "types.h"
+#include "vehicle_state.h"
 
 namespace DRIVR {
-
-class VehicleState {
-    public:
-    std::unordered_map<std::string, float> keys_to_quantities;
-};
 
 class VehicleStates {
     public:

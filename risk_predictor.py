@@ -87,7 +87,7 @@ class RiskPredictor:
             low_ttc_score=1
         )
         self.prev_risk = 0.0
-        self.max_threads = 10
+        self.max_threads = max_threads
 
     def reset(self):
         """

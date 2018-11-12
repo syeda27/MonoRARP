@@ -9,6 +9,12 @@ import argument_utils
 def test_default_args():
     start = time.time()
     args = argument_utils.parse_args()
+
+    assert argument_utils.str2bool("False") == False
+    assert argument_utils.str2bool("false") == False
+    assert argument_utils.str2bool("true") == True
+    assert argument_utils.str2bool("True") == True
+
     assert args.focal == defaults.FOCAL
     assert args.cameraH == defaults.CAMERA_HEIGHT_m
     assert args.cameraMinAngle == defaults.CAMERA_MIN_VERTICAL_ANGLE_deg
@@ -33,7 +39,12 @@ def test_default_args():
     assert args.carW == defaults.CAR_WIDTH_m
     assert args.calc_risk_n == defaults.CALC_RISK_EVERY_N_FRAMES
     assert args.device == defaults.DEVICE
+
     assert args.threaded_runner == defaults.THREADED_RUNNER
+    assert args.thread_queue_size == defaults.THREAD_QUEUE_SIZE
+    assert args.thread_wait_time == defaults.THREAD_WAIT_TIME
+    assert args.thread_max_wait == defaults.THREAD_MAX_WAIT
+    assert args.max_risk_threads == defaults.RISK_THREADS
 
     assert args.risk_H == defaults.RISK_HORIZON
     assert args.risk_step == defaults.RISK_STEP
@@ -42,7 +53,8 @@ def test_default_args():
     assert args.col_tol_x == defaults.COLLISION_TOL_X_m
     assert args.col_tol_y == defaults.COLLISION_TOL_Y_m
     assert args.embedded_risk == argument_utils.str2bool(defaults.EMBEDDED_RISK)
-    assert args.max_risk_threads == defaults.RISK_THREADS
+
+    assert args.detect_lanes == argument_utils.str2bool(defaults.DETECT_LANES)
 
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 
