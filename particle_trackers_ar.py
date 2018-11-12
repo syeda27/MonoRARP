@@ -7,7 +7,7 @@ import pickle
 # edited by Anjali
 
 class ParticleTracker:
-    def __init__(n_p, n_v):
+    def __init__(self, n_p, n_v):
         self.n_p = n_p
         self.n_v = n_v
         self.x_particle_out=np.zeros(n_p)
@@ -52,11 +52,11 @@ class ParticleTracker:
         self.initialize_flag = None
         self.d = None
 
-    def create(box_info, image):
+    def create(self, box_info, image):
         self.box_info = box_info
         self.img = image
 
-    def display_trackers(trackerID, identified):
+    def display_trackers(self, trackerID, identified):
         if (trackerID==1 or trackerID==2) and self.initialize_flag==1 and self.count_holding_input==0:
             cv2.rectangle(self.img, (self.d[identified][1],self.d[identified][0]), (self.d[identified][3],self.d[identified][2]), (0,0,255), 2, 1)
             cv2.putText(self.img,str(trackerID),(int(cx_identified),int(cy_identified)), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,255,0),2)
@@ -70,7 +70,7 @@ class ParticleTracker:
             cv2.rectangle(self.img, (self.d[identified][1],self.d[identified][0]), (self.d[identified][3],self.d[identified][2]), (150,100,0), 2, 1)
             cv2.putText(self.img,str(trackerID),(int(cx_identified),int(cy_identified)), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,255,0),2)
 
-    def create_cdf():
+    def create_cdf(self):
         #reindexing
         indexes_sorted=[b[0] for b in sorted(enumerate(self.distance_to_particle_identified),key=lambda i:i[1])]
         #weights
@@ -85,7 +85,7 @@ class ParticleTracker:
             self.cdf[i]=sum_cdf
         return (indexes_sorted)
 
-    def create_uniform(indexes_sorted):
+    def create_uniform(self, indexes_sorted):
         #uniform: use prescribed distribution function based on cumulative distribution function previously built
         #This way the particles are drawn from a distribution induced by the weights
         draw_uniform=np.random.uniform(0,1)
@@ -96,7 +96,7 @@ class ParticleTracker:
                     self.y_particle_resampled[i]=self.y_particle_next[indexes_sorted[j]]
                     break
 
-    def delta_output(cx_identified, cy_identified):
+    def delta_output(self, cx_identified, cy_identified):
         if self.initialize_flag==0: #This tracker is being shutdown and it will go through a new vehicle assignment process
             self.delta_x_out=0
             self.delta_y_out=0
@@ -104,14 +104,14 @@ class ParticleTracker:
             self.delta_x_out=cx_identified - self.centroid_x_previous
             self.delta_y_out=cy_identified - self.centroid_y_previous
 
-    def resample_particles():
+    def resample_particles(self):
         # create_cdf
         indexes_sorted, self.cdf, self.w = create_cdf(self.distance_to_particle_identified, self.w, self.cdf)
         # create uniform
-        create_uniform(indexes_sorted)
+        self.create_uniform(indexes_sorted)
 
 
-    def tracker(Lc, trackerID):
+    def tracker(self, Lc, trackerID):
         mean = [self.x_particles_input + self.delta_x_input, self.y_particles_input+self.delta_y_input]  #mean is 1 x 2*n_p array
         cov = [[n_p, 0], [0, self.n_p]]
         self.x_particle_next, self.y_particle_next = np.multivariate_normal(mean, cov)
@@ -204,13 +204,13 @@ class ParticleTracker:
                         self.count_holding_input=0 #the bounding box reappeared
 
         #Displaying trackers
-        display_trackers()
+        self.display_trackers()
         ######### Resampling of Particles ###################
-        resample_particles()
-        delta_output(cx_identified, cy_identified)
+        self.resample_particles()
+        self.delta_output(cx_identified, cy_identified)
         return cx_identified,cy_identified
 
-    def uninitialized_vehicle(Lc):
+    def uninitialized_vehicle(self, Lc):
         vehicle_found_for_initialization=0  #succesful initialization of this tracker
         vehicle_index_for_initialization=0
         for k2 in range(0,Lc):
@@ -247,8 +247,8 @@ class ParticleTracker:
             print("trackerID: ",veh)
             initialize_vehicles[veh]=1 #A Tracker has been assigned to this vehicle
 
-    def initialized_vehicle(veh):
-        cx_identified_out,cy_identified_out,initialize_vehicles[veh] = tracker(Lc,veh)
+    def initialized_vehicle(self, veh):
+        cx_identified_out,cy_identified_out,initialize_vehicles[veh] = self.tracker(Lc,veh)
         #Information from current frame to be carried to next frame (useful when performing holding)
         self.cx_previous_vehicles[veh]=cx_identified_out
         self.cy_previous_vehicles[veh]=cy_identified_out
@@ -261,7 +261,7 @@ class ParticleTracker:
             self.cy_tracked[veh]=cy_identified_out
 
     #######  Tracking   #############
-    def tracking_main():
+    def tracking_main(self):
         a=box_info[index-1080]
         box_centers=a['centers']
         c=a['areas']
@@ -275,9 +275,9 @@ class ParticleTracker:
             #########  Tracker Initialization  #############
             ##pick on vehicle
             if initialize_vehicles[veh]==0:
-                uninitialized_vehicle(Lc)
+                self.uninitialized_vehicle(Lc)
             else:
-                initialized_vehicle(veh)
+                self.initialized_vehicle(veh)
             cv2.namedWindow('Tracking',cv2.WINDOW_NORMAL)
             cv2.imshow("Tracking", self.img)
             cv2.waitKey(1)
