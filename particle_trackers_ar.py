@@ -1,4 +1,4 @@
-self.centroid_y_preself.deltaself.cdfimport cv2
+import cv2
 import math
 import numpy as np
 import pickle
