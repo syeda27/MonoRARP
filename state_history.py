@@ -195,11 +195,17 @@ class StateHistory:
             Flag on whether or not to print extra logs.
 
         """
+        if verbose:
+            print(object_key)
         state_dict = dict()
-        if s_utils.get_distance_far_box_edge(box, im_w) < (im_w / 10.0):
+        if s_utils.centered_enough(box, im_w):
             # when further off center than this, we do not trust this distance.
             state_dict["distance_y_t"] = s_utils.triangle_similarity_distance(
                 box, args.focal, args.carW)
+            if verbose:
+                print("Triangle distance: {}".format(state_dict["distance_y_t"]))
+        elif verbose:
+            print("No triangle distance, too far off-center.")
         d_bbb = s_utils.bottom_bounding_box_distance(
             box,
             im_h,
@@ -232,6 +238,11 @@ class StateHistory:
         new_vehicle_state.quantities["distance_y"] = np.mean(
             [state_dict[i] for i in state_dict.keys() \
                 if "distance_y" in i])
+        if verbose:
+            print("Average Dx, Dy: {}, {}".format(
+                new_vehicle_state.quantities["distance_x"],
+                new_vehicle_state.quantities["distance_y"]
+            ))
         self.state_histories[object_key].append(new_vehicle_state)
 
     def _update_time(self, object_key, time):

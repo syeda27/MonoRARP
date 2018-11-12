@@ -103,6 +103,7 @@ class ThreadedRunner(Runner):
                 process_detections_elapsed += 1
 
     def spawn_threads(self, queue_len=3):
+        self.num_dropped = 0
         self.thread_queue = queue.Queue(queue_len)
         #self.thread1 = threading.Thread(
         #    target=thread1_fn, name="thread1", args=(), kwargs={})
@@ -137,16 +138,17 @@ class ThreadedRunner(Runner):
             self.done = True
             return
 
-        im_height, im_width, _ = image_np.shape
-        net_out = None
-        net_out = self.sess.run(self.tensor_dict,
-                                feed_dict={self.image_tensor: [image_np]})
-
+        net_out = self.sess.run(
+            self.tensor_dict,
+            feed_dict={self.image_tensor: [image_np]}
+        )
         # update queue
         image_was_removed = self.block_for_queue(max_wait, wait_time)
-        if image_was_removed and verbose:
-            print("Blocked for too long, image {} removed.".format(
-                self.elapsed - self.thread_queue_size))
+        if image_was_removed:
+            self.num_dropped += 1
+            if verbose:
+                print("Blocked for too long, image {} removed.".format(
+                    self.elapsed - self.thread_queue_size))
         self.thread_queue.put((image_np, net_out, time.time()))
 
     def run(self):
@@ -203,6 +205,8 @@ class ThreadedRunner(Runner):
         print("Total time: ", end - self.start)
         print("Frames processed: ", self.elapsed)
         print("Average FPS: ", self.elapsed/(end - self.start))
+        print("Dropped frames: ", self.num_dropped)
+        print("True FPS: ", (self.elapsed - self.num_dropped) / (end - self.start))
         if self.launcher.all_args.save:
             self.videoWriter.release()
         self.camera.release()

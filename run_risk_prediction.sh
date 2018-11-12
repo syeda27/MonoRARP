@@ -34,8 +34,8 @@ SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 #FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 #SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
+MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
-QUEUE=1
 DO_TRACK='true'
 TRACK_REFRESH=10
 DET_THRESH=0.01             # above 1 means nothing will get marked.
@@ -44,7 +44,10 @@ GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
-THREADED_RUNNER='None'         # The runner-level threading method, or 'None'
+THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
+THREAD_QUEUE_SIZE=10        # The size of the queue for threaded_runner
+THREAD_WAIT_TIME=0.01        # The minimum amount of time to block on a queue, sec.
+THREAD_MAX_WAIT=0.15         # maximum amount of time to block on a queue, sec.
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
@@ -89,21 +92,21 @@ else
     cd $TF_LOC
 
     python3 $(echo $START_LOC)/run_risk_prediction.py \
-        --source $SOURCE \
+        --source $SOURCE --model $MODEL --device $DEVICE \
         --save $SAVE --save_path $SAVE_PATH \
-        --queue $QUEUE --focal $FOCAL --carW $CAR_WIDTH \
+        --focal $FOCAL --carW $CAR_WIDTH \
         --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
         --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
+        --accept_speed $ACCEPT_SPEED --detect_lanes $DETECT_LANES \
         --risk_H $RISK_H --risk_step $RISK_STEP \
         --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
         --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
-        --accept_speed $ACCEPT_SPEED --device $DEVICE \
-        --detect_lanes $DETECT_LANES \
-       --threaded_runner $THREADED_RUNNER
+        --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
+        --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME
     cd $START_LOC
     for job in $JOBS
     do

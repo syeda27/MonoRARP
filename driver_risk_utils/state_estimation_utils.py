@@ -10,7 +10,7 @@ Top_right: (im_width, 0)
 Bottom_left: (0, im_height)
 Bottom_right: (im_width, im_height)
 
-rel_horizon ~= 0.5 
+rel_horizon ~= 0.5
    __________________________________   <---- Top of image
   |                                  |
   |                           <sun>  |
@@ -103,7 +103,9 @@ def triangle_similarity_distance(box, F, W):
       box: (int, int, int, int)
         (left, right, top, bottom) coordinates of a box in the image.
       F: int
-        The focal length of the camera
+        The focal length of the camera, in pixels.
+      W: int
+        The width of the object in the real world, in meters.
 
     Returns:
       The distance to the object in the real world, in meters.
@@ -281,8 +283,6 @@ def bottom_bounding_box_distance2(
         print("bot_box2: dy:", dy, "dx:", dx)
     return (dy, dx)
 
-
-
 # 3/4" wide, 2.5" tall, 10 inches away, Focal of ~1000 for built in webcam
 def calibrate(
         box,
@@ -311,6 +311,12 @@ def calibrate2(box, im_h, im_w, height=1.3462):
     alpha = np.rad2deg(np.arctan(min_d/height))
     print("Alpha for min_d: ", str(alpha))
     print("Min observable distance: ", str(min_d))
+
+def centered_enough(box, im_w, factor=10):
+    (left, right, top, bot) = box
+    center_image = im_w / 2
+    center_box = left + (right - left) / 2
+    return abs(center_image - center_box) < (im_w / factor)
 
 def get_distance_far_box_edge(box, im_w):
     """

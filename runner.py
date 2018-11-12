@@ -407,7 +407,7 @@ class Runner:
         # Display
         self.display_obj = display.Display()
         # Lane Detector
-        print(self.launcher.all_args.detect_lanes)
+        print("Using lane detector:", self.launcher.all_args.detect_lanes)
         if self.launcher.all_args.detect_lanes:
             print("Creating lane detector")
             self.lane_detector_object = lane_detector.LaneDetector(
