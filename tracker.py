@@ -126,7 +126,7 @@ class Tracker:
                     net_out['detection_classes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
                     ]
-            self.multi_tracker.initalize_tracker(image, boxes)
+            self.multi_tracker.initialize_tracker(image, boxes)
             im_h, im_w, _ = image.shape
             for i,b in enumerate(boxes):
                 boxes[i] = general_utils.convert(im_h, im_w, b)

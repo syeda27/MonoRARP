@@ -167,7 +167,7 @@ class ThreadedRunner(Runner):
         self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         # Tracker
         self.tracker_obj = tracker.Tracker(
-            self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
+            self.launcher.all_args, "Particle", self.height, self.width, self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
         # Lane Detector

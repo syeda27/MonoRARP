@@ -8,276 +8,240 @@ import pickle
 
 class ParticleTracker:
     def __init__(self, n_p, n_v):
+        # n_p is number of particles.
+        # n_v is the max number of trackers
         self.n_p = n_p
         self.n_v = n_v
-        self.x_particle_out=np.zeros(n_p)
-        self.y_particle_out=np.zeros(n_p)
-        self.x_particle_next=np.zeros(n_p)
-        self.y_particle_next=np.zeros(n_p)
-        self.distance_to_particle=np.zeros(n_p)
-        self.distance_to_particle_identified=np.zeros(n_p)
+        self.particles = np.zeros((n_v, n_p, 2)) # 2 because x, y
+        self.max_holding = 3 # TODO args
+        self.max_tracker_jump = 100 # TODO args
+        self.tracked_boxes = np.zeros((n_v, 4)) # box coordinates. index is id
+        self.distance_to_particle_identified = np.zeros((n_v, n_p))
+        self.previous_distance_to_particle_identified = np.zeros((n_v, n_p))
+        # need to track previous in case we revert (grep for merge_conflict)
 
-        self.w=np.zeros(n_p)     #weights to be used for the resampling part of Importance Sampling
-        self.cdf=np.zeros(n_p)   #vector to be used for the cumulative distribution function
-
-        self.x_particle_resampled=np.zeros(n_p)
-        self.y_particle_resampled=np.zeros(n_p)
-        self.initialize_vehicles=np.zeros(n_v)
-        self.x_particle=np.zeros(n_v)
-        self.y_particle=np.zeros(n_v)
-        self.distance_to_particle_identified_previous=np.zeros(n_v)
-        self.distance_to_particle_identified_previous_vehicles=np.zeros((n_v,n_v)) #what does this do?
-
-        self.delta_x=0
-        self.delta_y=0
-        self.delta_x_vehicles=np.zeros(n_v)
-        self.delta_y_vehicles=np.zeros(n_v)
+        self.initialized_trackers=np.zeros(n_v)
+        self.delta_x_trackers=np.zeros(n_v)
+        self.delta_y_trackers=np.zeros(n_v)
 
         self.count_holding_vehicles=np.zeros(n_v)
-        self.count_tracked_vehicles=8 #We set the number of trackers that will work simultaneously
-        self.cx_tracked=np.zeros(20)
-        self.cy_tracked=np.zeros(20)
-        self.cx_previous_vehicles=np.zeros(n_v)
-        self.cy_previous_vehicles=np.zeros(n_v)
-
-        # where are these even defined in original code???
-        self.count_holding_input = None
-        self.centroid_x_previous = None
-        self.centroid_y_previous = None
+        self.centroid_x_previous=np.zeros(n_v)
+        self.centroid_y_previous=np.zeros(n_v)
 
         # to be defined in create
         self.img = None
-        self.box_info = None
-        self.index = None
-        self.initialize_flag = None
-        self.d = None
+        self.detections = None
 
-    def create(self, box_info, image):
-        self.box_info = box_info
-        self.img = image
+        self.display = False # TODO args
 
-    def display_trackers(self, trackerID, identified):
-        if (trackerID==1 or trackerID==2) and self.initialize_flag==1 and self.count_holding_input==0:
-            cv2.rectangle(self.img, (self.d[identified][1],self.d[identified][0]), (self.d[identified][3],self.d[identified][2]), (0,0,255), 2, 1)
-            cv2.putText(self.img,str(trackerID),(int(cx_identified),int(cy_identified)), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,255,0),2)
-        if (trackerID==3 or trackerID==4) and self.initialize_flag==1 and self.count_holding_input==0:
-            cv2.rectangle(self.img, (self.d[identified][1],self.d[identified][0]), (self.d[identified][3],self.d[identified][2]), (0,255,0), 2, 1)
-            cv2.putText(self.img,str(trackerID),(int(cx_identified),int(cy_identified)), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,255,0),2)
-        if (trackerID==5 or trackerID==6) and self.initialize_flag==1 and self.count_holding_input==0:
-            cv2.rectangle(self.img, (self.d[identified][1],self.d[identified][0]), (self.d[identified][3],self.d[identified][2]), (255,0,0), 2, 1)
-            cv2.putText(self.img,str(trackerID),(int(cx_identified),int(cy_identified)), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,255,0),2)
-        if (trackerID==7 or trackerID==8) and self.initialize_flag==1 and self.count_holding_input==0:
-            cv2.rectangle(self.img, (self.d[identified][1],self.d[identified][0]), (self.d[identified][3],self.d[identified][2]), (150,100,0), 2, 1)
-            cv2.putText(self.img,str(trackerID),(int(cx_identified),int(cy_identified)), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,255,0),2)
+    def _display_trackers(self, trackerID, identified):
+        if self.initialized_trackers[trackerID] == 1 and \
+                self.count_holding_vehicles[trackerID] == 0:
+            colors = [(0,0,255), (0,255,0), (255,0,0),(150,100,0)]
+            cv2.rectangle(
+                self.img,
+                (self.detections[identified][1],self.detections[identified][0]),
+                (self.detections[identified][3],self.detections[identified][2]),
+                math.ceil(colors[trackerID / 2]),
+                2,
+                1)
+            cv2.putText(
+                self.img,
+                str(trackerID),
+                (int(cx_identified),int(cy_identified)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                2,
+                (0,255,0),
+                2)
 
-    def create_cdf(self):
+    def resample_particles(
+            self,
+            trackerID,
+            distance_to_particle_identified,
+            x_particle_next,
+            y_particle_next):
         #reindexing
-        indexes_sorted=[b[0] for b in sorted(enumerate(self.distance_to_particle_identified),key=lambda i:i[1])]
+        indexes_sorted=[b[0] for b in sorted(
+                enumerate(self.distance_to_particle_identified[trackerID]),
+                key=lambda i:i[1])]
         #weights
-        accum=0
-        for i in range(0,self.n_p):
-            self.w[i]=math.exp(-0.5*((self.distance_to_particle_identified[indexes_sorted[i]])**0.5))
-            accum=accum+self.w[i]
+        w = [math.exp(-0.5*(
+                self.distance_to_particle_identified[trackerID, indexes_sorted[i]]**0.5
+            )) for i in range(self.n_p)]
+        accum = np.sum(w)
         #cumulative distribution
-        sum_cdf=0
-        for i in range(0,10):
-            sum_cdf=sum_cdf+self.w[i]/accum
-            self.cdf[i]=sum_cdf
-        return (indexes_sorted)
-
-    def create_uniform(self, indexes_sorted):
+        cdf = np.zeros(self.n_p)
+        sum_cdf = 0
+        for i in range(self.n_p):
+            sum_cdf += w[i] / accum
+            cdf[i]=sum_cdf
         #uniform: use prescribed distribution function based on cumulative distribution function previously built
         #This way the particles are drawn from a distribution induced by the weights
-        draw_uniform=np.random.uniform(0,1)
-        for i in range(0,self.n_p):
-            for j in range(0,self.n_p):
-                if draw_uniform <= self.cdf[j]:
-                    self.x_particle_resampled[i]=self.x_particle_next[indexes_sorted[j]]
-                    self.y_particle_resampled[i]=self.y_particle_next[indexes_sorted[j]]
+        temp_particles = self.particles[trackerID,:,:]
+        for i in range(self.n_p):
+            draw_uniform = np.random.uniform(0,1)
+            for j in range(self.n_p):
+                if draw_uniform <= cdf[j]:
+                    self.particles[trackerID, i, 0] = temp_particles[indexes_sorted[j], 0]
+                    self.particles[trackerID, i, 1] = temp_particles[indexes_sorted[j], 1]
                     break
 
-    def delta_output(self, cx_identified, cy_identified):
-        if self.initialize_flag==0: #This tracker is being shutdown and it will go through a new vehicle assignment process
-            self.delta_x_out=0
-            self.delta_y_out=0
-        else:
-            self.delta_x_out=cx_identified - self.centroid_x_previous
-            self.delta_y_out=cy_identified - self.centroid_y_previous
+    def identify_particles_bboxes(self, trackerID):
+        mean = [
+            self.particles[trackerID,:,0] + self.delta_x_trackers[trackerID],
+            self.particles[trackerID,:,1] + self.delta_y_trackers[trackerID]
+        ]  #mean is 1 x 2*n_p array
+        cov = [[self.n_p, 0], [0, self.n_p]]
+        (self.particles[trackerID,:,0],
+         self.particles[trackerID,:,1]) = np.multivariate_normal(mean, cov)
 
-    def resample_particles(self):
-        # create_cdf
-        indexes_sorted, self.cdf, self.w = create_cdf(self.distance_to_particle_identified, self.w, self.cdf)
-        # create uniform
-        self.create_uniform(indexes_sorted)
-
-
-    def tracker(self, Lc, trackerID):
-        mean = [self.x_particles_input + self.delta_x_input, self.y_particles_input+self.delta_y_input]  #mean is 1 x 2*n_p array
-        cov = [[n_p, 0], [0, self.n_p]]
-        self.x_particle_next, self.y_particle_next = np.multivariate_normal(mean, cov)
-
-        cx_identified = 0
-        cy_identified = 0
-
-        # #Generation of 10 random particles
-        # for k1 in range(0,10):
-        #     mean = [x_particles_input[k1]+delta_x_input, y_particles_input[k1]+delta_y_input]  #delta_x_input and delta_y_input are based on the trajectory vector
-        #     cov = [[10, 0], [0, 10]]
-        #     self.x_particle_next[k1], self.y_particle_next[k1] = np.random.multivariate_normal(mean, cov)
-        #     cv2.circle(self.img,(int(self.x_particle_next[k1]), int(self.y_particle_next[k1])), 8, (0,0,255), -1)
-        #Identifying the bounding box through the particles: which bounding box corresponds to these particles
-        min_average_distance=10000
-        for k in range(0,self.n_v):
-            x1=self.d[k][1]
-            y1=self.d[k][0]
-            x2=self.d[k][3]
-            y2=self.d[k][2]
-
+        cx_identified, cy_identified, identified = 0, 0, 0
+        distance_to_particle_identified = np.zeros(self.n_p)
+        min_average_distance = 10000
+        for box_index in range(len(self.detections)):
+            distance_to_particle = np.zeros(self.n_p)
+            x1 = self.detections[box_index][1]
+            y1 = self.detections[box_index][0]
+            x2 = self.detections[box_index][3]
+            y2 = self.detections[box_index][2]
             #centroid of the bounding box
-            cx = (x1+x2)/2
-            cy = (y1+y2)/2
+            cx = (x1 + x2) / 2
+            cy = (y1 + y2) / 2
 
             #determine the closest bounding box to the cloud of particles
-            acum_distance_particles=0
-            for k1 in range(0,10):
-                self.distance_to_particle[k1]=((cx-self.x_particle_next[k1])**2+(cy-self.y_particle_next[k1])**2)**0.5
-                acum_distance_particles = acum_distance_particles + self.distance_to_particle[k1]
-
-            average_distance_to_particle = acum_distance_particles/10
+            acum_distance_particles = 0
+            for particle_index in range(self.n_p):  # TODO args
+                distance_to_particle[particle_index] = (
+                    (cx - self.particles[trackerID, particle_index])**2 +
+                    (cy - self.y_particles_next[trackerID, particle_index])**2
+                )**0.5
+                acum_distance_particles += distance_to_particle[particle_index]
+            average_distance_to_particle = acum_distance_particles / self.n_p
             if average_distance_to_particle < min_average_distance:
-                min_average_distance= average_distance_to_particle
-                identified=k
-                cx_identified=cx
-                cy_identified=cy
-                for j1 in range(0,self.n_p):
-                    self.distance_to_particle_identified[j1]=self.distance_to_particle[j1]
+                min_average_distance = average_distance_to_particle
+                identified = box_index
+                cx_identified = cx
+                cy_identified = cy
+                for particle_index in range(self.n_p): # To store, if found.
+                    self.distance_to_particle_identified[trackerID, particle_index] = \
+                        distance_to_particle[particle_index]
+        return cx_identified, cy_identified, identified
 
-        if  self.count_holding_input==0:
-            if abs(cx_identified-self.centroid_x_previous)>100: #the bounding box possibly dissapeared
-                self.count_holding_input=self.count_holding_input+1
-                cv2.rectangle(self.img, (int(self.centroid_x_previous-20),int(self.centroid_y_previous-20)), (int(self.centroid_x_previous+20),int(self.centroid_y_previous+20)), (0,255,0), 2, 1)
-                cv2.rectangle(self.img, (int(cx_identified-20),int(cy_identified-20)), (int(cx_identified+20),int(cy_identified+20)), (0,255,0), 2, 1)
-                cx_identified=self.centroid_x_previous
-                cy_identified=self.centroid_y_previous
-                self.distance_to_particle_identified=self.distance_to_particle_identified_previous_input
-                self.delta_x_holding=self.delta_x_input
+    def is_merge_conflict(self, trackerID, cx_identified, cy_identified):
+        for other_tracker_id in range(self.n_v):
+            if other_tracker_id == trackerID: # check other trackers
+                continue
+            if ((cx_identified - self.centroid_x_previous[other_tracker_id])**2 +
+                    (cy_identified - self.centroid_y_previous[other_tracker_id])**2
+                    )**0.5 < self.max_tracker_jump / 2 and \
+                    self.count_holding_vehicles[other_tracker_id] == 0:
+                # If the box is close to some other tracker that is not holding, we hold.
+                return True
+        return False
 
+    def reset_tracker(self, trackerID):
+        self.count_holding_vehicles[trackerID] = 0
+        self.initialized_trackers[trackerID] = 0
+        self.centroid_x_previous[trackerID] = 0
+        self.centroid_y_previous[trackerID] = 0
+        self.delta_x_trackers[trackerID] = 0
+        self.delta_y_trackers[trackerID] = 0
 
-            else:
-                for k4 in range(1,self.count_tracked_vehicles+1):
-                    if k4 != trackerID:
-                        if ((cx_identified-self.cx_tracked[k4])**2+(cy_identified-self.cy_tracked[k4])**2)**0.5<50 and self.count_holdingehicles[k4]==0: #due to bounding box dissapearance another bounding box corresponding to a different vehicle (another trackerID) may have been assigned to the current vehicle
-                            count_holding_input=count_holding_input+1
-                            cv2.rectangle(self.img, (int(self.cx_tracked[k4]-20),int(self.cy_tracked[k4]-20)), (int(self.cx_tracked[k4]+20),int(self.cy_tracked[k4]+20)), (255,0,0), 2, 1)
-                            cv2.rectangle(self.img, (int(cx_identified-20),int(cy_identified-20)), (int(cx_identified+20),int(cy_identified+20)), (255,255,255), 2, 1)
-                            #override current identification of particles (in other words override current bounding box assigment) and use data from previous successful bounding box assigment while we hold waiting for the bounding box to reappear
-                            cx_identified=self.centroid_x_previous
-                            cy_identified=self.centroid_y_previous
-                            self.distance_to_particle_identified=self.distance_to_particle_identified_previous_input
-                            self.delta_x_holding=self.delta_x_input
+    def increment_holding(self, trackerID):
+        """
+        keep data from previous successful bounding box
+        assigment while we hold waiting for the bounding box to reappear
+        """
+        self.count_holding_vehicles[trackerID] += 1
+        #cx_identified = self.centroid_x_previous[trackerID]
+        #cy_identified = self.centroid_y_previous[trackerID]
+        self.distance_to_particle_identified[trackerID] = \
+            self.distance_to_particle_identified_previous_input[trackerID]
+        if self.count_holding_vehicles[trackerID] > self.max_holding:
+            self.reset_tracker(trackerID)
 
-                            break
-        else:   #we are in a process of holding for the bounding box to appear
-            if self.count_holding_input>=4: #if bounding box doesn't appear after 4 frames then shutdown the current tracker assigned to the box
-                self.count_holding_input=0
-                self.initialize_flag=0 #this tracker will go through a brand new assignment process
+    def update_tracker(self, trackerID, cx_identified, cy_identified, box_index):
+        if self.initialized_trackers[trackerID] > 0:
+            self.delta_x_trackers[trackerID] = (
+                cx_identified - self.centroid_x_previous[trackerID]
+            ) / self.count_holding_vehicles[trackerID]
+            self.delta_y_trackers[trackerID] = (
+                cy_identified - self.centroid_y_previous[trackerID]
+            ) / self.count_holding_vehicles[trackerID] # The average movement
+        self.count_holding_vehicles[trackerID] = 0 #the bounding box reappeared
+        self.centroid_x_previous[trackerID] = cx_identified
+        self.centroid_y_previous[trackerID] = cy_identified
+        self.initialized_trackers[trackerID] = 1
+        self.update_tracked_boxes(trackerID, box_index)
 
-            else: #we are waiting for the bounding box to appear
-                if abs(cx_identified-self.centroid_x_previous)>100:
-                    self.count_holding_input=self.count_holding_input+1
-                    cx_identified=self.centroid_x_previous
-                    cy_identified=self.centroid_y_previous
-                    self.distance_to_particle_identified=self.distance_to_particle_identified_previous_input
-                    #we still keep the same delta_x_holding from previous holdings
-                else: #the bounding box corresponding to this tracker may have reappeared
-                    merging_conflict=0
-                    for k4 in range(1,self.count_tracked_vehicles+1):
-                        if k4 != trackerID:
-                            if ((cx_identified-self.cx_tracked[k4])**2+(cy_identified-self.cy_tracked[k4])**2)**0.5<50: #there is conflict with another tracker, bounding box assignment is not possible so we keep holding
-                                self.count_holding_input=self.count_holding_input+1
-                                cx_identified=self.centroid_x_previous
-                                cy_identified=self.centroid_y_previous
-                                self.distance_to_particle_identified=self.distance_to_particle_identified_previous_input
-                                merging_conflict=1
-                                break
-                    if  merging_conflict==0:
-                        self.count_holding_input=0 #the bounding box reappeared
+    def update_tracked_boxes(self, trackerID, box_index):
+        self.tracked_boxes[trackerID] = self.detections[box_index]
+        # TODO move to new centroid and average dimensions?
 
-        #Displaying trackers
-        self.display_trackers()
-        ######### Resampling of Particles ###################
-        self.resample_particles()
-        self.delta_output(cx_identified, cy_identified)
-        return cx_identified,cy_identified
-
-    def uninitialized_vehicle(self, Lc):
-        vehicle_found_for_initialization=0  #succesful initialization of this tracker
-        vehicle_index_for_initialization=0
-        for k2 in range(0,Lc):
-            x1=self.d[k2][1]
-            y1=self.d[k2][0]
-            x2=self.d[k2][3]
-            y2=self.d[k2][2]
-            cx = (x1+x2)/2
-            cy = (y1+y2)/2
-            conflict=0
-            for k3 in range(1,self.count_tracked_vehicles+1):
-                if ((cx-self.cx_tracked[k3])**2+(cy-self.cy_tracked[k3])**2)**0.5<50:
-                    conflict=1
-                    break
-                elif (self.count_holdingehicles[k3]>0 or self.cy_tracked[k3]>1600) and (((cx-cx_tracked[k3])**2+(cy-self.cy_tracked[k3])**2)**0.5<100): #if the vehicle being probed is holding then we need to be more restrictive because the holding is being done with cx_previous and cy_previous which is farther from current bounding box that in principle corresponds to holding vehicle
-                    conflict=1
-                    break
-            if conflict==0:   #The bounding box being picked does not belong/correspond to another tracker
-                self.cx_tracked[veh]=cx
-                self.cy_tracked[veh]=cy
-                vehicle_found_for_initialization=1  #succesful initialization of this tracker
-                vehicle_index_for_initialization=k2
-                break
-        if vehicle_found_for_initialization==1:
-            cv2.circle(self.img,(int(cx), int(cy)), 8, (0,0,255), -1)
-            mean = [cx, cy]
-            cov = [[100, 0], [0, 100]]
-            self.cx_previous_vehicles[veh]=cx
-            self.cy_previous_vehicles[veh]=cy
-            for k1 in range(0,10):  #10 particles assigned to this bounding box (vehicle)
-                self.x_particle_vehicles[veh][k1], self.y_particle_vehicles[veh][k1] = np.random.multivariate_normal(mean, cov)
-                cv2.circle(self.img,(int(self.x_particle_vehicles[veh][k1]), int(self.y_particle_vehicles[veh][k1])), 8, (255,0,0), -1)
-            cv2.rectangle(self.img, (self.d[vehicle_index_for_initialization][1],self.d[vehicle_index_for_initialization][0]), (self.d[vehicle_index_for_initialization][3],self.d[vehicle_index_for_initialization][2]), (255,255,255), 2, 1)
-            print("trackerID: ",veh)
-            initialize_vehicles[veh]=1 #A Tracker has been assigned to this vehicle
-
-    def initialized_vehicle(self, veh):
-        cx_identified_out,cy_identified_out,initialize_vehicles[veh] = self.tracker(Lc,veh)
-        #Information from current frame to be carried to next frame (useful when performing holding)
-        self.cx_previous_vehicles[veh]=cx_identified_out
-        self.cy_previous_vehicles[veh]=cy_identified_out
-        self.distance_to_particle_identified_previous_vehicles[veh]=self.distance_to_particle_identified_out
-        if initialize_vehicles[veh]==0:
-            self.cx_tracked[veh]=0
-            self.cy_tracked[veh]=0
+    def update_initialized_tracker(self, trackerID):
+        #Identifying the bounding box through the particles: which bounding box corresponds to these particles
+        cx_identified, cy_identified, identified = self.identify_particles_bboxes(trackerID)
+        x_translation = abs(cx_identified - self.centroid_x_previous[trackerID])
+        if x_translation > self.max_tracker_jump or \
+                is_merge_conflict(trackerID, cx_identified, cy_identified):
+            #the bounding box possibly dissapeared
+            self.increment_holding(trackerID)
         else:
-            self.cx_tracked[veh]=cx_identified_out
-            self.cy_tracked[veh]=cy_identified_out
+            self.update_tracker(trackerID, cx_identified, cy_identified, identified)
+        self.resample_particles()
 
-    #######  Tracking   #############
-    def tracking_main(self):
-        a=box_info[index-1080]
-        box_centers=a['centers']
-        c=a['areas']
-        Lc=len(c)
-        d=a['coords']
+    def try_to_start_tracking(self, trackerID):
+        """
+        Must be run after updating all current trackers.
+        """
+        for box_index in range(len(self.detections)):
+            x1 = self.detections[box_index][1]
+            y1 = self.detections[box_index][0]
+            x2 = self.detections[box_index][3]
+            y2 = self.detections[box_index][2]
+            cx = (x1 + x2) / 2
+            cy = (y1 + y2) / 2
+            conflict = 0
+            if not self.is_merge_conflict(trackerID, cx, cx):
+                """
+                if the vehicle being probed is holding then we need to be
+                more restrictive because the holding is being done with
+                cx_previous and cy_previous which is farther from current
+                bounding box that in principle corresponds to holding vehicle
+                """
+                #The bounding box being picked does not belong/correspond to another tracker
+                mean = [cx, cy]
+                cov = [[100, 0], [0, 100]]
+                (self.particles[trackerID,:,0],
+                 self.particles[trackerID,:,1]) = np.multivariate_normal(mean, cov)
+                self.update_tracker(trackerID, cx, cy, box_index)
+                if self.verbose:
+                    print("tracker {} created for box {}".format(
+                        trackerID, box_index))
+                return
 
-        for k in range(0,Lc):
-            cv2.rectangle(frame2, (self.d[k][1],self.d[k][0]), (self.d[k][3],self.d[k][2]), (0,0,0), 2, 1)
-        index += 1
-        for veh in range(1,self.count_tracked_vehicles+1):
+    def reset_all_trackers(self):
+        for trackerID in range(self.n_v):
+            self.reset_tracker(trackerID)
+
+    def get_boxes(self):
+        boxes = []
+        for trackerID in range(self.n_v):
+            if self.initialized_trackers[trackerID] == 1:
+                boxes.append(self.tracked_boxes[trackerID])
+        # TODO return object IDs
+        return boxes
+
+    def update_all(self, image, boxes, verbose=False):
+        self.img = image
+        self.detections = boxes
+        self.verbose = verbose
+        for trackerID in range(self.n_v):
             #########  Tracker Initialization  #############
             ##pick on vehicle
-            if initialize_vehicles[veh]==0:
-                self.uninitialized_vehicle(Lc)
-            else:
-                self.initialized_vehicle(veh)
-            cv2.namedWindow('Tracking',cv2.WINDOW_NORMAL)
-            cv2.imshow("Tracking", self.img)
-            cv2.waitKey(1)
+            if self.initialized_trackers[trackerID] == 1:
+                self.update_initialized_tracker(trackerID)
+        for trackerID in range(self.n_v):
+            if self.initialized_trackers[trackerID] == 0:
+                self.try_to_start_tracking(trackerID)
+        return self.get_boxes()
