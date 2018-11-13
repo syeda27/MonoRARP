@@ -14,7 +14,7 @@ class ParticleTracker:
         self.n_v = n_v
         self.particles = np.zeros((n_v, n_p, 2)) # 2 because x, y
         self.max_holding = 3 # TODO args
-        self.max_tracker_jump = 100 # TODO args
+        self.max_tracker_jump = 0.1 # TODO args
         self.tracked_boxes = np.zeros((n_v, 4)) # box coordinates. index is id
         self.distance_to_particle_identified = np.zeros((n_v, n_p))
         self.previous_distance_to_particle_identified = np.zeros((n_v, n_p))
@@ -54,12 +54,7 @@ class ParticleTracker:
                 (0,255,0),
                 2)
 
-    def resample_particles(
-            self,
-            trackerID,
-            distance_to_particle_identified,
-            x_particle_next,
-            y_particle_next):
+    def resample_particles(self, trackerID):
         #reindexing
         indexes_sorted=[b[0] for b in sorted(
                 enumerate(self.distance_to_particle_identified[trackerID]),
@@ -86,14 +81,18 @@ class ParticleTracker:
                     self.particles[trackerID, i, 1] = temp_particles[indexes_sorted[j], 1]
                     break
 
+    def gen_rand_particls(self, trackerID):
+        for i in range(self.n_p):
+            mean = [
+                self.particles[trackerID,i,0] + self.delta_x_trackers[trackerID],
+                self.particles[trackerID,i,1] + self.delta_y_trackers[trackerID]
+            ]
+            cov = [[self.n_p, 0], [0, self.n_p]]
+            (self.particles[trackerID,:,0],
+             self.particles[trackerID,:,1]) = np.random.multivariate_normal(mean, cov)
+
     def identify_particles_bboxes(self, trackerID):
-        mean = [
-            self.particles[trackerID,:,0] + self.delta_x_trackers[trackerID],
-            self.particles[trackerID,:,1] + self.delta_y_trackers[trackerID]
-        ]  #mean is 1 x 2*n_p array
-        cov = [[self.n_p, 0], [0, self.n_p]]
-        (self.particles[trackerID,:,0],
-         self.particles[trackerID,:,1]) = np.multivariate_normal(mean, cov)
+        self.gen_rand_particls(trackerID)
 
         cx_identified, cy_identified, identified = 0, 0, 0
         distance_to_particle_identified = np.zeros(self.n_p)
@@ -112,8 +111,8 @@ class ParticleTracker:
             acum_distance_particles = 0
             for particle_index in range(self.n_p):  # TODO args
                 distance_to_particle[particle_index] = (
-                    (cx - self.particles[trackerID, particle_index])**2 +
-                    (cy - self.y_particles_next[trackerID, particle_index])**2
+                    (cx - self.particles[trackerID, particle_index, 0])**2 +
+                    (cy - self.particles[trackerID, particle_index, 1])**2
                 )**0.5
                 acum_distance_particles += distance_to_particle[particle_index]
             average_distance_to_particle = acum_distance_particles / self.n_p
@@ -127,16 +126,24 @@ class ParticleTracker:
                         distance_to_particle[particle_index]
         return cx_identified, cy_identified, identified
 
-    def is_merge_conflict(self, trackerID, cx_identified, cy_identified):
+    def is_merge_conflict(self, trackerID, cx_identified, cy_identified, ignore_holding=False):
+        if trackerID > 0: return True
+        return False
         for other_tracker_id in range(self.n_v):
-            if other_tracker_id == trackerID: # check other trackers
+            if other_tracker_id == trackerID or \
+            self.initialized_trackers[trackerID] == 0:
+                # check other trackers
                 continue
-            if ((cx_identified - self.centroid_x_previous[other_tracker_id])**2 +
-                    (cy_identified - self.centroid_y_previous[other_tracker_id])**2
-                    )**0.5 < self.max_tracker_jump / 2 and \
-                    self.count_holding_vehicles[other_tracker_id] == 0:
+            distance_to_box = (
+                (cx_identified - self.centroid_x_previous[other_tracker_id])**2 +
+                (cy_identified - self.centroid_y_previous[other_tracker_id])**2
+            )**0.5
+            if distance_to_box < self.max_tracker_jump / 2 and \
+                    (self.count_holding_vehicles[other_tracker_id] == 0 or
+                        ignore_holding):
                 # If the box is close to some other tracker that is not holding, we hold.
                 return True
+            print(self.count_holding_vehicles[other_tracker_id])
         return False
 
     def reset_tracker(self, trackerID):
@@ -156,7 +163,7 @@ class ParticleTracker:
         #cx_identified = self.centroid_x_previous[trackerID]
         #cy_identified = self.centroid_y_previous[trackerID]
         self.distance_to_particle_identified[trackerID] = \
-            self.distance_to_particle_identified_previous_input[trackerID]
+            self.previous_distance_to_particle_identified[trackerID]
         if self.count_holding_vehicles[trackerID] > self.max_holding:
             self.reset_tracker(trackerID)
 
@@ -164,10 +171,10 @@ class ParticleTracker:
         if self.initialized_trackers[trackerID] > 0:
             self.delta_x_trackers[trackerID] = (
                 cx_identified - self.centroid_x_previous[trackerID]
-            ) / self.count_holding_vehicles[trackerID]
+            ) / (self.count_holding_vehicles[trackerID] + 1)
             self.delta_y_trackers[trackerID] = (
                 cy_identified - self.centroid_y_previous[trackerID]
-            ) / self.count_holding_vehicles[trackerID] # The average movement
+            ) / (self.count_holding_vehicles[trackerID] + 1) # The average movement
         self.count_holding_vehicles[trackerID] = 0 #the bounding box reappeared
         self.centroid_x_previous[trackerID] = cx_identified
         self.centroid_y_previous[trackerID] = cy_identified
@@ -183,12 +190,12 @@ class ParticleTracker:
         cx_identified, cy_identified, identified = self.identify_particles_bboxes(trackerID)
         x_translation = abs(cx_identified - self.centroid_x_previous[trackerID])
         if x_translation > self.max_tracker_jump or \
-                is_merge_conflict(trackerID, cx_identified, cy_identified):
+                self.is_merge_conflict(trackerID, cx_identified, cy_identified):
             #the bounding box possibly dissapeared
             self.increment_holding(trackerID)
         else:
             self.update_tracker(trackerID, cx_identified, cy_identified, identified)
-        self.resample_particles()
+        self.resample_particles(trackerID)
 
     def try_to_start_tracking(self, trackerID):
         """
@@ -201,8 +208,11 @@ class ParticleTracker:
             y2 = self.detections[box_index][2]
             cx = (x1 + x2) / 2
             cy = (y1 + y2) / 2
-            conflict = 0
-            if not self.is_merge_conflict(trackerID, cx, cx):
+            if self.verbose:
+                print("Box {} with centroid: {}, {}".format(
+                    box_index, cx, cy
+                ))
+            if self.is_merge_conflict(trackerID, cx, cy) == False:
                 """
                 if the vehicle being probed is holding then we need to be
                 more restrictive because the holding is being done with
@@ -213,7 +223,7 @@ class ParticleTracker:
                 mean = [cx, cy]
                 cov = [[100, 0], [0, 100]]
                 (self.particles[trackerID,:,0],
-                 self.particles[trackerID,:,1]) = np.multivariate_normal(mean, cov)
+                 self.particles[trackerID,:,1]) = np.random.multivariate_normal(mean, cov)
                 self.update_tracker(trackerID, cx, cy, box_index)
                 if self.verbose:
                     print("tracker {} created for box {}".format(

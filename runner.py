@@ -222,7 +222,6 @@ class Runner:
             im_h, im_w, _ = image.shape
             for box_index, box in enumerate(boxes):
                 boxes[box_index] = general_utils.convert(im_h, im_w, box)
-
         if len(labels) < len(boxes):
             labels.extend([""] * (len(boxes) - len(labels)))
 

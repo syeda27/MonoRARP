@@ -51,7 +51,7 @@ class Tracker:
             self._create_multi_tracker()
 
         self.init_tracker = True
-        self.labels = defaultdict(list) # i -> list of labels
+        self.labels = [] # i -> list of labels
         self.category_index = category_index
 
     def _create_multi_tracker(self):
