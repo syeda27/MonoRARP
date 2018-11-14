@@ -16,6 +16,7 @@ class ParticleTracker:
         self.max_holding = 3 # TODO args
         self.max_tracker_jump = 0.1 # TODO args
         self.tracked_boxes = np.zeros((num_trackers, 4)) # box coordinates. index is id
+        self.tracked_labels = ["" for i in range(num_trackers)]
         self.box_indices = set() # the box labels
         self.distance_to_particle_identified = np.zeros((num_trackers, num_particles))
         self.previous_distance_to_particle_identified = np.zeros((num_trackers, num_particles))
@@ -216,6 +217,7 @@ class ParticleTracker:
 
     def update_tracked_boxes(self, trackerID, box_index):
         self.tracked_boxes[trackerID] = self.detections[box_index]
+        self.tracked_labels[trackerID] = self.labels[box_index]
         self.box_indices.add(box_index)
         # TODO move to new centroid and average dimensions?
 
@@ -271,18 +273,20 @@ class ParticleTracker:
         self.box_indices = set()
 
     def get_boxes(self):
-        boxes = []
+        boxes_with_labels = dict()
         for trackerID in range(self.num_trackers):
             if self.initialized_trackers[trackerID] == 1:
-                boxes.append(self.tracked_boxes[trackerID])
-        # TODO return object IDs
-        return boxes
+                boxes_with_labels[trackerID] = (
+                    self.tracked_boxes[trackerID],
+                    self.tracked_labels[trackerID])
+        return boxes_with_labels
 
-    def update_all(self, image, boxes, verbose=False):
+    def update_all(self, image, boxes, labels=None, verbose=False):
         self.img = image
         self.detections = boxes
         self.verbose = True
         self.box_indices = set()
+        self.labels = labels
         for trackerID in range(self.num_trackers):
             if self.initialized_trackers[trackerID] == 1:
                 self.update_initialized_tracker(trackerID)

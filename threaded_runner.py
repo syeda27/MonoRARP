@@ -46,7 +46,7 @@ class ThreadedRunner(Runner):
 
     def visualize_one_image(self, net_out, image, frame_time):
         # Visualization of the results of a detection
-        boxes, labels = self.get_detected_objects(0, net_out, image)
+        boxes_with_labels = self.get_detected_objects(0, net_out, image)
         im_h, im_w, _ = image.shape
 
         if self.lane_detector_object:
@@ -55,7 +55,7 @@ class ThreadedRunner(Runner):
                 self.state.set_ego_speed_mph(
                     self.lane_detector_object.speed_official)
 
-        self.update_state(labels, boxes, im_h, im_w, frame_time)
+        self.update_state(boxes_with_labels, im_h, im_w, frame_time)
 
         risk = self.get_risk()
 
@@ -67,8 +67,7 @@ class ThreadedRunner(Runner):
                 self.state.get_current_states_quantities(),
                 risk,
                 self.state.get_ego_speed_mph(),
-                boxes,
-                labels,
+                boxes_with_labels,
                 fps=self.fps,
                 frame_time=frame_time
             )
@@ -167,7 +166,11 @@ class ThreadedRunner(Runner):
         self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         # Tracker
         self.tracker_obj = tracker.Tracker(
-            self.launcher.all_args, "Particle", self.height, self.width, self.launcher.category_index)
+            self.launcher.all_args,
+            self.launcher.all_args.tracker_type,
+            self.height,
+            self.width,
+            self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
         # Lane Detector

@@ -111,27 +111,29 @@ class Tracker:
             True if we want to print extra logging info.
 
         Returns:
-          boxes: list of (left, right, top, bottom) integer tuples.
-            These will be in absolute pixel values
-          labels: list < string >
-            The list of labels corresponding to the boxes
+          boxes_with_labels: dictionary <int : tuple<box, str> >
+            dictionary of object key : tuple of box coordinates and class label
         """
-        boxes = []
+        boxes_with_labels = dict()
         if net_out is not None:
             boxes = net_out['detection_boxes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
-        if self.init_tracker:
-            self.init_tracker = False
             self.labels = [self.category_index[key]['name'] for key in \
                     net_out['detection_classes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
                     ]
-            self.multi_tracker.initialize_tracker(image, boxes)
+        if self.init_tracker:
+            self.init_tracker = False
+            self.multi_tracker.initialize_tracker(image, boxes, self.labels)
             im_h, im_w, _ = image.shape
             for i,b in enumerate(boxes):
-                boxes[i] = general_utils.convert(im_h, im_w, b)
+                boxes_with_labels[i] = (
+                    general_utils.convert(im_h, im_w, b),
+                    self.labels[i]
+                )
         else:
-            ok, boxes = self.multi_tracker.update_all(image, boxes, verbose)
+            ok, boxes_with_labels = self.multi_tracker.update_all(
+                image, boxes, self.labels, verbose)
             if ok is False: # lost tracking
                 self.init_tracker = True
-        return boxes, self.labels
+        return boxes_with_labels

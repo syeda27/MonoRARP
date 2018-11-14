@@ -17,7 +17,7 @@ class MultiTrackerWrapper:
     def __init__(self):
         raise NotImplementedError("Please implement me!")
 
-    def initialize_tracker(self, image, boxes=None):
+    def initialize_tracker(self, image, boxes=None, labels=None):
         """
         Main API call #1 from tracker.py
 
@@ -25,10 +25,11 @@ class MultiTrackerWrapper:
           image: a np 2D array containing pixel values.
           boxes: list of boxes detected in the image. Can be none.
             Each box is a tuple (left, right, top, bottom)
+          labels: list of the corresponding class labels for each box.
         """
         raise NotImplementedError("Please implement me!")
 
-    def update_all(self, image, boxes=None):
+    def update_all(self, image, boxes=None, labels=None):
         """
         Main API call #2 from tracker.py
 
@@ -36,10 +37,14 @@ class MultiTrackerWrapper:
           image: a np 2D array containing pixel values.
           boxes: list of boxes detected in the image. Can be none.
             Each box is a tuple (left, right, top, bottom)
+          labels: list of the corresponding class labels for each box.
 
         Returns:
           ok: boolean that is false if tracker lost a vehicle.
-          boxes: A list of boxes, potentially adjusted from the input boxes.
+          boxes_with_labels: dictionary <int : box coordinates>
+            object key as the dict key.
+            detected object bounding box as the value.
+            Will be in absolute pixel value coordinates.
         """
         raise NotImplementedError("Please implement me!")
 
@@ -53,7 +58,7 @@ class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
         self.tracker_type = type
         self.multi_tracker = cv2.MultiTracker_create()
 
-    def initialize_tracker(self, image, boxes):
+    def initialize_tracker(self, image, boxes, labels=None):
         im_height, im_width, _ = image.shape
         for box in boxes:
             self.multi_tracker.add(
@@ -62,30 +67,32 @@ class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
                 general_utils.convert(im_height, im_width, box)
             )
 
-    def update_all(self, image, boxes=None, verbose=False):
+    def update_all(self, image, boxes=None, labels=None, verbose=False):
         ok, boxes = self.multi_tracker.update(image)
         if verbose:
             print("shape:", image.shape)
             print("val", image)
             print(ok)
-        return ok, boxes
+        box_with_labels = dict()
+        for i,b in enumerate(boxes):
+            box_with_labels[i] = (b, labels[i])
+        return ok, box_with_labels
 
 
 class ParticleTrackerWrapper(MultiTrackerWrapper):
     def __init__(self):
         self.multi_tracker = particle_tracker.ParticleTrackerDP(10, 10)
 
-    def initialize_tracker(self, image, boxes=None):
+    def initialize_tracker(self, image, boxes=None, labels=None):
         # remove_and_call_again?
         self.multi_tracker.reset_all_trackers()
-        self.multi_tracker.update_all(image, boxes)
+        self.multi_tracker.update_all(image, boxes, labels)
 
-    def update_all(self, image, boxes=None, verbose=False):
-        boxes = self.multi_tracker.update_all(image, boxes, verbose)
+    def update_all(self, image, boxes=None, labels=None, verbose=False):
+        boxes_with_labels = self.multi_tracker.update_all(image, boxes, labels, verbose)
         im_h, im_w, _ = image.shape
-        for i,b in enumerate(boxes):
-            boxes[i] = general_utils.convert(im_h, im_w, b)
-
-        return True, boxes
+        for i, (b, label) in boxes_with_labels.items():
+            boxes_with_labels[i] = (general_utils.convert(im_h, im_w, b), label)
+        return True, boxes_with_labels
         # returns ok, boxes
         #raise NotImplementedError("Please implement me!")

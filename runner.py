@@ -203,15 +203,16 @@ class Runner:
           image: the image to process.
 
         Returns
-          boxes: list of the detected object bounding boxes in this image.
+          boxes_with_labels: dictionary <int : box coordinates>
+            object key as the dict key.
+            detected object bounding box as the value.
             Will be in absolute pixel value coordinates.
-          labels: list of the corresponding class labels for each box.
         """
         # TODO the use of net_out can get somewhat confusing. That means it can
         # be optimized somehow...
 
         if self.tracker_obj.use_tracker:
-            boxes, labels = self.tracker_obj.update_one(i, net_out, image)
+            boxes_with_labels = self.tracker_obj.update_one(i, net_out, image)
         else:
             boxes = net_out['detection_boxes'][i][np.where(\
                     net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
@@ -219,13 +220,15 @@ class Runner:
                     net_out['detection_classes'][i][np.where(\
                         net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
                     ]
+
+            boxes_with_labels = dict()
             im_h, im_w, _ = image.shape
             for box_index, box in enumerate(boxes):
-                boxes[box_index] = general_utils.convert(im_h, im_w, box)
-        if len(labels) < len(boxes):
-            labels.extend([""] * (len(boxes) - len(labels)))
-
-        return boxes, labels
+                boxes_with_labels[box_index] = (
+                    general_utils.convert(im_h, im_w, box),
+                    labels[box_index]
+                )
+        return boxes_with_labels
 
     def get_risk(self,
                  risk_type="online",
@@ -255,30 +258,30 @@ class Runner:
                     self.state, risk_type, n_sims, verbose, self.timer)
         return self.risk_predictor.prev_risk
 
-    def update_state(self, labels, boxes, im_h, im_w, frame_time):
+    def update_state(self, boxes_with_labels, im_h, im_w, frame_time):
         """
         Pulled out from display utils. Goes through and updates the state
         based on the boxes and labels.
         """
-        for i, b in enumerate(boxes):
+        for object_key, (b, label) in boxes_with_labels.items():
             (left, right, top, bot) = b
             aspect_ratio_off = general_utils.check_aspect_ratio(b)
-            if labels[i] != "car" or aspect_ratio_off:
+            if label != "car" or aspect_ratio_off:
                 continue
             self.state.update_state(
                 (left, right, top, bot),
                 im_h, im_w,
                 self.launcher.all_args,
-                object_key=i,
+                object_key=object_key,
                 time=frame_time)
 
     def visualize_one_image(self, net_out, i, frame_time):
         # Visualization of the results of a detection, not thread safe.
         if self.timer:
             self.timer.update_start("DetectObjects")
-        boxes, labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
+        boxes_with_labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
         im_h, im_w, _ = self.input_buffer[i].shape
-        self.update_state(labels, boxes, im_h, im_w, frame_time)
+        self.update_state(boxes_with_labels, im_h, im_w, frame_time)
         if self.timer:
             self.timer.update_end("DetectObjects", len(boxes))
             self.timer.update_start("GetRisk")
@@ -295,8 +298,7 @@ class Runner:
                 self.state.get_current_states_quantities(),
                 risk,
                 self.state.get_ego_speed_mph(),
-                boxes,
-                labels,
+                boxes_with_labels,
                 fps=self.fps,
                 frame_time=frame_time
             )
@@ -402,7 +404,11 @@ class Runner:
 
         # Tracker
         self.tracker_obj = tracker.Tracker(
-            self.launcher.all_args, "KCF", self.height, self.width, self.launcher.category_index)
+            self.launcher.all_args,
+            self.launcher.all_args.tracker_type,
+            self.height,
+            self.width,
+            self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
         # Lane Detector

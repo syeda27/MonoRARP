@@ -37,6 +37,7 @@ SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
+TRACKER_TYPE="KCF"     # KCF is opencv version. Particle for ours.
 TRACK_REFRESH=10
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
@@ -98,7 +99,7 @@ else
         --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
         --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
-        --track $DO_TRACK --tracker_refresh $TRACK_REFRESH \
+        --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
         --accept_speed $ACCEPT_SPEED --detect_lanes $DETECT_LANES \
         --risk_H $RISK_H --risk_step $RISK_STEP \

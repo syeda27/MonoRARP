@@ -77,11 +77,12 @@ class ParticleTrackerDP(particle_trackers_ar.ParticleTracker):
             self.update_tracker_this_det(t, d)
             self.unassigned_initialized_trackers.remove(t)
 
-    def update_all(self, image, boxes, verbose=False):
+    def update_all(self, image, boxes, labels=None, verbose=False):
         self.img = image
         self.detections = boxes
         self.verbose = True
         self.box_indices = set()
+        self.labels = labels
         self.update_all_initialized_trackers()
         for trackerID in range(self.num_trackers):
             if self.initialized_trackers[trackerID] == 0:
