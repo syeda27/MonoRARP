@@ -7,7 +7,7 @@ for extension multiobject trackers.
 import cv2
 from driver_risk_utils import general_utils, tracker_utils
 #import particle_tracker as pt # TODO
-import particle_trackers_ar as particle_tracker
+import particle_tracker_dp as particle_tracker
 
 class MultiTrackerWrapper:
     """
@@ -73,7 +73,7 @@ class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
 
 class ParticleTrackerWrapper(MultiTrackerWrapper):
     def __init__(self):
-        self.multi_tracker = particle_tracker.ParticleTracker(10, 10)
+        self.multi_tracker = particle_tracker.ParticleTrackerDP(10, 10)
 
     def initialize_tracker(self, image, boxes=None):
         # remove_and_call_again?
