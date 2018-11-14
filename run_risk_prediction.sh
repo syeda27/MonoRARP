@@ -30,9 +30,9 @@ SAVE='false'
 SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
-#RUN='11a'
-#FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
-#SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
+RUN='11a'
+FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
+SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 #SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 

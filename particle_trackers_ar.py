@@ -15,7 +15,8 @@ class ParticleTracker:
         self.particles = np.zeros((n_v, n_p, 2)) # 2 because x, y
         self.max_holding = 3 # TODO args
         self.max_tracker_jump = 0.1 # TODO args
-        self.tracked_boxes = np.zeros(n_v) # box index
+        self.tracked_boxes = np.zeros((n_v, 4)) # box coordinates. index is id
+        self.box_indices = set() # the box labels
         self.distance_to_particle_identified = np.zeros((n_v, n_p))
         self.previous_distance_to_particle_identified = np.zeros((n_v, n_p))
         # need to track previous in case we revert (grep for merge_conflict)
@@ -138,9 +139,9 @@ class ParticleTracker:
                 (cx_identified - self.centroid_x_previous[other_tracker_id])**2 +
                 (cy_identified - self.centroid_y_previous[other_tracker_id])**2
             )**0.5
-            #print("d:", distance_to_box, "d:", self.max_tracker_jump / 2 * \
-            #        (self.count_holding_vehicles[other_tracker_id] + 1))
-            #print(init, trackerID, other_tracker_id)
+            print("d:", distance_to_box, "d:", self.max_tracker_jump / 2 * \
+                    (self.count_holding_vehicles[other_tracker_id] + 1))
+            print(init, trackerID, other_tracker_id)
 
             if init:
                 raise ValueError
@@ -192,8 +193,8 @@ class ParticleTracker:
         self.update_tracked_boxes(trackerID, box_index)
 
     def update_tracked_boxes(self, trackerID, box_index):
-        self.tracked_boxes[trackerID] = int(box_index)
-        self.untracked_boxes.remove(box_index)
+        self.tracked_boxes[trackerID] = self.detections[box_index]
+        self.box_indices.add(box_index)
         # TODO move to new centroid and average dimensions?
 
     def update_initialized_tracker(self, trackerID):
@@ -213,7 +214,7 @@ class ParticleTracker:
         Must be run after updating all current trackers.
         """
         for box_index in range(len(self.detections)):
-            if box_index not in self.untracked_boxes: continue
+            if box_index in self.box_indices: continue
             x1 = self.detections[box_index][1]
             y1 = self.detections[box_index][0]
             x2 = self.detections[box_index][3]
@@ -250,20 +251,19 @@ class ParticleTracker:
         boxes = []
         for trackerID in range(self.n_v):
             if self.initialized_trackers[trackerID] == 1:
-                boxes.append(self.detections[int(self.tracked_boxes[trackerID])])
+                boxes.append(self.tracked_boxes[trackerID])
         # TODO return object IDs
         return boxes
 
     def update_all(self, image, boxes, verbose=False):
         self.img = image
         self.detections = boxes
-        self.untracked_boxes = set([i for i in range(len(boxes))])
-        self.verbose = verbose
+        self.verbose = True
+        self.box_indices = set()
         for trackerID in range(self.n_v):
-            #########  Tracker Initialization  #############
-            ##pick on vehicle
             if self.initialized_trackers[trackerID] == 1:
                 self.update_initialized_tracker(trackerID)
-            else:
+        for trackerID in range(self.n_v):
+            if self.initialized_trackers[trackerID] == 0:
                 self.try_to_start_tracking(trackerID)
         return self.get_boxes()
