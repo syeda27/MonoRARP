@@ -80,7 +80,7 @@ class ParticleTrackerWrapper(MultiTrackerWrapper):
         self.multi_tracker.reset_all_trackers()
         self.multi_tracker.update_all(image, boxes)
 
-    def update_all(self, image, boxes=None, verbose=True):
+    def update_all(self, image, boxes=None, verbose=False):
         boxes = self.multi_tracker.update_all(image, boxes, verbose)
         im_h, im_w, _ = image.shape
         for i,b in enumerate(boxes):
