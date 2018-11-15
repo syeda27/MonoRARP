@@ -2,20 +2,35 @@ import cv2
 import math
 import numpy as np
 import pickle
+import copy
 
 # JUAN CARLOS' version
 # edited by Anjali
 
 class ParticleTracker:
-    def __init__(self, num_particles, num_trackers):
+    def __init__(self,
+            num_particles,
+            num_trackers,
+            max_holding=2,
+            max_tracker_jump=0.1,
+            cov=0.0001,
+            min_allowable_likelihood=-0.1):
         # num_particles is number of particles.
         # num_trackers is the max number of trackers
         self.num_particles = num_particles
         self.num_trackers = num_trackers
+        self.max_holding = max_holding
+        self.max_tracker_jump = max_tracker_jump
+        self.cov = cov
+        self.cov_x_arr = np.diag([self.cov]*self.num_particles)
+        self.cov_y_arr = np.diag([self.cov/2]*self.num_particles)
+        # TODO have higher variance for bigger objects?
+        # TODO have some way to learn the covariance over time.
+
+        self.min_allowable_likelihood = min_allowable_likelihood
+        # especially necessary for alternatives
+
         self.particles = np.zeros((num_trackers, num_particles, 2)) # 2 because x, y
-        self.max_holding = 1 # TODO args
-        self.max_tracker_jump = 0.1 # TODO args
-        self.cov = 0.05 # TODO args
         self.tracked_boxes = np.zeros((num_trackers, 4)) # box coordinates. index is id
         self.tracked_labels = ["" for i in range(num_trackers)]
         self.box_indices = set() # the box labels
@@ -108,14 +123,16 @@ class ParticleTracker:
         create num_particles random particles for this tracker using the current particles
         plus delta as the mean and a multivariate normal distr.
         """
-        for i in range(self.num_particles):
-            mean = [
-                self.particles[trackerID,i,0] + self.delta_x_trackers[trackerID],
-                self.particles[trackerID,i,1] + self.delta_y_trackers[trackerID]
-            ]
-            cov = [[self.cov, 0], [0, self.cov]] # TODO different cov?
-            (self.particles[trackerID,i,0],
-             self.particles[trackerID,i,1]) = np.random.multivariate_normal(mean, cov)
+        mean_x = self.particles[trackerID,:,0] + self.delta_x_trackers[trackerID]
+        mean_y = self.particles[trackerID,:,1] + self.delta_y_trackers[trackerID]
+        self.particles[trackerID,:,0] = np.clip(
+            np.random.multivariate_normal(mean_x, self.cov_x_arr),
+            0.0,
+            1.0)
+        self.particles[trackerID,:,1] = np.clip(
+            np.random.multivariate_normal(mean_y, self.cov_y_arr),
+            0.0,
+            1.0)
 
     def identify_particles_bboxes(self, trackerID):
         """
@@ -145,7 +162,6 @@ class ParticleTracker:
         as simple as the inverse distance (lower distance -> higher likelihood).
         This can be extended later to more mathematical representations.
         """
-        distance_to_particle = np.zeros(self.num_particles)
         x1 = self.detections[box_index][1]
         y1 = self.detections[box_index][0]
         x2 = self.detections[box_index][3]
@@ -155,15 +171,15 @@ class ParticleTracker:
         cy = (y1 + y2) / 2
 
         #determine the closest bounding box to the cloud of particles
-        acum_distance_particles = 0
-        for particle_index in range(self.num_particles):  # TODO args
-            distance_to_particle[particle_index] = (
-                (cx - self.particles[trackerID, particle_index, 0])**2 +
-                (cy - self.particles[trackerID, particle_index, 1])**2
-            )**0.5
-            acum_distance_particles += distance_to_particle[particle_index]
-        average_distance_to_object = acum_distance_particles / self.num_particles
-        return -average_distance_to_object, cx, cy, distance_to_particle
+        if self.verbose:
+            print("Tracker ID {} and Box {}".format(trackerID, box_index))
+            print(self.particles[trackerID, :, :])
+            print(cx, cy)
+        distances_to_particles = [np.linalg.norm(
+            [cx, cy] - self.particles[trackerID, p, :]
+        ) for p in range(self.num_particles)]
+        likelihood = -np.mean(distances_to_particles)
+        return likelihood, cx, cy, distances_to_particles
 
 
     def is_merge_conflict(self, trackerID, cx_identified, cy_identified, init=False):
@@ -203,6 +219,9 @@ class ParticleTracker:
         keep data from previous successful bounding box
         assigment while we hold waiting for the bounding box to reappear
         """
+        if self.count_holding_vehicles[trackerID] >= self.max_holding:
+            self._reset_tracker(trackerID)
+            return
         if self.verbose:
             print("Holding # {} for tracker: {}".format(
                 self.count_holding_vehicles[trackerID],
@@ -213,8 +232,6 @@ class ParticleTracker:
         #cy_identified = self.centroid_y_previous[trackerID]
         self.distance_to_particle_identified[trackerID] = \
             self.previous_distance_to_particle_identified[trackerID]
-        if self.count_holding_vehicles[trackerID] > self.max_holding:
-            self._reset_tracker(trackerID)
 
     def update_tracker(self, trackerID, cx_identified, cy_identified, box_index):
         if self.initialized_trackers[trackerID] == 1:
@@ -294,7 +311,7 @@ class ParticleTracker:
         boxes_with_labels = dict()
         for trackerID in range(self.num_trackers):
             if self.initialized_trackers[trackerID] == 1 and \
-                    (with_holding or self.count_holding_vehicles[trackerID] == 0):
+                    (with_holding == True or self.count_holding_vehicles[trackerID] == 0):
                 boxes_with_labels[trackerID] = (
                     self.tracked_boxes[trackerID],
                     self.tracked_labels[trackerID])

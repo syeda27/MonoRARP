@@ -1,5 +1,6 @@
 
 from collections import defaultdict
+from copy import deepcopy
 import numpy as np
 import particle_trackers_ar
 
@@ -25,7 +26,8 @@ class ParticleTrackerDP(particle_trackers_ar.ParticleTracker):
         tracker_matched = -1
         box_index = -1
         best_d_particles = np.zeros(self.num_particles)
-        for trackerID in self.unassigned_initialized_trackers:
+        for trackerID in deepcopy(self.unassigned_initialized_trackers):
+            # copy so that we can remove in the edge case below
             if len(self.ranked_detections_per_tracker[trackerID]) == 0:
                 self.increment_holding(trackerID)
                 self.unassigned_initialized_trackers.remove(trackerID)
@@ -119,14 +121,13 @@ class ParticleTrackerDP(particle_trackers_ar.ParticleTracker):
             trackerID, box_index, np.zeros(self.num_particles))
 
     def update_all(self, image, boxes, labels=None, verbose=False):
-        self.min_allowable_likelihood = -0.5
-        self.cov = 0.01
         self.img = image
         for box in boxes:
             if max(box) > 1 or min(box) < 0:
-                raise ValueError
+                raise ValueError(
+                    "Particle Tracker only accepts normalized bounding box coordinates")
         self.detections = boxes
-        self.verbose = True
+        self.verbose = verbose
         self.box_indices = set()
         self.labels = labels
         if self.verbose:

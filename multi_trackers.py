@@ -82,8 +82,9 @@ class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
 
 class ParticleTrackerWrapper(MultiTrackerWrapper):
     def __init__(self):
-        self.multi_tracker = particle_tracker.ParticleTracker(10, 10)
-        #self.multi_tracker = particle_tracker_dp.ParticleTrackerDP(10, 10)
+        num_particles, num_trackers = 5, 10
+        #self.multi_tracker = particle_tracker.ParticleTracker(num_particles, num_trackers)
+        self.multi_tracker = particle_tracker_dp.ParticleTrackerDP(num_particles, num_trackers)
 
     def initialize_tracker(self, image, boxes=None, labels=None):
         # remove_and_call_again?
