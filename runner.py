@@ -62,6 +62,7 @@ class Runner:
             risk_constructor = embedded_risk_predictor.EmbeddedRiskPredictor
 
         self.risk_predictor = risk_constructor(
+            num_sims=launcher.all_args.n_risk_sims,
             sim_horizon=launcher.all_args.risk_H,
             sim_step=launcher.all_args.risk_step,
             ttc_horizon=launcher.all_args.ttc_H,
@@ -232,7 +233,6 @@ class Runner:
 
     def get_risk(self,
                  risk_type="online",
-                 n_sims=50,
                  verbose=False):
         """
         If we want to calculate the risk this frame, we make a wrapper around
@@ -241,9 +241,6 @@ class Runner:
         Arguments:
           risk_type:
             String, indicate which method to use to calculate the risk.
-          n_sims:
-            Integer, if using the `online` method, determins how many sets of
-              rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
 
@@ -255,7 +252,7 @@ class Runner:
         calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
         if calculate_risk:
             return self.risk_predictor.get_risk(
-                    self.state, risk_type, n_sims, verbose, self.timer)
+                    self.state, risk_type, verbose, self.timer)
         return self.risk_predictor.prev_risk
 
     def update_state(self, boxes_with_labels, im_h, im_w, frame_time):

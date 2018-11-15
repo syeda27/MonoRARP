@@ -75,6 +75,7 @@ def add_thread_args(parser):
 
 
 def add_risk_args(parser):
+    parser.add_argument("--n_risk_sims", type=int, default=defaults.RISK_N_SIMS)
     parser.add_argument("--risk_H", type=float, default=defaults.RISK_HORIZON)
     parser.add_argument("--risk_step", type=float, default=defaults.RISK_STEP)
     parser.add_argument("--ttc_H", type=float, default=defaults.TTC_HORIZON)

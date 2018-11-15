@@ -51,6 +51,7 @@ class RiskPredictor:
     prev_risk = 0.0       # TODO make list and smooth over time
 
     def __init__(self,
+                 num_sims=1,
                  sim_horizon=5.0,
                  sim_step=0.2,
                  ttc_horizon=3.0,
@@ -60,8 +61,10 @@ class RiskPredictor:
                  max_threads=10):
         """
         Arguments
+          num_sims:
+            Integer, the number of simulations to run when getting risk.
           sim_horizon:
-            Float, the simulation horizon (seconds)
+            Float, the simulation horizon (seconds).
           sim_step:
             Float, the number of seconds for each step of the simulation.
           ttc_horizon:
@@ -76,6 +79,7 @@ class RiskPredictor:
             Int, the maximum number of threads to spawn at any given time.
             Setting this number to <= 1 will force the non-threaded method.
         """
+        self.num_sims = num_sims
         self.sim_horizon = sim_horizon
         self.sim_step = sim_step
         self.risk_args = risk_prediction_utils.RiskArgs(
@@ -99,7 +103,6 @@ class RiskPredictor:
     def get_risk(self,
                  state,
                  risk_type="ttc",
-                 n_sims=10,
                  verbose=False,
                  timer=None):
         """
@@ -112,9 +115,6 @@ class RiskPredictor:
             we have collected over time. TODO: this is more info than needed.
           risk_type:
             String, indicate which method to use to calculate the risk.
-          n_sims:
-            Integer, if using the `online` method, determins how many sets of
-              rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
           timer: general_utils.timing object.
@@ -134,6 +134,8 @@ class RiskPredictor:
                     self.risk_args,
                     verbose)
         elif risk_type.lower() == "online":
+            if self.num_sims == 0:
+                return 0
             if timer:
                 timer.update_start("SceneInit")
             this_scene = scene.Scene(
@@ -145,13 +147,13 @@ class RiskPredictor:
                 timer.update_start("RiskSim")
             # TODO use self.max_threads for both making rollouts and calculating risk.
             rollouts = this_scene.simulate(
-                    n_sims,
+                    self.num_sims,
                     self.sim_horizon,
                     self.sim_step,
                     verbose,
                     timer)
             if timer:
-                timer.update_end("RiskSim", n_sims)
+                timer.update_end("RiskSim", self.num_sims)
                 timer.update_start("CalculateRisk")
             risk = risk_prediction_utils.calculate_risk(
                     rollouts,

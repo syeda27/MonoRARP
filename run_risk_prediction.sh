@@ -59,6 +59,7 @@ RELATIVE_HORIZON=0.5        # between 0 and 1
 
 DETECT_LANES='false'
 
+RISK_N_SIMS=0
 RISK_H=5        # seconds
 RISK_STEP=0.25  # seconds
 COL_TOL_X=1.0   # meters
@@ -102,7 +103,7 @@ else
         --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
         --accept_speed $ACCEPT_SPEED --detect_lanes $DETECT_LANES \
-        --risk_H $RISK_H --risk_step $RISK_STEP \
+        --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
         --ttc_H $TTC_H --ttc_step $TTC_STEP \
         --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
         --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \

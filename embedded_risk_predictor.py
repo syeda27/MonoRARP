@@ -58,7 +58,6 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
     def get_risk(self,
                  state,
                  risk_type="ttc",
-                 n_sims=10,
                  verbose=False,
                  timer=None):
         """
@@ -71,9 +70,6 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             we have collected over time. TODO: this is more info than needed.
           risk_type:
             String, indicate which method to use to calculate the risk.
-          n_sims:
-            Integer, if using the `online` method, determins how many sets of
-              rollouts to simulate.
           verbose:
             Boolean, passed to called functions on whether to log.
           timer: general_utils.timing object.
@@ -93,6 +89,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                     self.risk_args,
                     verbose)
         elif risk_type.lower() == "online":
+            if self.num_sims == 0:
+                return 0
             if timer:
                 timer.update_start("SceneInit")
             self.set_scene(state)
@@ -101,14 +99,14 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                 timer.update_start("RiskSim")
                 timer.update_start("CalculateRisk")
             risk = self.simulate(
-                n_sims,
+                self.num_sims,
                 self.sim_horizon,
                 self.sim_step,
                 verbose,
                 timer
             )
             if timer:
-                timer.update_end("RiskSim", n_sims)
+                timer.update_end("RiskSim", self.num_sims)
                 timer.update_end("CalculateRisk")
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
