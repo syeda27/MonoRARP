@@ -56,9 +56,17 @@ def make_rectangle(im, b, color, thickness):
                   color,
                   thickness)
 
-def outline_rectangle(im, b, disp_args):
+def outline_rectangle(im, b, disp_args, object_key=None):
     make_rectangle(im, b, disp_args.black, disp_args.get_thick()*2)
     make_rectangle(im, b, disp_args.color, disp_args.get_thick())
+    if object_key is not None:
+        outline_text(
+            im,
+            "OBJ: {}".format(object_key),
+            int(b[0]),
+            int(b[2]),
+            disp_args,
+            thick_mult=1)
 
 def make_text(obj_key, this_state, frame_time):
     text = ""

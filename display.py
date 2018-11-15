@@ -38,7 +38,7 @@ class Display:
             text = display_utils.make_text(str(object_key), state[object_key], frame_time)
             # object id on box:
             display_utils.outline_object_text(text, self.imgcv, self.d_args, i)
-            display_utils.outline_rectangle(self.imgcv, b, self.d_args)
+            display_utils.outline_rectangle(self.imgcv, b, self.d_args, object_key)
             i += 1
         display_utils.outline_global_text(self.imgcv, risk, speed, self.d_args)
         return self.imgcv

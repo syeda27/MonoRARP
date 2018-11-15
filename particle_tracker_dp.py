@@ -1,3 +1,9 @@
+"""
+A slight variant of particle_trackers_ar, although it still needs some testing
+as it seems like there are a few times when multiple trackers correspond to
+the same object, which is unfortunate. Probably a small bug somewhere.
+"""
+
 
 from collections import defaultdict
 from copy import deepcopy
