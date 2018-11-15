@@ -26,19 +26,19 @@ SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=0
 #SOURCE=1
 
-SAVE='false'
+SAVE='true'
 SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
 RUN='11a'
 FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-#SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
+SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
-TRACK_REFRESH=10
+TRACK_REFRESH=1             # 1 makes no refreshing
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'

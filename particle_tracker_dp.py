@@ -120,7 +120,7 @@ class ParticleTrackerDP(particle_trackers_ar.ParticleTracker):
 
     def update_all(self, image, boxes, labels=None, verbose=False):
         self.min_allowable_likelihood = -0.5
-        self.cov = 0.001
+        self.cov = 0.01
         self.img = image
         for box in boxes:
             if max(box) > 1 or min(box) < 0:

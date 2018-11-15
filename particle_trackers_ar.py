@@ -114,8 +114,8 @@ class ParticleTracker:
                 self.particles[trackerID,i,1] + self.delta_y_trackers[trackerID]
             ]
             cov = [[self.cov, 0], [0, self.cov]] # TODO different cov?
-            (self.particles[trackerID,:,0],
-             self.particles[trackerID,:,1]) = np.random.multivariate_normal(mean, cov)
+            (self.particles[trackerID,i,0],
+             self.particles[trackerID,i,1]) = np.random.multivariate_normal(mean, cov)
 
     def identify_particles_bboxes(self, trackerID):
         """
