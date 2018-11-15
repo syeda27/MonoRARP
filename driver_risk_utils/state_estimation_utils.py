@@ -268,8 +268,9 @@ def bottom_bounding_box_distance2(
     horizon_p = rel_horizon * im_h # horizon in pixels from the top of img.
     d_image = im_h - bot # distance from bottom of image in pixels
     if d_image > horizon_p:
-        if verbose: print("this box is floating. ignoring. check horizon")
-        return None
+        if verbose:
+            print("this box is floating. ignoring. check horizon")
+        return None, None
     d = (horizon_p - d_image)
     if Xs_per_pixel is not None:
         d *= Xs_per_pixel
@@ -281,7 +282,7 @@ def bottom_bounding_box_distance2(
 
     if verbose:
         print("bot_box2: dy:", dy, "dx:", dx)
-    return (dy, dx)
+    return dy, dx
 
 # 3/4" wide, 2.5" tall, 10 inches away, Focal of ~1000 for built in webcam
 def calibrate(

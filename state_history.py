@@ -231,13 +231,14 @@ class StateHistory:
 
         new_vehicle_state = vehicle_state.VehicleState()
         new_vehicle_state.quantities["distance_x"] = \
-            s_utils.left_of_center(box, im_w) * \
-            np.mean(
-                [state_dict[i] for i in state_dict.keys() \
-                    if "distance_x" in i])
+            s_utils.left_of_center(box, im_w) * np.mean(
+                [v for k,v in state_dict.items()
+                    if "distance_x" in k and v is not None]
+            )
         new_vehicle_state.quantities["distance_y"] = np.mean(
-            [state_dict[i] for i in state_dict.keys() \
-                if "distance_y" in i])
+            [v for k,v in state_dict.items()
+                if "distance_y" in k and v is not None]
+            )
         if verbose:
             print("Average Dx, Dy: {}, {}".format(
                 new_vehicle_state.quantities["distance_x"],
