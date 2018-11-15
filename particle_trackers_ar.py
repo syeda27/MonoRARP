@@ -13,8 +13,9 @@ class ParticleTracker:
         self.num_particles = num_particles
         self.num_trackers = num_trackers
         self.particles = np.zeros((num_trackers, num_particles, 2)) # 2 because x, y
-        self.max_holding = 3 # TODO args
+        self.max_holding = 1 # TODO args
         self.max_tracker_jump = 0.1 # TODO args
+        self.cov = 0.05 # TODO args
         self.tracked_boxes = np.zeros((num_trackers, 4)) # box coordinates. index is id
         self.tracked_labels = ["" for i in range(num_trackers)]
         self.box_indices = set() # the box labels
@@ -95,6 +96,12 @@ class ParticleTracker:
                     self.particles[trackerID, i, 0] = temp_particles[indexes_sorted[j], 0]
                     self.particles[trackerID, i, 1] = temp_particles[indexes_sorted[j], 1]
                     break
+        if self.verbose:
+            print("Tracker {}\nOld Particles{}\nNew Particles{}".format(
+                trackerID,
+                temp_particles,
+                self.particles[trackerID, :, :]
+            ))
 
     def gen_rand_particles(self, trackerID):
         """
@@ -106,7 +113,7 @@ class ParticleTracker:
                 self.particles[trackerID,i,0] + self.delta_x_trackers[trackerID],
                 self.particles[trackerID,i,1] + self.delta_y_trackers[trackerID]
             ]
-            cov = [[self.num_particles, 0], [0, self.num_particles]] # TODO different cov?
+            cov = [[self.cov, 0], [0, self.cov]] # TODO different cov?
             (self.particles[trackerID,:,0],
              self.particles[trackerID,:,1]) = np.random.multivariate_normal(mean, cov)
 
@@ -120,7 +127,8 @@ class ParticleTracker:
         distance_to_particle_identified = np.zeros(self.num_particles)
         max_likelihood = -10000
         for box_index in range(len(self.detections)):
-            likelihood, cx, cy = likelihood_of_detection(trackerID, box_index)
+            likelihood, cx, cy, d_particles = self.likelihood_of_detection(
+                trackerID, box_index)
             if likelihood > max_likelihood:
                 cx_identified = cx
                 cy_identified = cy
@@ -128,7 +136,7 @@ class ParticleTracker:
                 max_likelihood = likelihood
                 for particle_index in range(self.num_particles): # To store, if found.
                     self.distance_to_particle_identified[trackerID, particle_index] = \
-                        distance_to_particle[particle_index]
+                        d_particles[particle_index]
         return cx_identified, cy_identified, identified
 
     def likelihood_of_detection(self, trackerID, box_index):
@@ -154,8 +162,8 @@ class ParticleTracker:
                 (cy - self.particles[trackerID, particle_index, 1])**2
             )**0.5
             acum_distance_particles += distance_to_particle[particle_index]
-        average_distance_to_particle = acum_distance_particles / self.num_particles
-        return average_distance_to_particle, cx, cy
+        average_distance_to_object = acum_distance_particles / self.num_particles
+        return -average_distance_to_object, cx, cy, distance_to_particle
 
 
     def is_merge_conflict(self, trackerID, cx_identified, cy_identified, init=False):
@@ -170,9 +178,10 @@ class ParticleTracker:
                 (cx_identified - self.centroid_x_previous[other_tracker_id])**2 +
                 (cy_identified - self.centroid_y_previous[other_tracker_id])**2
             )**0.5
-            print("d:", distance_to_box, "d:", self.max_tracker_jump / 2 * \
-                    (self.count_holding_vehicles[other_tracker_id] + 1))
-            print(init, trackerID, other_tracker_id)
+            if self.verbose:
+                print("d:", distance_to_box, "d:", self.max_tracker_jump / 2 * \
+                        (self.count_holding_vehicles[other_tracker_id] + 1))
+                print(init, trackerID, other_tracker_id)
 
             if init:
                 raise ValueError
@@ -184,7 +193,8 @@ class ParticleTracker:
             elif distance_to_box < self.max_tracker_jump / 2 and \
                     self.count_holding_vehicles[other_tracker_id] == 0:
                 # If the box is close to some other tracker that is not holding, we hold.
-                print("conflict no init")
+                if self.verbose:
+                    print("conflict no init")
                 return True
         return False
 
@@ -193,6 +203,11 @@ class ParticleTracker:
         keep data from previous successful bounding box
         assigment while we hold waiting for the bounding box to reappear
         """
+        if self.verbose:
+            print("Holding # {} for tracker: {}".format(
+                self.count_holding_vehicles[trackerID],
+                trackerID)
+            )
         self.count_holding_vehicles[trackerID] += 1
         #cx_identified = self.centroid_x_previous[trackerID]
         #cy_identified = self.centroid_y_previous[trackerID]
@@ -202,18 +217,23 @@ class ParticleTracker:
             self._reset_tracker(trackerID)
 
     def update_tracker(self, trackerID, cx_identified, cy_identified, box_index):
-        if self.initialized_trackers[trackerID] > 0:
+        if self.initialized_trackers[trackerID] == 1:
             self.delta_x_trackers[trackerID] = (
                 cx_identified - self.centroid_x_previous[trackerID]
             ) / (self.count_holding_vehicles[trackerID] + 1)
             self.delta_y_trackers[trackerID] = (
                 cy_identified - self.centroid_y_previous[trackerID]
             ) / (self.count_holding_vehicles[trackerID] + 1) # The average movement
+        if self.verbose:
+            print("Delta for tracker ", trackerID)
+            print(self.delta_x_trackers[trackerID])
+            print(self.delta_y_trackers[trackerID])
         self.count_holding_vehicles[trackerID] = 0 #the bounding box reappeared
         self.centroid_x_previous[trackerID] = cx_identified
         self.centroid_y_previous[trackerID] = cy_identified
         self.initialized_trackers[trackerID] = 1
         self.update_tracked_boxes(trackerID, box_index)
+        #self._resample_particles(trackerID)
 
     def update_tracked_boxes(self, trackerID, box_index):
         self.tracked_boxes[trackerID] = self.detections[box_index]
@@ -231,7 +251,6 @@ class ParticleTracker:
             self.increment_holding(trackerID)
         else:
             self.update_tracker(trackerID, cx_identified, cy_identified, identified)
-        self._resample_particles(trackerID)
 
     def try_to_start_tracking(self, trackerID):
         """
@@ -258,7 +277,7 @@ class ParticleTracker:
                 """
                 #The bounding box being picked does not belong/correspond to another tracker
                 mean = [cx, cy]
-                cov = [[100, 0], [0, 100]]
+                cov = [[self.cov, 0], [0, self.cov]]
                 (self.particles[trackerID,:,0],
                  self.particles[trackerID,:,1]) = np.random.multivariate_normal(mean, cov)
                 self.update_tracker(trackerID, cx, cy, box_index)
@@ -270,21 +289,23 @@ class ParticleTracker:
     def reset_all_trackers(self):
         for trackerID in range(self.num_trackers):
             self._reset_tracker(trackerID)
-        self.box_indices = set()
 
-    def get_boxes(self):
+    def get_boxes(self, with_holding=False):
         boxes_with_labels = dict()
         for trackerID in range(self.num_trackers):
-            if self.initialized_trackers[trackerID] == 1:
+            if self.initialized_trackers[trackerID] == 1 and \
+                    (with_holding or self.count_holding_vehicles[trackerID] == 0):
                 boxes_with_labels[trackerID] = (
                     self.tracked_boxes[trackerID],
                     self.tracked_labels[trackerID])
+        if self.verbose:
+            print("Returning {} boxes".format(len(boxes_with_labels.keys())))
         return boxes_with_labels
 
     def update_all(self, image, boxes, labels=None, verbose=False):
         self.img = image
         self.detections = boxes
-        self.verbose = True
+        self.verbose = verbose
         self.box_indices = set()
         self.labels = labels
         for trackerID in range(self.num_trackers):

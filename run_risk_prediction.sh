@@ -37,7 +37,7 @@ SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
-TRACKER_TYPE="KCF"     # KCF is opencv version. Particle for ours.
+TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
 TRACK_REFRESH=10
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
