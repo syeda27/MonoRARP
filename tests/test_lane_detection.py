@@ -48,7 +48,7 @@ subframe_dims=(int(7*height/10), int(17*height/20), 0, width)
 # (1350, 1890, 0, 3840) does not work...
 # subframe_dims=(1500, 1800, 0, 3840)
 
-horizontal_tolerance = int(width / 50) # o.g. 50
+horizontal_tolerance = int(width / 75) # o.g. 50
 brightness_ratio_threshold = 1.5
 left_margin_detection = int(width / 4)  # o.g. 1500
 right_margin_detection = width - int(width / 4) # o.g. 2700

@@ -184,7 +184,15 @@ class ThreadedRunner(Runner):
                                int(self.height / 8),
                                int(self.height / 50)),
                 scan_window_sz=(int(self.width / 18), int(self.height / 20)),
-                subframe_dims=(int(7*self.height/10), int(17*self.height/20), 0, self.width)
+                subframe_dims=(
+                    int(7*self.height/10), int(17*self.height/20),
+                    0, self.width
+                ),
+                horizontal_tolerance=int(self.width / 75),
+                brightness_ratio_threshold = 1.5,
+                left_margin_detection = int(self.width / 4),
+                right_margin_detection = self.width - int(self.width / 4),
+                average_window = 6
             )
         else:
             self.lane_detector_object = None

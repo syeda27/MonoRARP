@@ -43,7 +43,8 @@ class LaneDetector:
                  horizontal_tolerance=50,
                  left_margin_detection=1500,
                  right_margin_detection=2700,
-                 average_window=6):
+                 average_window=6,
+                 print_params=True):
         self.subframe_dims = subframe_dims
         lane_args_utils.initialize_lane_detector_members(self)
         #inital and end points for the scanning in the x-direction within the image subframe, and step of the scanning
@@ -59,7 +60,15 @@ class LaneDetector:
         self.left_margin_detection = left_margin_detection
         self.right_margin_detection = right_margin_detection
         self.average_window = average_window
-
+        if print_params:
+            print("Subframe: ", subframe_dims)
+            print("Scan_x: ", scan_x_params)
+            print("Scan_y: ", scan_x_params)
+            print("Scan window: ", scan_window_sz)
+            print("brightness_ratio_threshold: ", brightness_ratio_threshold)
+            print("horizontal_tolerance: ", horizontal_tolerance)
+            print("left, right margins: ", left_margin_detection, right_margin_detection)
+            print("average_window: ", average_window)
     def _reset_each_image_vars(self):
         self.count_lanes = 0
         self.mux_lane_vec = np.zeros(40)
