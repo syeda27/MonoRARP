@@ -9,7 +9,7 @@ See README for more details.
 """
 import cv2
 
-def long_term_average_of_lanes_w(lane_detector_object, average_window=6):
+def long_term_average_of_lanes_w(lane_detector_object):
     (lane_detector_object.count_lanes_average_vec,
      lane_detector_object.count_lanes_average_vec2,
      lane_detector_object.mux_lane_vec_average,
@@ -42,7 +42,7 @@ def long_term_average_of_lanes_w(lane_detector_object, average_window=6):
         lane_detector_object.H,
         lane_detector_object.count_lane_group1,
         lane_detector_object.count_lane_group2,
-        average_window)
+        lane_detector_object.average_window)
 
 
 def long_term_average_of_lanes(count_lanes_average_vec,

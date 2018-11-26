@@ -9,7 +9,7 @@ See README for more details.
 """
 import math
 
-def filtering_w(lane_detector_object, horizontal_tolerance=50):
+def filtering_w(lane_detector_object):
     """
     A wrapper to make this function ~relatively~ modular and work with a class.
     """
@@ -45,7 +45,7 @@ def filtering_w(lane_detector_object, horizontal_tolerance=50):
         lane_detector_object.muy_lane_vec_final2_previous,
         lane_detector_object.base_ptx_lane_vec_final2_previous,
         lane_detector_object.base_pty_lane_vec_final2_previous,
-        horizontal_tolerance)
+        lane_detector_object.horizontal_tolerance)
 
 def filtering(count_lane_group1,
               count_lane_group2,

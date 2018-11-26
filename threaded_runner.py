@@ -177,15 +177,14 @@ class ThreadedRunner(Runner):
         if self.launcher.all_args.detect_lanes:
             print("Creating lane detector")
             self.lane_detector_object = lane_detector.LaneDetector(
-                scan_x_params=(self.width - int(self.width / 4),
-                               int(self.width / 4),
+                scan_x_params=(int(self.width / 4),
+                               self.width - int(self.width / 4),
                                int(self.width / 30)),
                 scan_y_params=(int(self.height / 21),
                                int(self.height / 8),
                                int(self.height / 50)),
                 scan_window_sz=(int(self.width / 18), int(self.height / 20)),
                 subframe_dims=(int(7*self.height/10), int(17*self.height/20), 0, self.width)
-
             )
         else:
             self.lane_detector_object = None

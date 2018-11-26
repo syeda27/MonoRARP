@@ -10,8 +10,7 @@ See README for more details.
 
 """
 
-def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_right,
-    brightness_ratio_threshold=1.5):
+def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_right):
     """
     A wrapper to make this function ~relatively~ modular and work with a class.
     """
@@ -44,7 +43,9 @@ def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_ri
         lane_detector_object.count_lanes,
         lane_detector_object.H,
         lane_detector_object.img_subframe,
-        brightness_ratio_threshold)
+        lane_detector_object.brightness_ratio_threshold,
+        lane_detector_object.left_margin_detection,
+        lane_detector_object.right_margin_detection)
 
 def lane_signature_detection(road1_average,
                              road2_average,

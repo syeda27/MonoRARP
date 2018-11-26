@@ -48,12 +48,23 @@ subframe_dims=(int(7*height/10), int(17*height/20), 0, width)
 # (1350, 1890, 0, 3840) does not work...
 # subframe_dims=(1500, 1800, 0, 3840)
 
+horizontal_tolerance = int(width / 50) # o.g. 50
+brightness_ratio_threshold = 1.5
+left_margin_detection = int(width / 4)  # o.g. 1500
+right_margin_detection = width - int(width / 4) # o.g. 2700
+average_window = 6
+
 print(scan_x_params)
 print(scan_y_params)
 print(scan_window_sz)
 print(subframe_dims)
 LANE_DETECTOR = lane_detector.LaneDetector(
-    scan_x_params, scan_y_params, scan_window_sz, subframe_dims, False
+    scan_x_params, scan_y_params, scan_window_sz, subframe_dims, False,
+    brightness_ratio_threshold,
+    horizontal_tolerance,
+    left_margin_detection,
+    right_margin_detection,
+    average_window
 )
 
 for image_file in sorted(os.listdir(DIR_WITH_FRAMES)):

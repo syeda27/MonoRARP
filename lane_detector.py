@@ -38,7 +38,12 @@ class LaneDetector:
                  scan_y_params=(100, 250, 20),
                  scan_window_sz=(120, 160),
                  subframe_dims=(1500, 1800, 0, 3840),
-                 display_lane_lines=False):
+                 display_lane_lines=False,
+                 brightness_ratio_threshold=1.5,
+                 horizontal_tolerance=50,
+                 left_margin_detection=1500,
+                 right_margin_detection=2700,
+                 average_window=6):
         self.subframe_dims = subframe_dims
         lane_args_utils.initialize_lane_detector_members(self)
         #inital and end points for the scanning in the x-direction within the image subframe, and step of the scanning
@@ -49,6 +54,11 @@ class LaneDetector:
         self.scanning_window_width, self.scanning_window_length = scan_window_sz
         self.image_number = 0
         self.display_lane_lines = display_lane_lines # If false, handle_image returns the lines
+        self.brightness_ratio_threshold = brightness_ratio_threshold
+        self.horizontal_tolerance = horizontal_tolerance
+        self.left_margin_detection = left_margin_detection
+        self.right_margin_detection = right_margin_detection
+        self.average_window = average_window
 
     def _reset_each_image_vars(self):
         self.count_lanes = 0

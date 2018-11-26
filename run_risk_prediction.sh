@@ -31,8 +31,9 @@ SAVE='false'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
 RUN='11a'
-FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
-SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
+#FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
+#SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
+SOURCE='/scratch/derek/video_captures/video4a.mp4'
 #SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
 
 SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex_marked.mp4'
@@ -59,7 +60,7 @@ MIN_CAMERA_ANGLE=54.5       # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
 RELATIVE_HORIZON=0.5        # between 0 and 1
 
-DETECT_LANES='false'
+DETECT_LANES='true'
 
 RISK_N_SIMS=25
 RISK_H=5        # seconds
