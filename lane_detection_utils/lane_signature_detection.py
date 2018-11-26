@@ -10,7 +10,8 @@ See README for more details.
 
 """
 
-def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_right):
+def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_right,
+    brightness_ratio_threshold=1.5):
     """
     A wrapper to make this function ~relatively~ modular and work with a class.
     """
@@ -42,8 +43,8 @@ def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_ri
         lane_detector_object.base_pty_lane_vec,
         lane_detector_object.count_lanes,
         lane_detector_object.H,
-        lane_detector_object.img_subframe)
-    # c6) If Signature Detection fa
+        lane_detector_object.img_subframe,
+        brightness_ratio_threshold)
 
 def lane_signature_detection(road1_average,
                              road2_average,
@@ -67,7 +68,10 @@ def lane_signature_detection(road1_average,
                              base_pty_lane_vec,
                              count_lanes,
                              H,
-                             img6):
+                             img6,
+                             brightness_ratio_threshold=1.5,
+                             left_margin_detection=1500,
+                             right_margin_detection=2700):
 
     signature_detected = 0
 
@@ -77,9 +81,11 @@ def lane_signature_detection(road1_average,
         if abs(road3_average - road4_average) / road4_average < 0.15 \
                 and delta_road3_average < 16 \
                 and delta_road4_average < 16:
-            if whitemarkings_average / road1_average > 1.5:
+            if whitemarkings_average / road1_average > brightness_ratio_threshold:
                 if delta_whitemarkings_average < 50:
-                    if rx1[top_left] > 1500 and rx1[top_right] < 2700:  #focusing the detection around the center of the ego-vehicle
+                    if rx1[top_left] > left_margin_detection \
+                            and rx1[top_right] < right_margin_detection:
+                        #focusing the detection around the center of the ego-vehicle
                         print("Lane Detected")
                         signature_detected = 1
                         L_lane = (
