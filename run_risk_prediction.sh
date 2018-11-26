@@ -26,14 +26,16 @@ SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=0
 #SOURCE=1
 
-SAVE='true'
-SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
+SAVE='false'
+#SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
 RUN='11a'
 FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-SAVE_PATH='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'_marked.mp4'
+#SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
+
+SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex_marked.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
@@ -46,9 +48,9 @@ ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
 THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
-THREAD_QUEUE_SIZE=10        # The size of the queue for threaded_runner
-THREAD_WAIT_TIME=0.01        # The minimum amount of time to block on a queue, sec.
-THREAD_MAX_WAIT=0.15         # maximum amount of time to block on a queue, sec.
+THREAD_QUEUE_SIZE=3         # The size of the queue for threaded_runner
+THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
+THREAD_MAX_WAIT=0.5         # maximum amount of time to block on a queue, sec.
 
 FOCAL=350
 CAR_WIDTH=1.8               # meters
@@ -59,14 +61,14 @@ RELATIVE_HORIZON=0.5        # between 0 and 1
 
 DETECT_LANES='false'
 
-RISK_N_SIMS=0
+RISK_N_SIMS=25
 RISK_H=5        # seconds
 RISK_STEP=0.25  # seconds
 COL_TOL_X=1.0   # meters
 COL_TOL_Y=2.0   # meters
 TTC_H=1.0       # seconds
 TTC_STEP=0.25   # seconds
-RISK_THREADS=10  # max number of threads (>1 -> threaded risk calcs)
+RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
 if ($YOLO); then
