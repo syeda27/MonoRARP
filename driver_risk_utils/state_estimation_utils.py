@@ -272,6 +272,7 @@ def bottom_bounding_box_distance2(
             print("this box is floating. ignoring. check horizon")
         return None, None
     d = (horizon_p - d_image)
+    if d == 0: d += 1e-10
     if Xs_per_pixel is not None:
         d *= Xs_per_pixel
     # d is distance from the horizon to the bottom of the bounding box.
