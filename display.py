@@ -25,7 +25,8 @@ class Display:
                      speed,
                      boxes_with_labels,
                      fps=6.0,
-                     frame_time=None):
+                     frame_time=None,
+                     show_global_stats=True):
         i = 0
         for object_key, (b, label) in sorted(boxes_with_labels.items()):
             aspect_ratio_off = general_utils.check_aspect_ratio(b)
@@ -40,5 +41,6 @@ class Display:
             display_utils.outline_object_text(text, self.imgcv, self.d_args, i)
             display_utils.outline_rectangle(self.imgcv, b, self.d_args, object_key)
             i += 1
-        display_utils.outline_global_text(self.imgcv, risk, speed, self.d_args)
+        if show_global_stats:
+            display_utils.outline_global_text(self.imgcv, risk, speed, self.d_args)
         return self.imgcv
