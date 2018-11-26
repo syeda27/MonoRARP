@@ -73,7 +73,7 @@ def brightness_sampling(rx1, rx2, ry1, ry2, top_left, top_right, img2):
         #from analytic geometry we obtain the right - border which is the pixel that belongs to the top - right segment at the y_scanning coordinate
         #This is the intersection between the horizontal line and the top - right line
         L_right = (y_scanning - ry1[top_right]) / muy_top_right
-        x_border_right = rx1[top_right] +  L_left*mux_top_right
+        x_border_right = rx1[top_right] +  L_right*mux_top_right
 
 
         #we sample 5 pixels and collect 4 pavement pixels on road1, road2, road3 and road4 and the supposed white pixel on whitemark.
