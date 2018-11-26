@@ -1,6 +1,6 @@
 """
 Long Term Average
-We perform averaging of the unit vectors and of the coordinates of the base ponts for the previous 6 lanes detections performed
+We perform averaging of the unit vectors and of the coordinates of the base ponts for the previous average_window lanes detections performed
 
 Author: Juan Carlos Aragon  -  Allstate
 Minor Editing: djp42  -  Stanford
@@ -9,7 +9,7 @@ See README for more details.
 """
 import cv2
 
-def long_term_average_of_lanes_w(lane_detector_object):
+def long_term_average_of_lanes_w(lane_detector_object, average_window=6):
     (lane_detector_object.count_lanes_average_vec,
      lane_detector_object.count_lanes_average_vec2,
      lane_detector_object.mux_lane_vec_average,
@@ -39,7 +39,10 @@ def long_term_average_of_lanes_w(lane_detector_object):
         lane_detector_object.base_ptx_lane_vec_final2,
         lane_detector_object.base_pty_lane_vec_final2,
         lane_detector_object.img_subframe,
-        lane_detector_object.H)
+        lane_detector_object.H,
+        lane_detector_object.count_lane_group1,
+        lane_detector_object.count_lane_group2,
+        average_window)
 
 
 def long_term_average_of_lanes(count_lanes_average_vec,
@@ -61,26 +64,31 @@ def long_term_average_of_lanes(count_lanes_average_vec,
                                base_ptx_lane_vec_final2,
                                base_pty_lane_vec_final2,
                                img6,
-                               H):
-    mux_lane_vec_average[count_lanes_average_vec] = mux_lane_vec_final1
-    muy_lane_vec_average[count_lanes_average_vec] = muy_lane_vec_final1
-    base_ptx_lane_vec_average[count_lanes_average_vec] = base_ptx_lane_vec_final1
-    base_pty_lane_vec_average[count_lanes_average_vec] = base_pty_lane_vec_final1
-    count_lanes_average_vec += 1
-    mux_lane_vec_average2[count_lanes_average_vec2] = mux_lane_vec_final2
-    muy_lane_vec_average2[count_lanes_average_vec2] = muy_lane_vec_final2
-    base_ptx_lane_vec_average2[count_lanes_average_vec2] = \
-        base_ptx_lane_vec_final2
-    base_pty_lane_vec_average2[count_lanes_average_vec2] = \
-        base_pty_lane_vec_final2
-    count_lanes_average_vec2 += 1
+                               H,
+                               count_lane_group1,
+                               count_lane_group2,
+                               average_window=6):
+    if count_lane_group1 > 0:
+        mux_lane_vec_average[count_lanes_average_vec] = mux_lane_vec_final1
+        muy_lane_vec_average[count_lanes_average_vec] = muy_lane_vec_final1
+        base_ptx_lane_vec_average[count_lanes_average_vec] = base_ptx_lane_vec_final1
+        base_pty_lane_vec_average[count_lanes_average_vec] = base_pty_lane_vec_final1
+        count_lanes_average_vec += 1
+    if count_lane_group2 > 0:
+        mux_lane_vec_average2[count_lanes_average_vec2] = mux_lane_vec_final2
+        muy_lane_vec_average2[count_lanes_average_vec2] = muy_lane_vec_final2
+        base_ptx_lane_vec_average2[count_lanes_average_vec2] = \
+            base_ptx_lane_vec_final2
+        base_pty_lane_vec_average2[count_lanes_average_vec2] = \
+            base_pty_lane_vec_final2
+        count_lanes_average_vec2 += 1
 
-    if count_lanes_average_vec >= 6:
+    if count_lanes_average_vec >= average_window:
         mux_lane_acc = 0
         muy_lane_acc = 0
         base_ptx_acc = 0
         base_pty_acc = 0
-        for k8 in range(0, 6):
+        for k8 in range(0, average_window):
             mux_lane_acc = mux_lane_acc +  mux_lane_vec_average[
                 count_lanes_average_vec - 1 - k8
             ]
@@ -93,10 +101,10 @@ def long_term_average_of_lanes(count_lanes_average_vec,
             base_pty_acc = base_pty_acc + base_pty_lane_vec_average[
                 count_lanes_average_vec - 1 - k8
             ]
-        mux_lane_ave = mux_lane_acc / 6
-        muy_lane_ave = muy_lane_acc / 6
-        base_ptx_ave = base_ptx_acc / 6
-        base_pty_ave = base_pty_acc / 6
+        mux_lane_ave = mux_lane_acc / average_window
+        muy_lane_ave = muy_lane_acc / average_window
+        base_ptx_ave = base_ptx_acc / average_window
+        base_pty_ave = base_pty_acc / average_window
 
 
         #intersecting with top of image
@@ -119,12 +127,12 @@ def long_term_average_of_lanes(count_lanes_average_vec,
                  1,
                  cv2.LINE_AA)
 
-    if count_lanes_average_vec2 >= 6:
+    if count_lanes_average_vec2 >= average_window:
         mux_lane_acc = 0
         muy_lane_acc = 0
         base_ptx_acc = 0
         base_pty_acc = 0
-        for k8 in range(0, 6):
+        for k8 in range(0, average_window):
             mux_lane_acc = mux_lane_acc + mux_lane_vec_average2[
                 count_lanes_average_vec2 - 1 - k8
             ]
@@ -137,10 +145,10 @@ def long_term_average_of_lanes(count_lanes_average_vec,
             base_pty_acc = base_pty_acc + base_pty_lane_vec_average2[
                 count_lanes_average_vec2 - 1 - k8
             ]
-        mux_lane_ave2 = mux_lane_acc / 6
-        muy_lane_ave2 = muy_lane_acc / 6
-        base_ptx_ave2 = base_ptx_acc / 6
-        base_pty_ave2 = base_pty_acc / 6
+        mux_lane_ave2 = mux_lane_acc / average_window
+        muy_lane_ave2 = muy_lane_acc / average_window
+        base_ptx_ave2 = base_ptx_acc / average_window
+        base_pty_ave2 = base_pty_acc / average_window
 
         #intersecting with top of image
         Lintersection  =  -base_pty_ave2 / muy_lane_ave2
