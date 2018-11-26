@@ -67,7 +67,8 @@ def filtering(count_lane_group1,
               mux_lane_vec_final2_previous,
               muy_lane_vec_final2_previous,
               base_ptx_lane_vec_final2_previous,
-              base_pty_lane_vec_final2_previous):
+              base_pty_lane_vec_final2_previous,
+              horizontal_tolerance=50):
     if muy_lane_vec_final1_previous == 0:
         print("Filtering: muy_lane_vec_final1_previous is 0")
         muy_lane_vec_final1_previous += 1e-10
@@ -100,7 +101,7 @@ def filtering(count_lane_group1,
                    Lintersection2 * mux_lane_vec_final1
 
         if initial_frame == 1:
-            if abs(x1_lane_group1 - x1_lane) > 50:
+            if abs(x1_lane_group1 - x1_lane) > horizontal_tolerance:
                 mux_lane_vec_final1 = mux_lane_vec_final1_previous
                 muy_lane_vec_final1 = muy_lane_vec_final1_previous
                 base_ptx_lane_vec_final1 = base_ptx_lane_vec_final1_previous
@@ -165,7 +166,7 @@ def filtering(count_lane_group1,
                    Lintersection2 * mux_lane_vec_final2
 
         if initial_frame == 1:
-            if abs(x1_lane_group2 - x1_lane) > 50:
+            if abs(x1_lane_group2 - x1_lane) > horizontal_tolerance:
                 mux_lane_vec_final2 = mux_lane_vec_final2_previous
                 muy_lane_vec_final2 = muy_lane_vec_final2_previous
                 base_ptx_lane_vec_final2 = base_ptx_lane_vec_final2_previous
