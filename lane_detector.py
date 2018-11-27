@@ -69,6 +69,7 @@ class LaneDetector:
             print("horizontal_tolerance: ", horizontal_tolerance)
             print("left, right margins: ", left_margin_detection, right_margin_detection)
             print("average_window: ", average_window)
+
     def _reset_each_image_vars(self):
         self.count_lanes = 0
         self.mux_lane_vec = np.zeros(40)
@@ -168,12 +169,6 @@ class LaneDetector:
                     )**0.5
                     mux_lane = (scan_args.rx1[top_left] - scan_args.rx2[top_left]) / L_lane
                     muy_lane = (scan_args.ry1[top_left] - scan_args.ry2[top_left]) / L_lane
-                    #intersecting with top of image
-                    Lintersection = -scan_args.ry1[top_left] / muy_lane
-                    x1_lane = scan_args.rx1[top_left] + Lintersection * mux_lane
-                    #intersection with bottom of image
-                    Lintersection = (self.H - scan_args.ry1[top_left]) / muy_lane
-                    x2_lane = scan_args.rx1[top_left] + Lintersection * mux_lane
 
                     # To display:
                     self.left_lane_points = [
