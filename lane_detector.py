@@ -89,16 +89,17 @@ class LaneDetector:
         self.H, self.W, _ = self.img.shape
         self.h1, self.w1 = self.img_subframe_gray.shape
         self._reset_each_image_vars()
-        self._do_line_segments(self.img_subframe_gray)
+        self._do_line_segments()
         self._scan_image_wrapper()
         self._everything_else()
         self.image_number += 1
 
-    def _do_line_segments(self, img_subframe_gray):
-        self.dlines = cv2.createLineSegmentDetector(0).detect(img_subframe_gray)
+    def _do_line_segments(self):
+        self.dlines = cv2.createLineSegmentDetector(0).detect(
+            self.img_subframe_gray)
         #dlines holds the lines that have been detected by LSD
         for dline in self.dlines[0]:
-            display_utils.make_line(img_subframe_gray,
+            display_utils.make_line(self.img_subframe_gray,
                 (round(dline[0][0]), round(dline[0][1])),
                 (round(dline[0][2]), round(dline[0][3])))
             #we are redrawing the lines to emphasize their borders
@@ -163,31 +164,37 @@ class LaneDetector:
                 # c6) If Signature Detection fails but the two-top line segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
                 if self.lane_signature_detected == 0 and \
                         self.aligned_to_tracked_lane == 1:
-                    L_lane = (
-                        (scan_args.rx1[top_left] - scan_args.rx2[top_left])**2 +
-                        (scan_args.ry1[top_left] - scan_args.ry2[top_left])**2
-                    )**0.5
-                    mux_lane = (scan_args.rx1[top_left] - scan_args.rx2[top_left]) / L_lane
-                    muy_lane = (scan_args.ry1[top_left] - scan_args.ry2[top_left]) / L_lane
-
-                    # To display:
-                    self.left_lane_points = [
-                        (scan_args.rx1[top_left], scan_args.ry1[top_left]),
-                        (scan_args.rx2[top_left], scan_args.ry2[top_left]),
-                    ]
-                    self.right_lane_points = [
-                        (scan_args.rx1[top_right], scan_args.ry1[top_right]),
-                        (scan_args.rx2[top_right], scan_args.ry2[top_right]),
-                    ]
-
+                    self.create_lane_lines(scan_args, top_left, top_right)
+                    self.count_lanes += 1
                     if self.display_lane_lines:
                         self.draw_lane_lines(self.img_subframe)
 
-                    self.mux_lane_vec[self.count_lanes] = mux_lane
-                    self.muy_lane_vec[self.count_lanes] = muy_lane
-                    self.base_ptx_lane_vec[self.count_lanes] = scan_args.rx1[top_left]
-                    self.base_pty_lane_vec[self.count_lanes] = scan_args.ry1[top_left]
-                    self.count_lanes += 1
+    def create_lane_lines(self, scan_args, top_left, top_right):
+        L_lane = (
+            (scan_args.rx1[top_left] - scan_args.rx2[top_left])**2 +
+            (scan_args.ry1[top_left] - scan_args.ry2[top_left])**2
+        )**0.5
+        mux_lane = (scan_args.rx1[top_left] - scan_args.rx2[top_left]) / L_lane
+        muy_lane = (scan_args.ry1[top_left] - scan_args.ry2[top_left]) / L_lane
+
+        # To display:
+        self.left_lane_points = [
+            (scan_args.rx1[top_left], scan_args.ry1[top_left]),
+            (scan_args.rx2[top_left], scan_args.ry2[top_left]),
+        ]
+        self.right_lane_points = [
+            (scan_args.rx1[top_right], scan_args.ry1[top_right]),
+            (scan_args.rx2[top_right], scan_args.ry2[top_right]),
+        ]
+
+        if self.display_lane_lines:
+            self.draw_lane_lines(self.img_subframe)
+
+        self.mux_lane_vec[self.count_lanes] = mux_lane
+        self.muy_lane_vec[self.count_lanes] = muy_lane
+        self.base_ptx_lane_vec[self.count_lanes] = scan_args.rx1[top_left]
+        self.base_pty_lane_vec[self.count_lanes] = scan_args.ry1[top_left]
+
 
     def draw_lane_lines(self, image_to_draw_on, verbose=True):
         try:
@@ -253,6 +260,7 @@ class LaneDetector:
                         (255, 255, 255),
                         2,
                         cv2.LINE_AA)
+        self.draw_lane_lines(resized)
 
         cv2.namedWindow('Frame4', cv2.WINDOW_NORMAL)
         cv2.imshow('Frame4', resized )
