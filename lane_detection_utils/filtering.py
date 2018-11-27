@@ -73,6 +73,9 @@ def filtering(count_lane_group1,
     if muy_lane_vec_final1_previous == 0:
         print("Filtering: muy_lane_vec_final1_previous is 0")
         muy_lane_vec_final1_previous += 1e-10
+    if mux_lane_vec_final1_previous == 0:
+        print("Filtering: muy_lane_vec_final1_previous is 0")
+        mux_lane_vec_final1_previous += 1e-10
     if count_lane_group1 >= 1:
         if initial_frame == 1:
             angle1 = 180 * (
