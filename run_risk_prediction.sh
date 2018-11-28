@@ -31,38 +31,39 @@ SAVE='false'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
 RUN='11a'
-#FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
-#SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-SOURCE='/scratch/derek/video_captures/video4a.mp4'
+FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
+SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
+#SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
 #SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
 
-SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex_marked.mp4'
+SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex__hold_10.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
 TRACK_REFRESH=1             # 1 makes no refreshing
+
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
-                            # Speeds input by the user overwrite the gps reading
+                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
-THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
-THREAD_QUEUE_SIZE=3         # The size of the queue for threaded_runner
+THREADED_RUNNER='B'          # The runner-level threading method, or 'None'
+THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
 THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
-THREAD_MAX_WAIT=0.5         # maximum amount of time to block on a queue, sec.
+THREAD_MAX_WAIT=0.5          # maximum amount of time to block on a queue, sec.
 
 FOCAL=350
-CAR_WIDTH=1.8               # meters
-CAMERA_HEIGHT=1.15          # meters
-MIN_CAMERA_ANGLE=54.5       # degrees
+CAR_WIDTH=1.8                # meters
+CAMERA_HEIGHT=1.15           # meters
+MIN_CAMERA_ANGLE=54.5        # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
-RELATIVE_HORIZON=0.5        # between 0 and 1
+RELATIVE_HORIZON=0.5         # between 0 and 1
 
-DETECT_LANES='true'
+DETECT_LANES='false'
 
-RISK_N_SIMS=25
+RISK_N_SIMS=1
 RISK_H=5        # seconds
 RISK_STEP=0.25  # seconds
 COL_TOL_X=1.0   # meters
