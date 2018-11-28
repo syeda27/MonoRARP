@@ -310,6 +310,8 @@ class ParticleTracker:
         return boxes_with_labels
 
     def update_all(self, image, boxes, labels=None, verbose=False):
+        if type(boxes) == type(None):
+            return self.get_boxes()
         self.img = image
         self.detections = boxes
         self.verbose = verbose

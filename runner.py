@@ -330,7 +330,7 @@ class Runner:
         self.tracker_obj.update_if_init(self.elapsed)
         self.tracker_obj.check_and_reset_multitracker(self.state)
         net_out = None
-        if self.tracker_obj.should_reset():
+        if self.tracker_obj.should_reset() or self.tracker_obj.needs_boxes:
             if self.timer:
                 self.timer.update_start("NeuralNet")
             net_out = self.sess.run(self.tensor_dict,

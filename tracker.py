@@ -54,6 +54,8 @@ class Tracker:
         self.labels = [] # i -> list of labels
         self.category_index = category_index
 
+        self.needs_boxes = False
+
     def _create_multi_tracker(self):
         """
         Set the internal self.multi_tracker variable to one of the wrappers
@@ -65,6 +67,7 @@ class Tracker:
             )
         elif self.tracker_type == "Particle":
             self.multi_tracker = multi_trackers.ParticleTrackerWrapper()
+            self.needs_boxes = True
                 # TODO update args
         else:
             tracker_utils.raise_undefined_tracker_type(self.tracker_type)
