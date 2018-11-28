@@ -126,6 +126,7 @@ class Tracker:
                     net_out['detection_classes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
                     ]
+            '''
             boxes, self.labels = general_utils.filter_boxes(
                 net_out,
                 self.det_thresh,
@@ -133,6 +134,7 @@ class Tracker:
                 self.category_index,
                 image_index
             )
+            '''
         if self.init_tracker:
             self.init_tracker = False
             self.multi_tracker.initialize_tracker(image, boxes, self.labels)

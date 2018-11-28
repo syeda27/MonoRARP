@@ -229,12 +229,14 @@ class ParticleTracker:
         self.count_holding_vehicles[trackerID] += 1
         self.distance_to_particle_identified[trackerID] = \
             self.previous_distance_to_particle_identified[trackerID]
+        '''
         self.tracked_boxes[trackerID] += [
             self.delta_x_trackers[trackerID],
             self.delta_y_trackers[trackerID],
             self.delta_x_trackers[trackerID],
             self.delta_y_trackers[trackerID]]
-        # move the box by our expected movement, for visualization purposes.
+        '''
+        # TODO move the box by our expected movement, for visualization purposes.
 
     def update_tracker(self, trackerID, cx_identified, cy_identified, box_index):
         if self.initialized_trackers[trackerID] == 1:
