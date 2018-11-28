@@ -60,7 +60,7 @@ class ThreadedRunner(Runner):
         risk = self.get_risk()
 
         if self.lane_detector_object and hasattr(
-                self.lane_detector_object, 'left_lane_points'):
+                self.lane_detector_object, 'line_points'):
             self.lane_detector_object.draw_lane_lines(image)
 
         self.display_obj.update_image(image)
