@@ -19,7 +19,9 @@ def long_term_average_of_lanes_w(lane_detector_object):
      lane_detector_object.mux_lane_vec_average2,
      lane_detector_object.muy_lane_vec_average2,
      lane_detector_object.base_ptx_lane_vec_average2,
-     lane_detector_object.base_pty_lane_vec_average2) = long_term_average_of_lanes(
+     lane_detector_object.base_pty_lane_vec_average2,
+     left_lane_points,
+     right_lane_points) = long_term_average_of_lanes(
         lane_detector_object.count_lanes_average_vec,
         lane_detector_object.count_lanes_average_vec2,
         lane_detector_object.mux_lane_vec_average,
@@ -43,7 +45,7 @@ def long_term_average_of_lanes_w(lane_detector_object):
         lane_detector_object.count_lane_group1,
         lane_detector_object.count_lane_group2,
         lane_detector_object.average_window)
-
+    return left_lane_points, right_lane_points
 
 def long_term_average_of_lanes(count_lanes_average_vec,
                                count_lanes_average_vec2,
@@ -83,7 +85,11 @@ def long_term_average_of_lanes(count_lanes_average_vec,
             base_pty_lane_vec_final2
         count_lanes_average_vec2 += 1
 
+    left_lane_points = []
+    right_lane_points = []
+
     if count_lanes_average_vec >= average_window:
+        # right lane line
         mux_lane_acc = 0
         muy_lane_acc = 0
         base_ptx_acc = 0
@@ -114,20 +120,33 @@ def long_term_average_of_lanes(count_lanes_average_vec,
         Lintersection = (H - base_pty_ave) / muy_lane_ave
         x2_lane = base_ptx_ave + Lintersection * mux_lane_ave
 
+        # TOP HALF
+        '''
         cv2.line(img6,
                  (int(base_ptx_ave), int(base_pty_ave)),
                  (int(x1_lane), int(0)),
-                 (255, 255, 255),
+                 (5, 255, 255),
                  1,
                  cv2.LINE_AA)
+        # BOTTOM HALF
         cv2.line(img6,
                  (int(base_ptx_ave), int(base_pty_ave)),
                  (int(x2_lane), int(H)),
-                 (255, 255, 255),
+                 (5, 255, 255),
                  1,
                  cv2.LINE_AA)
+        '''
+        left_lane_points.append([
+            (int(base_ptx_ave), int(base_pty_ave)),
+            (int(x1_lane), int(0))
+        ])
+        right_lane_points.append([
+             (int(base_ptx_ave), int(base_pty_ave)),
+             (int(x2_lane), int(H)),
+        ])
 
     if count_lanes_average_vec2 >= average_window:
+        # LEFT LANE LINE
         mux_lane_acc = 0
         muy_lane_acc = 0
         base_ptx_acc = 0
@@ -157,18 +176,35 @@ def long_term_average_of_lanes(count_lanes_average_vec,
         Lintersection = (H - base_pty_ave2) / muy_lane_ave2
         x2_lane = base_ptx_ave2 + Lintersection * mux_lane_ave2
 
+        left_lane_points.append([
+                 (base_ptx_ave2, base_pty_ave2),
+                 (x1_lane, 0),
+        ])
+        right_lane_points.append([
+                 (base_ptx_ave2, base_pty_ave2),
+                 (x2_lane, H),
+        ])
+        print(img6.shape)
+        print("og left:")
+        print(base_ptx_ave2, base_pty_ave2)
+        print(x1_lane, 0)
+        '''
+        # TOP HALF
         cv2.line(img6,
                  (int(base_ptx_ave2), int(base_pty_ave2)),
                  (int(x1_lane), int(0)),
                  (255, 255, 255),
                  1,
                  cv2.LINE_AA)
+        # BOTTOM HALF
         cv2.line(img6,
                  (int(base_ptx_ave2), int(base_pty_ave2)),
                  (int(x2_lane), int(H)),
                  (255, 255, 255),
                  1,
                  cv2.LINE_AA)
+        '''
+
 
     return count_lanes_average_vec, \
            count_lanes_average_vec2, \
@@ -179,4 +215,6 @@ def long_term_average_of_lanes(count_lanes_average_vec,
            mux_lane_vec_average2, \
            muy_lane_vec_average2, \
            base_ptx_lane_vec_average2, \
-           base_pty_lane_vec_average2
+           base_pty_lane_vec_average2, \
+           left_lane_points, \
+           right_lane_points,

@@ -27,7 +27,8 @@ def abs_speed_wrapper(lane_detector_object):
         lane_detector_object.base_ptx_lane_vec_final2_speed = lane_detector_object.base_ptx_lane_vec_final2_previous
         lane_detector_object.base_pty_lane_vec_final2_speed = lane_detector_object.base_pty_lane_vec_final2_previous
 
-    (lane_detector_object.speed, lane_detector_object.road_nomark,
+    (lane_detector_object.speed,
+     lane_detector_object.road_nomark,
      lane_detector_object.capture_frameindex_for_speed,
      lane_detector_object.frameindex_for_speed,
      lane_detector_object.white_mark_hit,

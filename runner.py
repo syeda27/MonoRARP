@@ -55,7 +55,7 @@ class Runner:
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
 
-        self.lane_detector_object = lane_detector.LaneDetector()
+        self.lane_detector_object = None # need image shape
 
         risk_constructor = risk_predictor.RiskPredictor
         if launcher.all_args.embedded_risk:

@@ -60,6 +60,8 @@ class LaneDetector:
         self.left_margin_detection = left_margin_detection
         self.right_margin_detection = right_margin_detection
         self.average_window = average_window
+        self.left_lane_points = []
+        self.right_lane_points = []
         if print_params:
             print("Subframe: ", subframe_dims)
             print("Scan_x: ", scan_x_params)
@@ -77,6 +79,8 @@ class LaneDetector:
         self.base_ptx_lane_vec = np.zeros(40)
         self.base_pty_lane_vec = np.zeros(40)
         self.angle_lanes = np.zeros(40)
+        self.left_lane_points = []
+        self.right_lane_points = []
 
     def handle_image(self, image):
         self.img = image
@@ -92,6 +96,8 @@ class LaneDetector:
         self._do_line_segments()
         self._scan_image_wrapper()
         self._everything_else()
+        if self.count_lanes > 0 and self.display_lane_lines:
+            self.draw_lane_lines(self.img_subframe)
         self.image_number += 1
 
     def _do_line_segments(self):
@@ -162,13 +168,10 @@ class LaneDetector:
                 lane_signature_detection.lane_signature_detection_w(self, scan_args, top_left, top_right)
                 # c6) If Signature Detection succeeds orthe two-top line
                 #       segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
-                if self.lane_signature_detected == 1 or \
+                if self.lane_signature_detected == 0 and \
                         self.aligned_to_tracked_lane == 1:
-                    self.create_lane_lines(scan_args, top_left, top_right)
+                    #self.create_lane_lines(scan_args, top_left, top_right)
                     self.count_lanes += 1
-
-                if self.count_lanes > 0 and self.display_lane_lines:
-                    self.draw_lane_lines(self.img_subframe)
 
     def create_lane_lines(self, scan_args, top_left, top_right):
         L_lane = (
@@ -177,6 +180,11 @@ class LaneDetector:
         )**0.5
         mux_lane = (scan_args.rx1[top_left] - scan_args.rx2[top_left]) / L_lane
         muy_lane = (scan_args.ry1[top_left] - scan_args.ry2[top_left]) / L_lane
+
+        self.mux_lane_vec[self.count_lanes] = mux_lane
+        self.muy_lane_vec[self.count_lanes] = muy_lane
+        self.base_ptx_lane_vec[self.count_lanes] = scan_args.rx1[top_left]
+        self.base_pty_lane_vec[self.count_lanes] = scan_args.ry1[top_left]
 
         # To display:
         self.left_lane_points = [
@@ -188,26 +196,35 @@ class LaneDetector:
             (scan_args.rx2[top_right], scan_args.ry2[top_right]),
         ]
 
-        self.mux_lane_vec[self.count_lanes] = mux_lane
-        self.muy_lane_vec[self.count_lanes] = muy_lane
-        self.base_ptx_lane_vec[self.count_lanes] = scan_args.rx1[top_left]
-        self.base_pty_lane_vec[self.count_lanes] = scan_args.ry1[top_left]
 
 
     def draw_lane_lines(self, image_to_draw_on, verbose=True):
         try:
+            scale_y =  self.H / float(self.subframe_dims[1] - self.subframe_dims[0])
+            if len(self.left_lane_points) == 0: return image_to_draw_on
+            left_x0, left_y0 = self.left_lane_points[0]
+            left_x1, left_y1 = self.left_lane_points[1]
+            print("pt1:", left_x0, left_y0)
+            print("pt2:", left_x1, left_y1)
             display_utils.make_line(image_to_draw_on,
-                self.left_lane_points[0],
-                self.left_lane_points[1],
-                (0, 0, 255))
+                (left_x0, left_y0),
+                (left_x1, left_y1),
+                (255, 255, 255)
+            )
+            right_x0, right_y0 = self.right_lane_points[0]
+            right_x1, right_y1 = self.right_lane_points[1]
+            print("pt1:", right_x0, right_y0)
+            print("pt2:", right_x1, right_y1)
             display_utils.make_line(image_to_draw_on,
-                self.right_lane_points[0],
-                self.right_lane_points[1],
-                (0, 255, 0))
+                (right_x0, right_y0),
+                (right_x1, right_y1),
+                (255, 255, 255)
+            )
+            return image_to_draw_on
         except AttributeError:
             if verbose:
                 print("No lanes detected.")
-            return
+            return image_to_draw_on
 
     def _everything_else(self):
         ######## ELIMINATION OF WHITE ROAD MARK DUPLICATES ########
@@ -221,7 +238,7 @@ class LaneDetector:
             filtering.filtering_w(self)
 
             ######## ABSOLUTE SPEED DETERMINATION ########
-            absolute_speed.abs_speed_wrapper(self)
+            #absolute_speed.abs_speed_wrapper(self)
 
             ######## RECORDING OF CURRENTLY DETECTED LANES ########
             self.mux_lane_vec_final2_previous = self.mux_lane_vec_final2
@@ -235,7 +252,11 @@ class LaneDetector:
             self.base_pty_lane_vec_final1_previous = self.base_pty_lane_vec_final1
 
             ######## GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES ########
-            long_term_average.long_term_average_of_lanes_w(self)
+            left_lane_points, right_lane_points = \
+                long_term_average.long_term_average_of_lanes_w(self)
+            #if len(left_lane_points) > 0:
+            #    self.left_lane_points = left_lane_points
+            #    self.right_lane_points = right_lane_points
 
         self.initial_frame_was_processed_flag = 1
 
@@ -258,7 +279,7 @@ class LaneDetector:
                         (255, 255, 255),
                         2,
                         cv2.LINE_AA)
-        self.draw_lane_lines(resized)
+        resized = self.draw_lane_lines(resized)
 
         cv2.namedWindow('Frame4', cv2.WINDOW_NORMAL)
         cv2.imshow('Frame4', resized )

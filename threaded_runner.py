@@ -59,7 +59,8 @@ class ThreadedRunner(Runner):
 
         risk = self.get_risk()
 
-        if self.lane_detector_object:
+        if self.lane_detector_object and hasattr(
+                self.lane_detector_object, 'left_lane_points'):
             self.lane_detector_object.draw_lane_lines(image)
 
         self.display_obj.update_image(image)
@@ -177,19 +178,20 @@ class ThreadedRunner(Runner):
         if self.launcher.all_args.detect_lanes:
             print("Creating lane detector")
             self.lane_detector_object = lane_detector.LaneDetector(
-                scan_x_params=(int(self.width / 4),
-                               self.width - int(self.width / 4),
-                               int(self.width / 30)),
-                scan_y_params=(int(self.height / 21),
-                               int(self.height / 8),
-                               int(self.height / 50)),
-                scan_window_sz=(int(self.width / 18), int(self.height / 20)),
+                scan_x_params=(200,
+                               600,
+                               15),
+                scan_y_params=(0,
+                               120,
+                               20),
+                scan_window_sz=(60,50),
                 subframe_dims=(
-                    int(7*self.height/10), int(17*self.height/20),
+                    200, 320,
                     0, self.width
                 ),
+
                 horizontal_tolerance=int(self.width / 75),
-                brightness_ratio_threshold = 1.5,
+                brightness_ratio_threshold = 1.25,
                 left_margin_detection = int(self.width / 4),
                 right_margin_detection = self.width - int(self.width / 4),
                 average_window = 6

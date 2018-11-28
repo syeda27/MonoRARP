@@ -30,10 +30,10 @@ SAVE='false'
 #SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
-RUN='11a'
+RUN='3a'
 #FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-SOURCE='/scratch/derek/video_captures/video4a.mp4'
+SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
 #SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
 
 SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex_marked.mp4'
@@ -46,19 +46,19 @@ DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
-                            # Speeds input by the user overwrite the gps reading
+                             # Speeds input by the user overwrite the gps reading
 DEVICE='/gpu:0'
-THREADED_RUNNER='B'         # The runner-level threading method, or 'None'
-THREAD_QUEUE_SIZE=3         # The size of the queue for threaded_runner
+THREADED_RUNNER='B'          # The runner-level threading method, or 'None'
+THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
 THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
-THREAD_MAX_WAIT=0.5         # maximum amount of time to block on a queue, sec.
+THREAD_MAX_WAIT=0.5          # maximum amount of time to block on a queue, sec.
 
 FOCAL=350
-CAR_WIDTH=1.8               # meters
-CAMERA_HEIGHT=1.15          # meters
-MIN_CAMERA_ANGLE=54.5       # degrees
+CAR_WIDTH=1.8                # meters
+CAMERA_HEIGHT=1.15           # meters
+MIN_CAMERA_ANGLE=54.5        # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
-RELATIVE_HORIZON=0.5        # between 0 and 1
+RELATIVE_HORIZON=0.5         # between 0 and 1
 
 DETECT_LANES='true'
 
