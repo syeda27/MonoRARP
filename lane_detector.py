@@ -219,14 +219,28 @@ class LaneDetector:
                 y0 += offset_y
                 y1 += offset_y
 
-                if (c == (255, 255, 255)):
-                    print("pt1:", x0, y0)
-                    print("pt2:", x1, y1)
+                print("pt1:", x0, y0, c)
+                print("pt2:", x1, y1, c)
                 display_utils.make_line(image_to_draw_on,
                     (x0, y0),
                     (x1, y1),
                     c
                 )
+            for (p1, p2, c) in self.avg_points:
+                x0, y0 = p1
+                x1, y1 = p2
+                x0 *= scale_x
+                x1 *= scale_x
+                y0 *= scale_y
+                y1 *= scale_y
+                print("pt1:", x0, y0, c)
+                print("pt2:", x1, y1, c)
+                display_utils.make_line(image_to_draw_on,
+                    (x0, y0),
+                    (x1, y1),
+                    c
+                )
+
             return image_to_draw_on
         except AttributeError:
             if verbose:
@@ -259,8 +273,7 @@ class LaneDetector:
             self.base_pty_lane_vec_final1_previous = self.base_pty_lane_vec_final1
 
             ######## GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES ########
-            self.line_points.extend(
-                long_term_average.long_term_average_of_lanes_w(self))
+            self.avg_points = long_term_average.long_term_average_of_lanes_w(self)
 
         self.initial_frame_was_processed_flag = 1
 
