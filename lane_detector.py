@@ -167,7 +167,6 @@ class LaneDetector:
                 # c6) If Signature Detection succeeds or the two-top line
                 #       segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
                 if len(lp) > 0:
-                    print("LP:", lp)
                     self.line_points.extend(lp)
                 elif self.lane_signature_detected == 0 and \
                         self.aligned_to_tracked_lane == 1:
@@ -210,6 +209,7 @@ class LaneDetector:
             print("Drawing\nImage shape: (h: {}, w: {}), \nscale: (x: {}, y: {})".format(
                 im_h,im_w,scale_x,scale_y
             ))
+            print("Offset: (y: {}, x: {})".format(offset_y, offset_x))
             if len(self.line_points) == 0: return image_to_draw_on
             for (p1, p2, c) in self.line_points:
                 x0, y0 = p1
@@ -229,10 +229,14 @@ class LaneDetector:
             for (p1, p2, c) in self.avg_points:
                 x0, y0 = p1
                 x1, y1 = p2
-                x0 *= scale_x
-                x1 *= scale_x
-                y0 *= scale_y
-                y1 *= scale_y
+                x0 += offset_x
+                x1 += offset_x
+                y0 += offset_y
+                y1 += offset_y
+                #x0 *= scale_x
+                #x1 *= scale_x
+                #y0 *= scale_y
+                #y1 *= scale_y
                 print("pt1:", x0, y0, c)
                 print("pt2:", x1, y1, c)
                 display_utils.make_line(image_to_draw_on,
@@ -282,13 +286,13 @@ class LaneDetector:
         This is a bad way of doing things, so basically unused except in testing.
         """
         #resizing image for displaying purposes
-        img7 = self.img_subframe
+        img7 = self.img
         dim = (self.W, self.H)
         resized = cv2.resize(img7, dim, interpolation = cv2.INTER_CUBIC)
 
         if self.first_reading_available_flag != 0:
             speed_text = 'Speed: '+str(int(self.speed_official))+' miles/hr'
-            cv2.putText(resized,
+            cv2.putText(img7,
                         speed_text,
                         (250, 150),
                         cv2.FONT_HERSHEY_SIMPLEX,
@@ -296,7 +300,7 @@ class LaneDetector:
                         (255, 255, 255),
                         2,
                         cv2.LINE_AA)
-        resized = self.draw_lane_lines(resized)
+        resized = self.draw_lane_lines(img7)
 
         cv2.namedWindow('Frame4', cv2.WINDOW_NORMAL)
         cv2.imshow('Frame4', resized )

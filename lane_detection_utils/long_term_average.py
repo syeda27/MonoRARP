@@ -176,6 +176,7 @@ def long_term_average_of_lanes(count_lanes_average_vec,
         Lintersection = (H - base_pty_ave2) / muy_lane_ave2
         x2_lane = base_ptx_ave2 + Lintersection * mux_lane_ave2
 
+        print("AVG H:", H)
         line_points.extend([( # top half
             (base_ptx_ave2, base_pty_ave2),
             (x1_lane, 0),
