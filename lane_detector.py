@@ -202,15 +202,11 @@ class LaneDetector:
     def draw_lane_lines(self, image_to_draw_on, verbose=True):
         im_h, im_w, _ = image_to_draw_on.shape
         try:
-            scale_y =  im_h / float(self.subframe_dims[1] - self.subframe_dims[0])
-            scale_x =  im_w / float(self.subframe_dims[3] - self.subframe_dims[2])
             offset_y = self.subframe_dims[0]
             offset_x = self.subframe_dims[2]
-            print("Drawing\nImage shape: (h: {}, w: {}), \nscale: (x: {}, y: {})".format(
-                im_h,im_w,scale_x,scale_y
-            ))
+            print("Drawing\nImage shape: (h: {}, w: {})".format(
+                im_h,im_w))
             print("Offset: (y: {}, x: {})".format(offset_y, offset_x))
-            if len(self.line_points) == 0: return image_to_draw_on
             for (p1, p2, c) in self.line_points:
                 x0, y0 = p1
                 x1, y1 = p2
@@ -226,30 +222,9 @@ class LaneDetector:
                     (x1, y1),
                     c
                 )
-            for (p1, p2, c) in self.avg_points:
-                x0, y0 = p1
-                x1, y1 = p2
-                x0 += offset_x
-                x1 += offset_x
-                y0 += offset_y
-                y1 += offset_y
-                #x0 *= scale_x
-                #x1 *= scale_x
-                #y0 *= scale_y
-                #y1 *= scale_y
-                print("pt1:", x0, y0, c)
-                print("pt2:", x1, y1, c)
-                display_utils.make_line(image_to_draw_on,
-                    (x0, y0),
-                    (x1, y1),
-                    c
-                )
-
-            return image_to_draw_on
         except AttributeError:
             if verbose:
                 print("No lanes detected.")
-            return image_to_draw_on
 
     def _everything_else(self):
         ######## ELIMINATION OF WHITE ROAD MARK DUPLICATES ########
@@ -277,7 +252,7 @@ class LaneDetector:
             self.base_pty_lane_vec_final1_previous = self.base_pty_lane_vec_final1
 
             ######## GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES ########
-            self.avg_points = long_term_average.long_term_average_of_lanes_w(self)
+            self.line_points.extend(long_term_average.long_term_average_of_lanes_w(self))
 
         self.initial_frame_was_processed_flag = 1
 
@@ -288,7 +263,6 @@ class LaneDetector:
         #resizing image for displaying purposes
         img7 = self.img
         dim = (self.W, self.H)
-        resized = cv2.resize(img7, dim, interpolation = cv2.INTER_CUBIC)
 
         if self.first_reading_available_flag != 0:
             speed_text = 'Speed: '+str(int(self.speed_official))+' miles/hr'
@@ -300,8 +274,11 @@ class LaneDetector:
                         (255, 255, 255),
                         2,
                         cv2.LINE_AA)
-        resized = self.draw_lane_lines(img7)
+        self.draw_lane_lines(img7)
 
         cv2.namedWindow('Frame4', cv2.WINDOW_NORMAL)
-        cv2.imshow('Frame4', resized )
+        cv2.imshow('Frame4', img7[
+            self.left_margin_detection:self.right_margin_detection,
+            self.subframe_dims[2]:self.subframe_dims[3],
+        ])
         cv2.waitKey(1)
