@@ -215,12 +215,14 @@ class Runner:
         if self.tracker_obj.use_tracker:
             boxes_with_labels = self.tracker_obj.update_one(i, net_out, image)
         else:
-            boxes = net_out['detection_boxes'][i][np.where(\
-                    net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
-            labels = [self.launcher.category_index[key]['name'] for key in \
-                    net_out['detection_classes'][i][np.where(\
-                        net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
-                    ]
+            boxes, labels = general_utils.filter_boxes(
+                net_out,
+                self.launcher.all_args.det_thresh,
+                self.launcher.all_args.horizon,
+                self.launcher.category_index,
+                i
+            )
+
 
             boxes_with_labels = dict()
             im_h, im_w, _ = image.shape

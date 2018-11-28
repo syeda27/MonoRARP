@@ -52,6 +52,7 @@ class Tracker:
 
         self.init_tracker = True
         self.labels = [] # i -> list of labels
+        self.horizon = args.horizon
         self.category_index = category_index
 
         self.needs_boxes = False
@@ -125,6 +126,13 @@ class Tracker:
                     net_out['detection_classes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]
                     ]
+            boxes, self.labels = general_utils.filter_boxes(
+                net_out,
+                self.det_thresh,
+                self.horizon,
+                self.category_index,
+                image_index
+            )
         if self.init_tracker:
             self.init_tracker = False
             self.multi_tracker.initialize_tracker(image, boxes, self.labels)

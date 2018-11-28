@@ -4,6 +4,7 @@ estimation system.
 """
 
 import time
+import numpy as np
 from collections import defaultdict
 
 # TODO:
@@ -35,6 +36,20 @@ def get_fps(start, frames):
         return 1
     elapsed_time = time.time() - start
     return frames / elapsed_time
+
+def filter_boxes(net_out, threshold, horizon, cat_index, i, keep_classes={"car"}):
+    print(net_out['detection_scores'][i])
+    indexes = np.where(\
+            net_out['detection_scores'][i] >= threshold \
+            and cat_index[
+                net_out['detection_classes'][i]
+            ]['name'] in keep_classes \
+            and net_out['detection_boxes'][i][3] < horizon)
+    boxes = net_out['detection_boxes'][i][indexes]
+    labels = [cat_index[key]['name'] for key in \
+            net_out['detection_classes'][i][indexes]]
+    return boxes, labels
+
 
 def check_aspect_ratio(box, height_ratio=5, width_ratio=3):
     """

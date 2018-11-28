@@ -14,7 +14,7 @@ class ParticleTracker:
             max_holding=2,
             max_tracker_jump=0.1,
             cov=0.0001,
-            min_allowable_likelihood=-0.1):
+            min_allowable_likelihood=-0.25):
         # num_particles is number of particles.
         # num_trackers is the max number of trackers
         self.num_particles = num_particles
@@ -126,13 +126,18 @@ class ParticleTracker:
         mean_x = self.particles[trackerID,:,0] + self.delta_x_trackers[trackerID]
         mean_y = self.particles[trackerID,:,1] + self.delta_y_trackers[trackerID]
         self.particles[trackerID,:,0] = np.clip(
-            np.random.multivariate_normal(mean_x, self.cov_x_arr),
+            np.random.multivariate_normal(
+                mean_x,
+                self.cov_x_arr * (self.tracked_boxes[trackerID][3] - self.tracked_boxes[trackerID][1])
+            ),
             0.0,
             1.0)
+        # TODO scale cov_x_arr by the box width?
         self.particles[trackerID,:,1] = np.clip(
             np.random.multivariate_normal(mean_y, self.cov_y_arr),
             0.0,
             1.0)
+
 
     def identify_particles_bboxes(self, trackerID):
         """
@@ -179,6 +184,8 @@ class ParticleTracker:
             [cx, cy] - self.particles[trackerID, p, :]
         ) for p in range(self.num_particles)]
         likelihood = -np.mean(distances_to_particles)
+        # TODO likelihood /= (x2 - x1) # divide by box width. more movement ok if big box.
+        # TODO incorporate change in box size?
         return likelihood, cx, cy, distances_to_particles
 
 
@@ -222,6 +229,12 @@ class ParticleTracker:
         self.count_holding_vehicles[trackerID] += 1
         self.distance_to_particle_identified[trackerID] = \
             self.previous_distance_to_particle_identified[trackerID]
+        self.tracked_boxes[trackerID] += [
+            self.delta_x_trackers[trackerID],
+            self.delta_y_trackers[trackerID],
+            self.delta_x_trackers[trackerID],
+            self.delta_y_trackers[trackerID]]
+        # move the box by our expected movement, for visualization purposes.
 
     def update_tracker(self, trackerID, cx_identified, cy_identified, box_index):
         if self.initialized_trackers[trackerID] == 1:
