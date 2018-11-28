@@ -89,35 +89,6 @@ def lane_signature_detection(road1_average,
                         #focusing the detection around the center of the ego-vehicle
                         print("Lane Detected")
                         signature_detected = 1
-                        L_lane = (
-                            (rx1[top_left]-rx2[top_left])**2 + \
-                            (ry1[top_left]-ry2[top_left])**2
-                        )**0.5
-                        mux_lane = (rx1[top_left] - rx2[top_left]) / L_lane
-                        muy_lane = (ry1[top_left] - ry2[top_left]) / L_lane
-                        #intersecting with top of image
-                        Lintersection = -ry1[top_left] / muy_lane
-                        x1_lane = rx1[top_left] + Lintersection*mux_lane
-                        #intersection with bottom of image
-                        Lintersection = (H-ry1[top_left]) / muy_lane
-                        x2_lane = rx1[top_left] + Lintersection*mux_lane
-                        cv2.line(img6,
-                                 (int(rx1[top_left]), int(ry1[top_left])),
-                                 (int(rx2[top_left]), int(ry2[top_left])),
-                                 (0, 0, 255),
-                                 1,
-                                 cv2.LINE_AA)
-                        cv2.line(img6,
-                                 (int(rx1[top_right]), int(ry1[top_right])),
-                                 (int(rx2[top_right]), int(ry2[top_right])),
-                                 (0, 255, 0),
-                                 1,
-                                 cv2.LINE_AA)
-                        mux_lane_vec[count_lanes] = mux_lane
-                        muy_lane_vec[count_lanes] = muy_lane
-                        base_ptx_lane_vec[count_lanes] = rx1[top_left]
-                        base_pty_lane_vec[count_lanes] = ry1[top_left]
-                        count_lanes += 1
 
     return signature_detected, \
            mux_lane_vec, \

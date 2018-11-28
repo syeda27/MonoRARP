@@ -160,14 +160,15 @@ class LaneDetector:
                     self, scan_args, top_left)
                 # c5) Road Mark Signature Detetion for the two-top lines segments previously extracted from the scanning region
                 lane_signature_detection.lane_signature_detection_w(self, scan_args, top_left, top_right)
-
-                # c6) If Signature Detection fails but the two-top line segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
-                if self.lane_signature_detected == 0 and \
+                # c6) If Signature Detection succeeds orthe two-top line
+                #       segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
+                if self.lane_signature_detected == 1 or \
                         self.aligned_to_tracked_lane == 1:
                     self.create_lane_lines(scan_args, top_left, top_right)
                     self.count_lanes += 1
-                    if self.display_lane_lines:
-                        self.draw_lane_lines(self.img_subframe)
+
+                if self.count_lanes > 0 and self.display_lane_lines:
+                    self.draw_lane_lines(self.img_subframe)
 
     def create_lane_lines(self, scan_args, top_left, top_right):
         L_lane = (
@@ -186,9 +187,6 @@ class LaneDetector:
             (scan_args.rx1[top_right], scan_args.ry1[top_right]),
             (scan_args.rx2[top_right], scan_args.ry2[top_right]),
         ]
-
-        if self.display_lane_lines:
-            self.draw_lane_lines(self.img_subframe)
 
         self.mux_lane_vec[self.count_lanes] = mux_lane
         self.muy_lane_vec[self.count_lanes] = muy_lane
