@@ -205,6 +205,8 @@ class LaneDetector:
         try:
             scale_y =  im_h / float(self.subframe_dims[1] - self.subframe_dims[0])
             scale_x =  im_w / float(self.subframe_dims[3] - self.subframe_dims[2])
+            offset_y = self.subframe_dims[0]
+            offset_x = self.subframe_dims[2]
             print("Drawing\nImage shape: (h: {}, w: {}), \nscale: (x: {}, y: {})".format(
                 im_h,im_w,scale_x,scale_y
             ))
@@ -212,13 +214,14 @@ class LaneDetector:
             for (p1, p2, c) in self.line_points:
                 x0, y0 = p1
                 x1, y1 = p2
-                x0 *= scale_x
-                x1 *= scale_x
-                y0 *= scale_y
-                y1 *= scale_y
+                x0 += offset_x
+                x1 += offset_x
+                y0 += offset_y
+                y1 += offset_y
 
-                print("pt1:", x0, y0)
-                print("pt2:", x1, y1)
+                if (c == (255, 255, 255)):
+                    print("pt1:", x0, y0)
+                    print("pt2:", x1, y1)
                 display_utils.make_line(image_to_draw_on,
                     (x0, y0),
                     (x1, y1),
