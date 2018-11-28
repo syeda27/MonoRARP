@@ -20,8 +20,7 @@ def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_ri
      lane_detector_object.base_ptx_lane_vec,
      lane_detector_object.base_pty_lane_vec,
      lane_detector_object.count_lanes,
-     left_lane_points,
-     right_lane_points) = lane_signature_detection(
+     line_points) = lane_signature_detection(
         lane_detector_object.road1_average,
         lane_detector_object.road2_average,
         lane_detector_object.road3_average,
@@ -48,6 +47,7 @@ def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_ri
         lane_detector_object.brightness_ratio_threshold,
         lane_detector_object.left_margin_detection,
         lane_detector_object.right_margin_detection)
+    return line_points
 
 def lane_signature_detection(road1_average,
                              road2_average,
@@ -77,8 +77,7 @@ def lane_signature_detection(road1_average,
                              right_margin_detection=2700):
 
     signature_detected = 0
-    left_lane_points = []
-    right_lane_points = []
+    line_points = []
 
     if abs(road1_average-road2_average) / road2_average < 0.15 \
             and delta_road1_average < 10 \
@@ -105,14 +104,15 @@ def lane_signature_detection(road1_average,
                         #intersection with bottom of image
                         Lintersection = (H-ry1[top_left]) / muy_lane
                         x2_lane = rx1[top_left] + Lintersection*mux_lane
-                        left_lane_points = [
+                        line_points = [(
                             (rx1[top_left], ry1[top_left]),
-                            (rx2[top_left], ry2[top_left])
-                        ]
-                        right_lane_points = [
+                            (rx2[top_left], ry2[top_left]),
+                            (0, 255, 255)
+                        ),(
                             (rx1[top_right], ry1[top_right]),
-                            (rx2[top_right], ry2[top_right])
-                        ]
+                            (rx2[top_right], ry2[top_right]),
+                            (0, 255, 255)
+                        )]
                         mux_lane_vec[count_lanes] = mux_lane
                         muy_lane_vec[count_lanes] = muy_lane
                         base_ptx_lane_vec[count_lanes] = rx1[top_left]
@@ -125,5 +125,4 @@ def lane_signature_detection(road1_average,
            base_ptx_lane_vec, \
            base_pty_lane_vec, \
            count_lanes, \
-           left_lane_points, \
-           right_lane_points
+           line_points

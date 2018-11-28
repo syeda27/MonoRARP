@@ -163,10 +163,13 @@ class LaneDetector:
                 determination_of_parallelism_with_previously_tracked_lanes.determination_of_parallelism_w(
                     self, scan_args, top_left)
                 # c5) Road Mark Signature Detetion for the two-top lines segments previously extracted from the scanning region
-                lane_signature_detection.lane_signature_detection_w(self, scan_args, top_left, top_right)
+                lp = lane_signature_detection.lane_signature_detection_w(self, scan_args, top_left, top_right)
                 # c6) If Signature Detection succeeds or the two-top line
                 #       segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
-                if self.lane_signature_detected == 0 and \
+                if len(lp) > 0:
+                    print("LP:", lp)
+                    self.line_points.extend(lp)
+                elif self.lane_signature_detected == 0 and \
                         self.aligned_to_tracked_lane == 1:
                     self.create_lane_lines(scan_args, top_left, top_right)
                     self.count_lanes += 1
@@ -198,9 +201,13 @@ class LaneDetector:
 
 
     def draw_lane_lines(self, image_to_draw_on, verbose=True):
+        im_h, im_w, _ = image_to_draw_on.shape
         try:
-            scale_y =  self.H / float(self.subframe_dims[1] - self.subframe_dims[0])
-            scale_x =  self.W / float(self.subframe_dims[3] - self.subframe_dims[2])
+            scale_y =  im_h / float(self.subframe_dims[1] - self.subframe_dims[0])
+            scale_x =  im_w / float(self.subframe_dims[3] - self.subframe_dims[2])
+            print("Drawing\nImage shape: (h: {}, w: {}), \nscale: (x: {}, y: {})".format(
+                im_h,im_w,scale_x,scale_y
+            ))
             if len(self.line_points) == 0: return image_to_draw_on
             for (p1, p2, c) in self.line_points:
                 x0, y0 = p1
@@ -235,7 +242,7 @@ class LaneDetector:
             filtering.filtering_w(self)
 
             ######## ABSOLUTE SPEED DETERMINATION ########
-            absolute_speed.abs_speed_wrapper(self)
+            #absolute_speed.abs_speed_wrapper(self)
 
             ######## RECORDING OF CURRENTLY DETECTED LANES ########
             self.mux_lane_vec_final2_previous = self.mux_lane_vec_final2
