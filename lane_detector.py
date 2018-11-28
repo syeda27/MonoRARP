@@ -60,8 +60,7 @@ class LaneDetector:
         self.left_margin_detection = left_margin_detection
         self.right_margin_detection = right_margin_detection
         self.average_window = average_window
-        self.left_lane_points = []
-        self.right_lane_points = []
+        self.line_points = [] # (p1, p2, color)
         if print_params:
             print("Subframe: ", subframe_dims)
             print("Scan_x: ", scan_x_params)
@@ -79,8 +78,7 @@ class LaneDetector:
         self.base_ptx_lane_vec = np.zeros(40)
         self.base_pty_lane_vec = np.zeros(40)
         self.angle_lanes = np.zeros(40)
-        self.left_lane_points = []
-        self.right_lane_points = []
+        self.line_points = []
 
     def handle_image(self, image):
         self.img = image
@@ -166,7 +164,7 @@ class LaneDetector:
                     self, scan_args, top_left)
                 # c5) Road Mark Signature Detetion for the two-top lines segments previously extracted from the scanning region
                 lane_signature_detection.lane_signature_detection_w(self, scan_args, top_left, top_right)
-                # c6) If Signature Detection succeeds orthe two-top line
+                # c6) If Signature Detection succeeds or the two-top line
                 #       segments are aligned with a previusly tracked lane we accept the two-top line segments as a white road mark
                 if self.lane_signature_detected == 0 and \
                         self.aligned_to_tracked_lane == 1:
@@ -187,14 +185,15 @@ class LaneDetector:
         self.base_pty_lane_vec[self.count_lanes] = scan_args.ry1[top_left]
 
         # To display:
-        self.left_lane_points.append([
+        self.line_points.extend([(
             (scan_args.rx1[top_left], scan_args.ry1[top_left]),
             (scan_args.rx2[top_left], scan_args.ry2[top_left]),
-        ])
-        self.right_lane_points.append([
+            (255, 255, 255)
+        ), (
             (scan_args.rx1[top_right], scan_args.ry1[top_right]),
             (scan_args.rx2[top_right], scan_args.ry2[top_right]),
-        ])
+            (255, 255, 255)
+        )])
 
 
 
@@ -202,34 +201,21 @@ class LaneDetector:
         try:
             scale_y =  self.H / float(self.subframe_dims[1] - self.subframe_dims[0])
             scale_x =  self.W / float(self.subframe_dims[3] - self.subframe_dims[2])
-            if len(self.left_lane_points) == 0: return image_to_draw_on
-            for i in range(len(self.left_lane_points)):
-                left_x0, left_y0 = self.left_lane_points[i][0]
-                left_x1, left_y1 = self.left_lane_points[i][1]
-                left_x0 *= scale_x
-                left_x1 *= scale_x
-                left_y0 *= scale_y
-                left_y1 *= scale_y
+            if len(self.line_points) == 0: return image_to_draw_on
+            for (p1, p2, c) in self.line_points:
+                x0, y0 = p1
+                x1, y1 = p2
+                x0 *= scale_x
+                x1 *= scale_x
+                y0 *= scale_y
+                y1 *= scale_y
 
-                print("pt1:", left_x0, left_y0)
-                print("pt2:", left_x1, left_y1)
+                print("pt1:", x0, y0)
+                print("pt2:", x1, y1)
                 display_utils.make_line(image_to_draw_on,
-                    (left_x0, left_y0),
-                    (left_x1, left_y1),
-                    (255, 255, 255)
-                )
-                right_x0, right_y0 = self.right_lane_points[i][0]
-                right_x1, right_y1 = self.right_lane_points[i][1]
-                right_x0 *= scale_x
-                right_x1 *= scale_x
-                right_y0 *= scale_y
-                right_y1 *= scale_y
-                print("pt1:", right_x0, right_y0)
-                print("pt2:", right_x1, right_y1)
-                display_utils.make_line(image_to_draw_on,
-                    (right_x0, right_y0),
-                    (right_x1, right_y1),
-                    (255, 255, 255)
+                    (x0, y0),
+                    (x1, y1),
+                    c
                 )
             return image_to_draw_on
         except AttributeError:
@@ -263,11 +249,8 @@ class LaneDetector:
             self.base_pty_lane_vec_final1_previous = self.base_pty_lane_vec_final1
 
             ######## GENERATION OF LONG TERM AVERAGE OF THE DETECTED LANES ########
-            left_lane_points, right_lane_points = \
-                long_term_average.long_term_average_of_lanes_w(self)
-            if len(left_lane_points) > 0:
-                self.left_lane_points = left_lane_points
-                self.right_lane_points = right_lane_points
+            self.line_points.extend(
+                long_term_average.long_term_average_of_lanes_w(self))
 
         self.initial_frame_was_processed_flag = 1
 
