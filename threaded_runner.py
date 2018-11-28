@@ -190,11 +190,11 @@ class ThreadedRunner(Runner):
                     0, self.width
                 ),
 
-                horizontal_tolerance=int(self.width / 75),
-                brightness_ratio_threshold = 1.25,
-                left_margin_detection = int(self.width / 4),
-                right_margin_detection = self.width - int(self.width / 4),
-                average_window = 6
+                horizontal_tolerance=80,
+                brightness_ratio_threshold = 1.4,
+                left_margin_detection = 0,
+                right_margin_detection = 640,
+                average_window = 2
             )
         else:
             self.lane_detector_object = None

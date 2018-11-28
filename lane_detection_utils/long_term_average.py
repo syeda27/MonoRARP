@@ -125,17 +125,18 @@ def long_term_average_of_lanes(count_lanes_average_vec,
         cv2.line(img6,
                  (int(base_ptx_ave), int(base_pty_ave)),
                  (int(x1_lane), int(0)),
-                 (5, 255, 255),
+                 (255, 255, 255),
                  1,
                  cv2.LINE_AA)
         # BOTTOM HALF
         cv2.line(img6,
                  (int(base_ptx_ave), int(base_pty_ave)),
                  (int(x2_lane), int(H)),
-                 (5, 255, 255),
+                 (255, 255, 255),
                  1,
                  cv2.LINE_AA)
         '''
+        
         left_lane_points.append([
             (int(base_ptx_ave), int(base_pty_ave)),
             (int(x1_lane), int(0))

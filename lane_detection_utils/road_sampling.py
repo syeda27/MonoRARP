@@ -83,7 +83,7 @@ def brightness_sampling(rx1, rx2, ry1, ry2, top_left, top_right, img2):
                          int((x_border_left + x_border_right) / 2)
                         ]
         road2 = img2[int(y_scanning), int(x_border_right + 15)]
-        road4 = img2[int(y_scanning), int(x_border_left + 30)]
+        road4 = img2[int(y_scanning), min(int(x_border_left + 30), img2.shape[1]-1)]
         road1_vec[counter_scanning] = road1
         road2_vec[counter_scanning] = road2
         road3_vec[counter_scanning] = road3

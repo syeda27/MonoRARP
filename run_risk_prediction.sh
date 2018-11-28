@@ -39,7 +39,7 @@ SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
 SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex_marked.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
-DO_TRACK='true'
+DO_TRACK='false'
 TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
 TRACK_REFRESH=1             # 1 makes no refreshing
 DET_THRESH=0.01             # above 1 means nothing will get marked.

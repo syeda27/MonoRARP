@@ -20,8 +20,8 @@ def lane_signature_detection_w(lane_detector_object, scan_args, top_left, top_ri
      lane_detector_object.base_ptx_lane_vec,
      lane_detector_object.base_pty_lane_vec,
      lane_detector_object.count_lanes,
-     lane_detector_object.left_lane_points,
-     lane_detector_object.right_lane_points) = lane_signature_detection(
+     left_lane_points,
+     right_lane_points) = lane_signature_detection(
         lane_detector_object.road1_average,
         lane_detector_object.road2_average,
         lane_detector_object.road3_average,
@@ -105,8 +105,6 @@ def lane_signature_detection(road1_average,
                         #intersection with bottom of image
                         Lintersection = (H-ry1[top_left]) / muy_lane
                         x2_lane = rx1[top_left] + Lintersection*mux_lane
-                        print("top_left", top_left, top_right)
-                        print(rx1, rx2)
                         left_lane_points = [
                             (rx1[top_left], ry1[top_left]),
                             (rx2[top_left], ry2[top_left])

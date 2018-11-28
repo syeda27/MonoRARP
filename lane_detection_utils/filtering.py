@@ -143,6 +143,8 @@ def filtering(count_lane_group1,
         if mux_lane_vec_final2_previous == 0:
             print("Filtering: mux_lane_vec_final2_previous is 0")
             mux_lane_vec_final2_previous += 1e-10
+        if muy_lane_vec_final2_previous == 0:
+            muy_lane_vec_final2_previous += 1e-10
         if initial_frame == 1:
             angle1 = 180 * (
                 math.atan(muy_lane_vec_final2 / mux_lane_vec_final2)) / 3.14159
