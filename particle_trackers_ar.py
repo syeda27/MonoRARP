@@ -12,8 +12,8 @@ class ParticleTracker:
             num_particles,
             num_trackers,
             max_holding=2,
-            max_tracker_jump=0.1,
-            cov=0.0001,
+            max_tracker_jump=0.05,
+            cov=0.00001,
             min_allowable_likelihood=-0.25):
         # num_particles is number of particles.
         # num_trackers is the max number of trackers
@@ -52,6 +52,8 @@ class ParticleTracker:
         self.box_indices = set()
 
         self.display = False # TODO args
+
+        self.i = 1
 
     def _display_trackers(self, trackerID, identified):
         if self.initialized_trackers[trackerID] == 1 and \
@@ -189,28 +191,25 @@ class ParticleTracker:
         return likelihood, cx, cy, distances_to_particles
 
 
-    def is_merge_conflict(self, trackerID, cx_identified, cy_identified):
+    def is_merge_conflict(self, trackerID, cx_identified, cy_identified, init=False):
         # TODO must something else be done if we want to initialize?
         for other_tracker_id in range(self.num_trackers):
             if other_tracker_id == trackerID or \
-            self.initialized_trackers[trackerID] == 0:
+                    self.initialized_trackers[trackerID] == 0:
                 # check other trackers
                 continue
             distance_to_box = np.linalg.norm([
                 cx_identified - self.centroid_x_previous[other_tracker_id],
                 cy_identified - self.centroid_y_previous[other_tracker_id]
             ])
-            if self.verbose:
-                print("d:", distance_to_box, "d:", self.max_tracker_jump / 2 * \
-                        (self.count_holding_vehicles[other_tracker_id] + 1))
-                print(init, trackerID, other_tracker_id)
-
-            if distance_to_box < self.max_tracker_jump / 2 and \
-                    self.count_holding_vehicles[other_tracker_id] == 0:
-                # If the box is close to some other tracker that is not holding, we hold.
-                if self.verbose:
-                    print("conflict no init")
+            if distance_to_box < self.max_tracker_jump / 2:
                 return True
+            if init and self.count_holding_vehicles[other_tracker_id] > 0:
+                # If the box is close to some other tracker that is not holding, we hold.
+                if self.verbose or verbose:
+                    print("merge in init")
+                    print("d:", distance_to_box, "d:", self.max_tracker_jump)
+                return distance_to_box < self.max_tracker_jump
         return False
 
     def increment_holding(self, trackerID):
@@ -269,6 +268,9 @@ class ParticleTracker:
         x_translation = abs(cx_identified - self.centroid_x_previous[trackerID])
         if x_translation > self.max_tracker_jump or \
                 self.is_merge_conflict(trackerID, cx_identified, cy_identified):
+            print("Incrementing holding {}: merge_conflict: ",
+                trackerID,
+                self.is_merge_conflict(trackerID, cx_identified, cy_identified))
             #the bounding box possibly dissapeared
             self.increment_holding(trackerID)
         else:
@@ -290,7 +292,7 @@ class ParticleTracker:
                 print("Box {} with centroid: {}, {}".format(
                     box_index, cx, cy
                 ))
-            if not self.is_merge_conflict(trackerID, cx, cy):
+            if not self.is_merge_conflict(trackerID, cx, cy, init=True):
                 """
                 if the vehicle being probed is holding then we need to be
                 more restrictive because the holding is being done with
@@ -324,9 +326,31 @@ class ParticleTracker:
             print("Returning {} boxes".format(len(boxes_with_labels.keys())))
         return boxes_with_labels
 
+    def print_all_tracker_centroids(self):
+        print("\nStartingToPrintAllCentroids:", self.i)
+        for trackerID in range(self.num_trackers):
+            print("TrackerID:", trackerID)
+            print("Centroid: {}, {}".format(
+                self.centroid_x_previous[trackerID],
+                self.centroid_y_previous[trackerID]
+            ))
+            print("Holding:", self.count_holding_vehicles[trackerID])
+        if self.detections is None: return
+        for box_index in range(len(self.detections)):
+            x1 = self.detections[box_index][1]
+            y1 = self.detections[box_index][0]
+            x2 = self.detections[box_index][3]
+            y2 = self.detections[box_index][2]
+            #centroid of the bounding box
+            cx = (x1 + x2) / 2
+            cy = (y1 + y2) / 2
+            print("Bounding box centroid: {}, {}".format(cx, cy))
+
     def update_all(self, image, boxes, labels=None, verbose=False):
+        self.i += 1
         if type(boxes) == type(None):
             return self.get_boxes()
+        self.print_all_tracker_centroids()
         self.img = image
         self.detections = boxes
         self.verbose = verbose
