@@ -192,24 +192,28 @@ class ParticleTracker:
 
 
     def is_merge_conflict(self, trackerID, cx_identified, cy_identified, init=False):
-        # TODO must something else be done if we want to initialize?
         for other_tracker_id in range(self.num_trackers):
             if other_tracker_id == trackerID or \
                     self.initialized_trackers[trackerID] == 0:
-                # check other trackers
+                # only check other trackers that are initialized
                 continue
             distance_to_box = np.linalg.norm([
                 cx_identified - self.centroid_x_previous[other_tracker_id],
                 cy_identified - self.centroid_y_previous[other_tracker_id]
             ])
             if distance_to_box < self.max_tracker_jump / 2:
-                return True
-            if init and self.count_holding_vehicles[other_tracker_id] > 0:
-                # If the box is close to some other tracker that is not holding, we hold.
-                if self.verbose or verbose:
-                    print("merge in init")
-                    print("d:", distance_to_box, "d:", self.max_tracker_jump)
-                return distance_to_box < self.max_tracker_jump
+                if not init:
+                    # if we want to update our tracker, if we see another tracker
+                    # that is close to this box and not holding, we say it is a conflict
+                    if self.count_holding_vehicles[other_tracker_id] == 0:
+                        return True
+                else:
+                    # If we are thinking about initializing a tracker, we say there is
+                    # a conflict even if the other tracker is holding.
+                    if self.verbose or verbose:
+                        print("merge in init")
+                        print("d:", distance_to_box, "d:", self.max_tracker_jump)
+                    return True
         return False
 
     def increment_holding(self, trackerID):
