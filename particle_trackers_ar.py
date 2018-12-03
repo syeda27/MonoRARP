@@ -242,6 +242,7 @@ class ParticleTracker:
         # TODO move the box by our expected movement, for visualization purposes.
 
     def update_tracker(self, trackerID, cx_identified, cy_identified, box_index):
+        # TODO a better motion model for the tracker, not just constant velocity.
         if self.initialized_trackers[trackerID] == 1:
             self.delta_x_trackers[trackerID] = (
                 cx_identified - self.centroid_x_previous[trackerID]

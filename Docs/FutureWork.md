@@ -10,7 +10,12 @@ TODO: update all documents...
     - Helen Jiang did a great job of working on this, so we still have to incorporate it into this setup somehow.
 * Determine why OpenCV does not take in full FOV and quality input from the webcam
 * Improve the tracking
-    - It does bad on fast moving cars and some other cases.
+    - See file for in-line TODOs
+    - pass in arguments
+    - better motion model
+    - smooth box dimensions over time
+    - scale max box translation / likelihood by the box size.
+    - visualize box movement as it is being held.
 * Improve the object detection.
     - This can be done through improving either the speed or the performance.
     - Maybe a better model will come online, or one of the other TF models works better.
