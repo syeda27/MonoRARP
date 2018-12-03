@@ -14,7 +14,7 @@ class ParticleTracker:
             max_holding=2,
             max_tracker_jump=0.05,
             cov=0.00001,
-            min_allowable_likelihood=-0.25):
+            min_allowable_likelihood=-0.5):
         # num_particles is number of particles.
         # num_trackers is the max number of trackers
         self.num_particles = num_particles
@@ -210,7 +210,7 @@ class ParticleTracker:
                 else:
                     # If we are thinking about initializing a tracker, we say there is
                     # a conflict even if the other tracker is holding.
-                    if self.verbose or verbose:
+                    if self.verbose:
                         print("merge in init")
                         print("d:", distance_to_box, "d:", self.max_tracker_jump)
                     return True
@@ -272,9 +272,11 @@ class ParticleTracker:
         x_translation = abs(cx_identified - self.centroid_x_previous[trackerID])
         if x_translation > self.max_tracker_jump or \
                 self.is_merge_conflict(trackerID, cx_identified, cy_identified):
-            print("Incrementing holding {}: merge_conflict: ",
-                trackerID,
-                self.is_merge_conflict(trackerID, cx_identified, cy_identified))
+            if self.verbose:
+                print("Incrementing holding {}: merge_conflict: {}".format(
+                    trackerID,
+                    self.is_merge_conflict(trackerID, cx_identified, cy_identified))
+                )
             #the bounding box possibly dissapeared
             self.increment_holding(trackerID)
         else:
@@ -296,6 +298,9 @@ class ParticleTracker:
                 print("Box {} with centroid: {}, {}".format(
                     box_index, cx, cy
                 ))
+            if not self.valid_box(x1,y1,x2,y2):
+                # our filtering says we ignore this box.
+                continue
             if not self.is_merge_conflict(trackerID, cx, cy, init=True):
                 """
                 if the vehicle being probed is holding then we need to be
@@ -313,6 +318,12 @@ class ParticleTracker:
                     print("tracker {} created for box {}".format(
                         trackerID, box_index))
                 return
+
+    def valid_box(self, x1, y1, x2, y2):
+        # currently just returns if the box is above the horizon.
+        if y2 < 0.5:
+            return False
+        return True
 
     def reset_all_trackers(self):
         for trackerID in range(self.num_trackers):
@@ -354,12 +365,13 @@ class ParticleTracker:
         self.i += 1
         if type(boxes) == type(None):
             return self.get_boxes()
-        self.print_all_tracker_centroids()
         self.img = image
         self.detections = boxes
         self.verbose = verbose
         self.box_indices = set()
         self.labels = labels
+        if self.verbose:
+            self.print_all_tracker_centroids()
         for trackerID in range(self.num_trackers):
             if self.initialized_trackers[trackerID] == 1:
                 self.update_initialized_tracker(trackerID)
