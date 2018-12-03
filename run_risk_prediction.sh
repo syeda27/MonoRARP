@@ -63,11 +63,11 @@ RELATIVE_HORIZON=0.5         # between 0 and 1
 
 DETECT_LANES='false'
 
-RISK_N_SIMS=1
+RISK_N_SIMS=15
 RISK_H=5        # seconds
 RISK_STEP=0.25  # seconds
 COL_TOL_X=1.0   # meters
-COL_TOL_Y=2.0   # meters
+COL_TOL_Y=1.5   # meters
 TTC_H=1.0       # seconds
 TTC_STEP=0.25   # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
