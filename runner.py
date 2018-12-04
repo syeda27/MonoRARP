@@ -117,6 +117,10 @@ class Runner:
         else:
             print('Press [ESC] to quit demo')
         self.camera = cv2.VideoCapture(input)
+        resolution = (1920, 1080)
+        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
+        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+
         assert self.camera.isOpened(), \
                 'Cannot capture source'
         if self.using_camera:
@@ -221,7 +225,7 @@ class Runner:
                     net_out['detection_classes'][i][np.where(\
                         net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
                     ]
-            '''            
+            '''
             boxes, labels = general_utils.filter_boxes(
                 net_out,
                 self.launcher.all_args.det_thresh,

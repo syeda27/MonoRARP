@@ -26,7 +26,7 @@ SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=0
 #SOURCE=1
 
-SAVE='false'
+SAVE='true'
 #SAVE_PATH=${START_LOC}'/video_yolo_'${YOLO}'.mp4'
 
 # TODO THIS IS WHERE I CHANGE FLAGS FOR PROCESSING PREVIOUSLY SAVED VIDEOS
@@ -36,7 +36,7 @@ SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
 #SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
 #SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
 
-SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_tracker_ex__hold_10.mp4'
+SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_1080p.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
