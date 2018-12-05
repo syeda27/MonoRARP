@@ -25,7 +25,6 @@ sys.path.append(os.path.dirname(__file__))
 
 import tracker
 import display
-import lane_detector
 from driver_risk_utils import argument_utils, general_utils, gps_utils
 
 
@@ -49,18 +48,9 @@ class ThreadedRunner(Runner):
         boxes_with_labels = self.get_detected_objects(0, net_out, image)
         im_h, im_w, _ = image.shape
 
-        if self.lane_detector_object:
-            self.lane_detector_object.handle_image(image)
-            if hasattr(self.lane_detector_object, 'speed_official'):
-                self.state.set_ego_speed_mph(
-                    self.lane_detector_object.speed_official)
-
         self.update_state(boxes_with_labels, im_h, im_w, frame_time)
 
         risk = self.get_risk()
-
-        if self.lane_detector_object:
-            self.lane_detector_object.draw_lane_lines(image)
 
         self.display_obj.update_image(image)
         img = self.display_obj.display_info(
@@ -173,29 +163,6 @@ class ThreadedRunner(Runner):
             self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
-        # Lane Detector
-        if self.launcher.all_args.detect_lanes:
-            print("Creating lane detector")
-            self.lane_detector_object = lane_detector.LaneDetector(
-                scan_x_params=(int(self.width / 4),
-                               self.width - int(self.width / 4),
-                               int(self.width / 30)),
-                scan_y_params=(int(self.height / 21),
-                               int(self.height / 8),
-                               int(self.height / 50)),
-                scan_window_sz=(int(self.width / 18), int(self.height / 20)),
-                subframe_dims=(
-                    int(7*self.height/10), int(17*self.height/20),
-                    0, self.width
-                ),
-                horizontal_tolerance=int(self.width / 75),
-                brightness_ratio_threshold = 1.5,
-                left_margin_detection = int(self.width / 4),
-                right_margin_detection = self.width - int(self.width / 4),
-                average_window = 6
-            )
-        else:
-            self.lane_detector_object = None
 
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")

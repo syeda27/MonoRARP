@@ -23,7 +23,6 @@ import risk_predictor
 import embedded_risk_predictor
 import tracker
 import display
-import lane_detector
 from driver_risk_utils import argument_utils, general_utils, gps_utils
 
 
@@ -54,8 +53,6 @@ class Runner:
 
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
-
-        self.lane_detector_object = lane_detector.LaneDetector()
 
         risk_constructor = risk_predictor.RiskPredictor
         if launcher.all_args.embedded_risk:
@@ -302,8 +299,6 @@ class Runner:
             self.timer.update_end("GetRisk", 1)
             self.timer.update_start("Display")
         self.display_obj.update_image(self.input_buffer[i])
-        if self.lane_detector_object:
-            self.lane_detector_object.draw_lane_lines(self.input_buffer[i])
         img = self.display_obj.display_info(
                 self.state.get_current_states_quantities(),
                 risk,
@@ -334,11 +329,6 @@ class Runner:
         if profile:
             self.timer = general_utils.Timing()
             self.timer.update_start("AllCalls")
-
-        if self.lane_detector_object:
-            self.lane_detector_object.handle_image(self.input_buffer[0])
-            if hasattr(self.lane_detector_object, 'speed_official'):
-                self.state.set_ego_speed_mph(self.lane_detector_object.speed_official)
 
         self.tracker_obj.update_if_init(self.elapsed)
         self.tracker_obj.check_and_reset_multitracker(self.state)
@@ -421,22 +411,6 @@ class Runner:
             self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
-        # Lane Detector
-        print("Using lane detector:", self.launcher.all_args.detect_lanes)
-        if self.launcher.all_args.detect_lanes:
-            print("Creating lane detector")
-            self.lane_detector_object = lane_detector.LaneDetector(
-                scan_x_params=(int(self.width / 1),
-                               int(2*self.width / 2),
-                               int(self.width / 20)),
-                scan_y_params=(self.height,
-                               int(self.height * 1),
-                               int(self.height / 1)),
-                scan_window_sz=(int(self.width / 1), int(self.height / 1)),
-                subframe_dims=(0, -1, 0, -1)
-            )
-        else:
-            self.lane_detector_object = None
 
         # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:
