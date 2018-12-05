@@ -99,7 +99,7 @@ else
     fi
     cd $TF_LOC
 
-    python3 $(echo $START_LOC)/run_risk_prediction.py \
+    python3 $(echo $START_LOC)/launcher.py \
         --source $SOURCE --model $MODEL --device $DEVICE \
         --save $SAVE --save_path $SAVE_PATH \
         --focal $FOCAL --carW $CAR_WIDTH \
