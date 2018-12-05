@@ -51,7 +51,7 @@ ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
 LANE_BASED_SPEED='true'
 
 DEVICE='/gpu:0'
-THREADED_RUNNER='B'          # The runner-level threading method, or 'None'
+THREADED_RUNNER='None'          # The runner-level threading method, or 'None'
 THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
 THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
 THREAD_MAX_WAIT=0.5          # maximum amount of time to block on a queue, sec.

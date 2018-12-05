@@ -46,13 +46,12 @@ class ParticleTracker:
         self.centroid_x_previous=np.zeros(num_trackers)
         self.centroid_y_previous=np.zeros(num_trackers)
 
-        # to be defined in create
         self.img = None
         self.detections = None
         self.box_indices = set()
 
         self.display = False # TODO args
-
+        self.verbose = False
         self.i = 1
 
     def _display_trackers(self, trackerID, identified):

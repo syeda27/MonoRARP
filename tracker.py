@@ -55,8 +55,6 @@ class Tracker:
         self.horizon = args.horizon
         self.category_index = category_index
 
-        self.needs_boxes = False
-
     def _create_multi_tracker(self):
         """
         Set the internal self.multi_tracker variable to one of the wrappers
@@ -68,10 +66,15 @@ class Tracker:
             )
         elif self.tracker_type == "Particle":
             self.multi_tracker = multi_trackers.ParticleTrackerWrapper()
-            self.needs_boxes = True
-                # TODO update args
+            # TODO update args
         else:
             tracker_utils.raise_undefined_tracker_type(self.tracker_type)
+
+    def needs_boxes(self):
+        """ returns true if the tracker always needs object detections to run"""
+        return(self.tracker_type in {
+            "Particle"
+        })
 
     def update_if_init(self, elapsed_frames):
         """
