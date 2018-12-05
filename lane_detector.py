@@ -238,7 +238,7 @@ class LaneDetector:
             filtering.filtering_w(self)
 
             ######## ABSOLUTE SPEED DETERMINATION ########
-            #absolute_speed.abs_speed_wrapper(self)
+            absolute_speed.abs_speed_wrapper(self)
 
             ######## RECORDING OF CURRENTLY DETECTED LANES ########
             self.mux_lane_vec_final2_previous = self.mux_lane_vec_final2
