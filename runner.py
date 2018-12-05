@@ -23,7 +23,8 @@ import risk_predictor
 import embedded_risk_predictor
 import tracker
 import display
-from driver_risk_utils import argument_utils, general_utils, gps_utils
+import speed_estimator
+from driver_risk_utils import argument_utils, general_utils
 
 
 class Runner:
@@ -47,9 +48,7 @@ class Runner:
         """
         self.launcher = launcher
         self.sess = sess
-        self.gps_interface = None
-        if launcher.all_args.use_gps:
-            self.gps_interface = gps_utils.GPS_Interface(launcher.all_args.gps_source)
+        self.speed_interface = speed_estimator.SpeedEstimator(self.launcher.all_args)
 
         self.state = state_history.StateHistory()
         self.state.set_ego_speed_mph(35)
@@ -329,6 +328,7 @@ class Runner:
         if profile:
             self.timer = general_utils.Timing()
             self.timer.update_start("AllCalls")
+        self.speed_interface.update_estimates(self.input_buffer[0], frame_time)
 
         self.tracker_obj.update_if_init(self.elapsed)
         self.tracker_obj.check_and_reset_multitracker(self.state)
@@ -366,8 +366,7 @@ class Runner:
             ))
             return
 
-        if self.launcher.all_args.use_gps:
-            self.state.set_ego_speed(self.gps_interface.get_reading())
+        self.state.set_ego_speed(self.speed_interface.get_reading())
 
         self.read_image()
         if self.done: return
