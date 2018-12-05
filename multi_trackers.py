@@ -6,8 +6,6 @@ for extension multiobject trackers.
 
 import cv2
 from driver_risk_utils import general_utils, tracker_utils
-#import particle_tracker as pt # TODO
-import particle_tracker_dp as particle_tracker_dp
 import particle_trackers_ar as particle_tracker
 
 class MultiTrackerWrapper:
