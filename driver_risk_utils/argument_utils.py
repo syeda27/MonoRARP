@@ -18,13 +18,15 @@ def add_camera_args(parser):
     parser.add_argument("--horizon", type=float,
             default=defaults.HORIZON)
 
-def add_gps_args(parser):
+def add_speed_args(parser):
     parser.add_argument("--use_gps", type=str2bool,
             default=defaults.USE_GPS)
     parser.add_argument("--gps_source", type=str,
             default=defaults.GPS_SOURCE)
     parser.add_argument("--accept_speed", type=str2bool,
             default=defaults.ACCEPT_SPEED)
+    parser.add_argument("--lane_based_speed", type=str2bool,
+            default=defaults.LANE_BASED_SPEED)
 
 def add_tracker_args(parser):
     parser.add_argument("--tracker_refresh", type=int,
@@ -32,6 +34,7 @@ def add_tracker_args(parser):
     parser.add_argument("--track", type=str2bool,
             default=defaults.DO_TRACKING)
     parser.add_argument("--tracker_type", type=str, default=defaults.TRACKER_TYPE)
+
 def add_input_output_args(parser):
     parser.add_argument("--source", type=str,
             default=defaults.SOURCE)
@@ -97,7 +100,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     add_camera_args(parser)
     add_tracker_args(parser)
-    add_gps_args(parser)
+    add_speed_args(parser)
     add_input_output_args(parser)
     add_lane_detection_args(parser)
     add_general_args(parser)

@@ -24,6 +24,8 @@ def test_default_args():
     assert args.use_gps == argument_utils.str2bool(defaults.USE_GPS)
     assert args.gps_source == defaults.GPS_SOURCE
     assert args.accept_speed == argument_utils.str2bool(defaults.ACCEPT_SPEED)
+    assert args.lane_based_speed == argument_utils.str2bool(defaults.LANE_BASED_SPEED)
+
 
     assert args.tracker_refresh == defaults.TRACKER_FORCE_REFRESH_EVERY_N_FRAMES
     assert args.track == argument_utils.str2bool(defaults.DO_TRACKING)

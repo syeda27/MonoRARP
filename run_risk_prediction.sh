@@ -47,7 +47,9 @@ DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
-                             # Speeds input by the user overwrite the gps reading
+                             # Speeds input by the user overwrites other readings
+LANE_BASED_SPEED='true'
+
 DEVICE='/gpu:0'
 THREADED_RUNNER='B'          # The runner-level threading method, or 'None'
 THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
@@ -106,6 +108,7 @@ else
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
+        --lane_based_speed $LANE_BASED_SPEED \
         --accept_speed $ACCEPT_SPEED --detect_lanes $DETECT_LANES \
         --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
         --ttc_H $TTC_H --ttc_step $TTC_STEP \
