@@ -2,6 +2,10 @@
 A slight variant of particle_trackers_ar, although it still needs some testing
 as it seems like there are a few times when multiple trackers correspond to
 the same object, which is unfortunate. Probably a small bug somewhere.
+
+This is unused currently.
+
+Author: Derek Phillips. Hence the name.
 """
 
 
