@@ -16,6 +16,7 @@ TODO: update all documents...
     - smooth box dimensions over time
     - scale max box translation / likelihood by the box size.
     - visualize box movement as it is being held.
+* Display with units (and make sure all the same system...)
 * Improve the object detection.
     - This can be done through improving either the speed or the performance.
     - Maybe a better model will come online, or one of the other TF models works better.

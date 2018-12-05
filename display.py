@@ -19,6 +19,8 @@ class Display:
             self.imgcv = im
         self.d_args.set_im(self.imgcv)
 
+    # TODO display object info with units!! Currently ego speed in mph,
+    # everything else in metric...
     def display_info(self,
                      state,
                      risk,
