@@ -119,7 +119,7 @@ class ThreadedRunner(Runner):
         self.elapsed += 1
         self.fps = general_utils.get_fps(self.start_loop, self.elapsed)
         if self.launcher.all_args.use_gps:
-            self.state.set_ego_speed(self.launcher.gps_interface.get_reading())
+            self.state.set_ego_speed(self.gps_interface.get_reading())
 
         _, image_np = self.camera.read()
         if image_np is None:

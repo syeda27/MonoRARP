@@ -367,7 +367,7 @@ class Runner:
             return
 
         if self.launcher.all_args.use_gps:
-            self.state.set_ego_speed(self.launcher.gps_interface.get_reading())
+            self.state.set_ego_speed(self.gps_interface.get_reading())
 
         self.read_image()
         if self.done: return
