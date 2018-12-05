@@ -213,7 +213,8 @@ class ThreadedRunner(Runner):
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
 
-        self.sep_obj_det = True
+        self.sep_obj_det = self.using_camera
+        # when live video, we can run speed calcs in separate thread than obj det.
         self.spawn_threads(queue_len=self.thread_queue_size)
 
         self.start_loop = time.time()
