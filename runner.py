@@ -71,6 +71,7 @@ class Runner:
         self.thread_queue_size = launcher.all_args.thread_queue_size
         self.thread_wait_time = launcher.all_args.thread_wait_time
         self.thread_max_wait = launcher.all_args.thread_max_wait
+        self.frames_ran_obj_det_on = 0
 
     def reset_vars(self):
         """
@@ -328,6 +329,7 @@ class Runner:
         if profile:
             self.timer = general_utils.Timing()
             self.timer.update_start("AllCalls")
+
         self.speed_interface.update_estimates(self.input_buffer[0], frame_time)
 
         self.tracker_obj.update_if_init(self.elapsed)

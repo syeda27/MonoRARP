@@ -92,17 +92,27 @@ class ThreadedRunner(Runner):
                 process_detections_elapsed += 1
 
     def spawn_threads(self, queue_len=3):
+        if self.sep_obj_det:
+            self.image_queue = queue.Queue(1)
+            self.object_detection = threading.Thread(
+                target=self.run_obj_det, name="obj_det", args=([
+                    self.thread_wait_time,
+                    self.thread_max_wait]), kwargs={}
+            )
+            self.object_detection.start()
+
         self.num_dropped = 0
         self.thread_queue = queue.Queue(queue_len)
-        #self.thread1 = threading.Thread(
-        #    target=thread1_fn, name="thread1", args=(), kwargs={})
         self.process_detections = threading.Thread(
             target=self.process_detections_fn, name="process_detections", args=([0.1]), kwargs={})
-
-        #self.thread1.start()
         self.process_detections.start()
 
     def block_for_queue(self, max_wait, wait_time):
+        """
+        Wait for the thread queue to not be full.
+        If we reach the max weight time and the thread queue (which is output)
+        is still full, we remove an element from it.
+        """
         if not self.thread_queue.full(): return False
         start = time.time()
         while self.thread_queue.full() and time.time() - start < max_wait:
@@ -112,25 +122,33 @@ class ThreadedRunner(Runner):
             return True
         return False
 
-    def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
-        """
-        This is Thread1 from method B
-        """
-        self.elapsed += 1
-        self.fps = general_utils.get_fps(self.start_loop, self.elapsed)
-        if self.launcher.all_args.use_gps:
-            self.state.set_ego_speed(self.gps_interface.get_reading())
+    def run_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
+        while not self.done or not self.thread_queue.empty():
+            self.fps = general_utils.get_fps(self.start_loop, self.frames_ran_obj_det_on)
+            start = time.time()
+            while self.image_queue.empty():
+                if verbose:
+                    print("image queue empty", wait_time)
+                if self.done: return
+                if time.time() - start >= max_wait:
+                    print("Error, waited too long for an image in object detection thread.")
+                    return
+                time.sleep(wait_time)
+            # get image and frame time frome queue
+            image_np, frame_time = self.image_queue.get()
+            self.obj_det_on_image(image_np, frame_time, wait_time, max_wait, verbose)
 
-        _, image_np = self.camera.read()
-        if image_np is None:
-            print('\nEnd of Video')
-            self.done = True
-            return
-
+    def obj_det_on_image(
+            self, image_np, frame_time,
+            wait_time=0.05, max_wait=0.5,
+            verbose=False):
         net_out = self.sess.run(
             self.tensor_dict,
             feed_dict={self.image_tensor: [image_np]}
         )
+        if verbose:
+            print("net out run")
+        self.frames_ran_obj_det_on += 1
         # update queue
         image_was_removed = self.block_for_queue(max_wait, wait_time)
         if image_was_removed:
@@ -138,7 +156,35 @@ class ThreadedRunner(Runner):
             if verbose:
                 print("Blocked for too long, image {} removed.".format(
                     self.elapsed - self.thread_queue_size))
-        self.thread_queue.put((image_np, net_out, time.time()))
+        self.thread_queue.put((image_np, net_out, frame_time))
+
+
+    def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
+        """
+        This is the main thread, aka not a seperately spawned thread
+        """
+        self.elapsed += 1
+        self.highest_fps = general_utils.get_fps(self.start_loop, self.elapsed)
+
+        _, image_np = self.camera.read()
+        frame_time = time.time()
+        if image_np is None:
+            print('\nEnd of Video')
+            self.done = True
+            return
+
+        if self.sep_obj_det:
+            # put image and frame_time in image_queue
+            if self.image_queue.full():
+                self.image_queue.get()
+            self.image_queue.put((image_np, frame_time))
+        else:
+            self.obj_det_on_image(image_np, frame_time, wait_time, max_wait)
+            self.fps = general_utils.get_fps(self.start_loop, self.frames_ran_obj_det_on)
+        self.speed_interface.update_estimates(image_np, frame_time)
+        self.state.set_ego_speed(self.speed_interface.get_reading())
+
+        time.sleep(wait_time)
 
     def run(self):
         """
@@ -167,6 +213,7 @@ class ThreadedRunner(Runner):
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
 
+        self.sep_obj_det = True
         self.spawn_threads(queue_len=self.thread_queue_size)
 
         self.start_loop = time.time()
@@ -176,20 +223,25 @@ class ThreadedRunner(Runner):
         self.done = True
 
         #self.thread1.join()
+        if self.sep_obj_det:
+            self.object_detection.join()
         self.process_detections.join()
 
         end = time.time()
         print("Total time: ", end - self.start)
         print("Frames processed: ", self.elapsed)
-        print("Average FPS: ", self.elapsed/(end - self.start))
+        print("Obj Det Frames processed: ", self.frames_ran_obj_det_on)
+        print("Highest FPS: ", self.highest_fps)
+        print("Object Detection Through FPS: ", self.fps)
         print("Dropped frames: ", self.num_dropped)
-        print("True FPS: ", (self.elapsed - self.num_dropped) / (end - self.start))
+        print("True FPS: ", (self.frames_ran_obj_det_on - self.num_dropped) / (end - self.start))
         if self.launcher.all_args.save:
             self.videoWriter.release()
         self.camera.release()
         if self.using_camera:
             cv2.destroyAllWindows()
 
+# TODO update description
 """
 Option A:
 queue of length Q (2)
