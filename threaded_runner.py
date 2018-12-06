@@ -244,55 +244,18 @@ class ThreadedRunner(Runner):
 
 # TODO update description
 """
-Option A:
-queue of length Q (2)
-
-Thread 1:
-while not self.done:
-    read image.
-    send to queue 1
-    update self.done (video ends, etc.)
-    wait for queue 1 to not be full
-
-Thread 2:
-while not self.done or queue not empty:
-    take image from <end of> queue 1
-    <empty queue 1? Need to to stay real time and not lag. Maybe do if
-    queue grows too large??? See thread 5>
-    run object detection
-    <update tracker??. its cpu but thread 3 is already maxed...>
-    send image, net_out to queue 2
-    wait for queue 2 to not be full
-
-Thread 3:
-while not self.done or queue not empty
-    take image, net_out from queue 2.
-    <update tracker. (its cpu)>
-    Get risk from image + boxes.
-    send image, boxes, risk, state to queue 3
-    wait for queue 3 to not be full
-
-Thread 4 (display):
-while not done or queue not empty
-    get box, label, state, risk from queue 3.
-    display image.
-    save image if applicable. etc.
-
-Thread 5 (queue checker):
-while not done or queue not empty:
-    check queues.
-        If full for too long, remove the first image.
-
-"""
-
-"""
-Option B (condensed):
-queue of length Q (2)
-
-Thread 1:
+Main Thread:
 while not self.done:
     read image.
     update self.done (video ends, etc.)
+    speed estimator
+    if live video:
+        overwrite the length 1 image_queue with most recent image
+        let the Object detection thread run
+    else (saved video file):
+        run object detection on current image
+
+Object Det Thread (Optional):
     run object detection
     send image, net_out to queue 2
     wait for queue 2 to not be full
@@ -303,6 +266,7 @@ while not self.done or queue not empty
     take image, net_out from queue 2.
     update tracker. (its cpu).
     Get risk from image + boxes.
+        - this generally involves more threads
     display image.
     save image if applicable. etc.
 
