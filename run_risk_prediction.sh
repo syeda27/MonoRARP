@@ -40,8 +40,8 @@ SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_1080p.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
-TRACKER_TYPE="KCF"     # KCF is opencv version. Particle for ours.
-TRACK_REFRESH=10             # 1 makes no refreshing
+TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
+TRACK_REFRESH=150             # 1 makes no refreshing
 
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
@@ -66,13 +66,13 @@ RELATIVE_HORIZON=0.5         # between 0 and 1
 
 DETECT_LANES='false'
 
-RISK_N_SIMS=15
+RISK_N_SIMS=10
 RISK_H=5        # seconds
-RISK_STEP=0.25  # seconds
-COL_TOL_X=1.0   # meters
-COL_TOL_Y=1.5   # meters
-TTC_H=1.0       # seconds
-TTC_STEP=0.25   # seconds
+RISK_STEP=0.25   # seconds
+COL_TOL_X=1.0    # meters
+COL_TOL_Y=1.5    # meters
+TTC_H=1.0        # seconds
+TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
