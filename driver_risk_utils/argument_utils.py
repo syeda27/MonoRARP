@@ -125,6 +125,6 @@ def do_arg_checks(args):
             'Must pass in a relative horizon position, between 0 and 1'
     assert (not (args.track and args.tracker_type == "KCF" and args.tracker_refresh == 1)), \
         'KCF tracker must refresh'
-    assert (not (args.track and args.tracker_type == "KCF" and args.threaded_runner == 'B')), \
-        'KCF tracker not compatible with threaded runner B'
+    if args.track and args.tracker_type == "KCF" and args.threaded_runner == 'B':
+        print("Warning: KCF tracker not 100% compatible with threaded runner B, and will drop frames.")
     return args

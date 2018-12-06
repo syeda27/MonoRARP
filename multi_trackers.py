@@ -74,6 +74,7 @@ class OpenCVMultiTrackerWrapper(MultiTrackerWrapper):
             print(ok)
         box_with_labels = dict()
         for i,b in enumerate(boxes):
+            if i > len(labels): continue
             box_with_labels[i] = (b, labels[i])
         return ok, box_with_labels
 
