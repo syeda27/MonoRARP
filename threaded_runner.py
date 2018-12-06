@@ -124,7 +124,6 @@ class ThreadedRunner(Runner):
 
     def run_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
         while not self.done or not self.thread_queue.empty():
-            self.fps = general_utils.get_fps(self.start_loop, self.frames_ran_obj_det_on)
             start = time.time()
             while self.image_queue.empty():
                 if verbose:
@@ -149,6 +148,7 @@ class ThreadedRunner(Runner):
         if verbose:
             print("net out run")
         self.frames_ran_obj_det_on += 1
+        self.fps = general_utils.get_fps(self.start_loop, self.frames_ran_obj_det_on)
         # update queue
         image_was_removed = self.block_for_queue(max_wait, wait_time)
         if image_was_removed:
@@ -180,11 +180,17 @@ class ThreadedRunner(Runner):
             self.image_queue.put((image_np, frame_time))
         else:
             self.obj_det_on_image(image_np, frame_time, wait_time, max_wait)
-            self.fps = general_utils.get_fps(self.start_loop, self.frames_ran_obj_det_on)
         self.speed_interface.update_estimates(image_np, frame_time)
         self.state.set_ego_speed(self.speed_interface.get_reading())
-
         time.sleep(wait_time)
+
+    def print_more_timings(self):
+        end = time.time()
+        print("Highest FPS: ", self.highest_fps)
+        print("Object Detection Through FPS: ", self.fps)
+        print("Dropped frames: ", self.num_dropped)
+        print("True FPS: ", (self.elapsed - self.num_dropped) / (end - self.start))
+        print("True Obj Det. FPS: ", (self.frames_ran_obj_det_on - self.num_dropped) / (end - self.start))
 
     def run(self):
         """
@@ -222,20 +228,14 @@ class ThreadedRunner(Runner):
         while self.camera.isOpened() and not self.done:
             self.process_frame(self.thread_max_wait, self.thread_wait_time)
         self.done = True
+        self.print_timings()
+        self.print_more_timings()
 
         #self.thread1.join()
         if self.sep_obj_det:
             self.object_detection.join()
         self.process_detections.join()
 
-        end = time.time()
-        print("Total time: ", end - self.start)
-        print("Frames processed: ", self.elapsed)
-        print("Obj Det Frames processed: ", self.frames_ran_obj_det_on)
-        print("Highest FPS: ", self.highest_fps)
-        print("Object Detection Through FPS: ", self.fps)
-        print("Dropped frames: ", self.num_dropped)
-        print("True FPS: ", (self.frames_ran_obj_det_on - self.num_dropped) / (end - self.start))
         if self.launcher.all_args.save:
             self.videoWriter.release()
         self.camera.release()

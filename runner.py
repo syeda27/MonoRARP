@@ -340,6 +340,7 @@ class Runner:
                 self.timer.update_start("NeuralNet")
             net_out = self.sess.run(self.tensor_dict,
                                     feed_dict={self.image_tensor: self.input_buffer})
+            self.frames_ran_obj_det_on += 1
             if self.timer:
                 self.timer.update_end("NeuralNet", 1)
 
@@ -388,6 +389,13 @@ class Runner:
             except ValueError:
                 print("Please enter a float or integer.")
 
+    def print_timings(self):
+        end = time.time()
+        print("Total time: ", end - self.start)
+        print("Frames processed: ", self.elapsed)
+        print("Obj Det Frames processed: ", self.frames_ran_obj_det_on)
+        print("FPS: ", self.fps)
+
     def run(self):
         """
         The main function for runner.
@@ -422,11 +430,8 @@ class Runner:
         while self.camera.isOpened() and not self.done:
             self.process_frame()
         self.done = True # in case camera closes, but still want to be done.
+        self.print_timings()
 
-        end = time.time()
-        print("Total time: ", end - self.start)
-        print("Frames processed: ", self.elapsed)
-        print("Average FPS: ", self.elapsed/(end - self.start))
         if self.launcher.all_args.save:
             self.videoWriter.release()
         self.camera.release()
