@@ -83,13 +83,6 @@ class Tracker:
         """
         self.init_tracker = elapsed_frames % self.tracker_refresh == 1
 
-    def should_reset(self):
-        """
-        Simple function to AND two internal flags. Used externally, for example
-        in process_queue()
-        """
-        return self.use_tracker and self.init_tracker
-
     def check_and_reset_multitracker(self, state_object):
         """
         If we need to reset the tracker, do so by creating a new multi_tracker
@@ -122,6 +115,7 @@ class Tracker:
             dictionary of object key : tuple of box coordinates and class label
         """
         boxes_with_labels = dict()
+        boxes = None
         if net_out is not None:
             boxes = net_out['detection_boxes'][image_index][np.where(\
                     net_out['detection_scores'][image_index] >= self.det_thresh)]

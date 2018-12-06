@@ -123,5 +123,6 @@ def do_arg_checks(args):
         args.source = int(args.source)
         assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
             'Must pass in a relative horizon position, between 0 and 1'
-
+    assert (not (args.track and args.tracker_type == "KCF" and args.tracker_refresh == 1)), \
+        'KCF tracker must refresh'
     return args
