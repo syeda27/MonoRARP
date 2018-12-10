@@ -1,0 +1,3 @@
+
+g++ -o line_detection_main_videoHwy101_only_speed_and_lane2_class `pkg-config opencv --cflags` line_detection_main_videoHwy101_only_speed_and_lane2_class.cpp speed_estimation_initialization.cpp speed_estimation_update.cpp speed_estimation_whitemark_detection_and_speed_calculation.cpp speed_estimation_get_speed.cpp `pkg-config opencv --libs`
+
