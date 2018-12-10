@@ -55,7 +55,7 @@ class Scene:
                 "delta_b": 0
                 }
         self.variances = {
-                "des_v": 5,    # first IDM
+                "des_v": 1.0,    # first IDM
                 "hdwy_t": 0.25,
                 "min_gap": 0.25,
                 "accel": 0.2,
