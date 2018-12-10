@@ -6,6 +6,7 @@ TODO: update all documents...
 # Improvements to make
 * Prioritize these improvements
 * just wrap the detector in a class!
+* Clean up organization a bit. Everything isnt a util... make a bin/ folder. 
 * Continue cleaning up code, especially tracker and lane detector.
 * Improve the tracking
     - See file for in-line TODOs
