@@ -20,11 +20,6 @@ class SpeedEstimator():
             default_speed=35,
             verbose=False):
         """
-        Important args:
-            independent_source_for_lane
-            - when True, the lane speed estimator opens its own version of the source
-              input so that
-
         Speed in meters per second
         """
         self.use_gps = launcher_args.use_gps
@@ -44,6 +39,9 @@ class SpeedEstimator():
             self.lane_based_speed_interface.handle_image(image, frame_time)
 
     def get_reading(self):
+        """
+        Returns average speed among active estimation methods in meters / second
+        """
         speed = []
         if self.use_gps:
             speed.append(self.gps_interface.get_reading())

@@ -80,9 +80,9 @@ class LaneMarkingSpeedEstimator():
         self.angle_lanes = np.zeros(40)
 
     def handle_image(self, image, frame_time):
-        # frame time is necessary for speed calcs...
-        speed = 25
-        return speed
+        # frame time is necessary for speed calcs
+        self.speed = 25
+        return
         self.img = image
         self.img_subframe = self.img[
             self.subframe_dims[0]:self.subframe_dims[1],
@@ -99,7 +99,9 @@ class LaneMarkingSpeedEstimator():
         self.image_number += 1
 
     def get_speed(self):
-        # should retunr speed in meters per second.
+        """
+        return speed in meters per second
+        """
         return self.speed
 
     def _do_line_segments(self):

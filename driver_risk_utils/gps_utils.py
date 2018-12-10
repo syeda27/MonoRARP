@@ -124,6 +124,9 @@ class GPS_Interface:
             return (-1, -1, -1)
 
     def calc_speed(self, time, lat, lon, verbose=False):
+        """
+        Since distance is meters, this returns meters/second
+        """
         if len(self.last_readings) == 0:
             if verbose:
                 print("No prior readings.")
