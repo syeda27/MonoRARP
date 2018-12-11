@@ -169,4 +169,9 @@ class Speed_estimator
 
     int any;
 
+    void hello_world() {
+        // a helpful function for debugging the interface.
+        cout<<"Hello!"<<endl;
+    }
+
 };
