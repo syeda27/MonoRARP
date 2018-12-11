@@ -18,17 +18,11 @@ class Speed_estimator
 {
     public:
 
-    void Speed_estimator_update(string, int);
-    void Speed_estimator_update(Mat img, int image_number);
+    void Speed_estimator_update(string, int image_number);
+    void Speed_estimator_update(Mat img, double image_time);
 
     void absolute_speed_estimation(double &speed,int &road_nomark,int &capture_frameindex_for_speed,int &frameindex_for_speed,int &white_mark_hit,int &speed_read_flag,int &count_scanned_lines_reverse_for_speed,int &count_scanned_lines_for_speed,int &offset,int &offset_at_end_of_mark,int &offset_at_middle_of_mark,double muy_lane_vec_speed,double mux_lane_vec_speed,double base_ptx_lane_vec_speed,double base_pty_lane_vec_speed,int h1,int frameindex_for_speed_previous,int image_number,int count_scanned_lines_reverse_for_speed_previous,int count_scanned_lines_for_speed_previous,double offset_adjustment,int range_adjustment_left,int range_adjustment_right,Mat &img6,Mat &img2);
-    void absolute_speed_estimation(int image_number,
-      double muy_lane_vec_speed,
-      double mux_lane_vec_speed,
-      double base_ptx_lane_vec_speed,
-      double base_pty_lane_vec_speed,
-      Mat &img6,
-      Mat &img2);
+    void absolute_speed_estimation(double &speed,int &road_nomark,int &capture_frameindex_for_speed,double &frametime,int &white_mark_hit,int &speed_read_flag,int &count_scanned_lines_reverse_for_speed,int &count_scanned_lines_for_speed,int &offset,int &offset_at_end_of_mark,int &offset_at_middle_of_mark,double muy_lane_vec_speed,double mux_lane_vec_speed,double base_ptx_lane_vec_speed,double base_pty_lane_vec_speed,int h1,double frametime_previous,double image_time,int count_scanned_lines_reverse_for_speed_previous,int count_scanned_lines_for_speed_previous,double offset_adjustment,int range_adjustment_left,int range_adjustment_right,Mat &img6,Mat &img2);
 
     double get_speed();
 
@@ -46,6 +40,8 @@ class Speed_estimator
     int capture_frameindex_for_speed;
     int frameindex_for_speed_previous;
     int frameindex_for_speed;
+    double frametime_previous = 0;
+    double frametime = 0;
     int count_scanned_lines_reverse_for_speed_previous;
     int count_scanned_lines_reverse_for_speed;
     int count_scanned_lines_for_speed_previous;
@@ -58,6 +54,8 @@ class Speed_estimator
     int capture_frameindex_for_speed_1;
     int frameindex_for_speed_previous_1;
     int frameindex_for_speed_1;
+    double frametime_previous_1 = 0;
+    double frametime_1 = 0;
     int count_scanned_lines_reverse_for_speed_previous_1;
     int count_scanned_lines_reverse_for_speed_1;
     int count_scanned_lines_for_speed_previous_1;

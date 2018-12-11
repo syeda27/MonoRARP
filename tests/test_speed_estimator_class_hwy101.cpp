@@ -3,6 +3,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
+#include <chrono>
 #include "iostream"
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -33,12 +35,16 @@ int main(int argc, char const *argv[]) {
         cout<<"speed_reading: "<<speed_reading<<endl;
     }
     */
+    clock_t start = clock();
     for (int image_number=2700; image_number<=2800 ;image_number++) {
+        double cur_time = double(clock() - start) / CLOCKS_PER_SEC;
+        cout << cur_time << endl;
         string file_name = folder_name+to_string(image_number)+".jpg";
         Mat img3 = imread(file_name.c_str());
-        speed_est.Speed_estimator_update(img3, image_number);
+        speed_est.Speed_estimator_update(img3, cur_time);
         speed_reading = speed_est.get_speed();
         cout<<"speed_reading: "<<speed_reading<<endl;
     }
+    cout << "took " <<  double(clock() - start) / CLOCKS_PER_SEC << " seconds." << endl;
     return 0;
 }

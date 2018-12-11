@@ -24,7 +24,7 @@ using namespace cv;
  *   img3: color version on an image
  *   time: double of the time in seconds that the image was recorded
  */
-void Speed_estimator::Speed_estimator_update(Mat img3, int image_number)
+void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
 {
         Mat img;
         cv::cvtColor(img3, img, CV_BGR2GRAY);
@@ -62,7 +62,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, int image_number)
         //#Speed on left track (group2)
         speed_read_flag=0;
 
-        Speed_estimator::absolute_speed_estimation(image_number, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, img6, img2);
+        Speed_estimator::absolute_speed_estimation( speed, road_nomark, capture_frameindex_for_speed, frameindex_for_speed, white_mark_hit, speed_read_flag, count_scanned_lines_reverse_for_speed, count_scanned_lines_for_speed, offset, offset_at_end_of_mark, offset_at_middle_of_mark, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, h1, frameindex_for_speed_previous, image_time, count_scanned_lines_reverse_for_speed_previous, count_scanned_lines_for_speed_previous, offset_adjustment, range_adjustment_left, range_adjustment_right, img6, img2);
 
         //cout<<"speed_read_flag "<<speed_read_flag<<endl;
         //cout<<"white_mark_hit "<<white_mark_hit<<endl;
@@ -234,7 +234,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, int image_number)
         //#Speed on right track (group1)
         speed_read_flag_1=0;
 
-        Speed_estimator::absolute_speed_estimation( speed_1, road_nomark_1, capture_frameindex_for_speed_1, frameindex_for_speed_1, white_mark_hit_1, speed_read_flag_1, count_scanned_lines_reverse_for_speed_1, count_scanned_lines_for_speed_1, offset_1, offset_at_end_of_mark_1, offset_at_middle_of_mark_1, muy_lane_vec_final1_speed_permanent, mux_lane_vec_final1_speed_permanent, base_ptx_lane_vec_final1_speed_permanent, base_pty_lane_vec_final1_speed_permanent, h1, frameindex_for_speed_previous_1, image_number, count_scanned_lines_reverse_for_speed_previous_1, count_scanned_lines_for_speed_previous_1, offset_adjustment_1, range_adjustment_left_1, range_adjustment_right_1, img6, img2);
+        Speed_estimator::absolute_speed_estimation( speed_1, road_nomark_1, capture_frameindex_for_speed_1, frameindex_for_speed_1, white_mark_hit_1, speed_read_flag_1, count_scanned_lines_reverse_for_speed_1, count_scanned_lines_for_speed_1, offset_1, offset_at_end_of_mark_1, offset_at_middle_of_mark_1, muy_lane_vec_final1_speed_permanent, mux_lane_vec_final1_speed_permanent, base_ptx_lane_vec_final1_speed_permanent, base_pty_lane_vec_final1_speed_permanent, h1, frameindex_for_speed_previous_1, image_time, count_scanned_lines_reverse_for_speed_previous_1, count_scanned_lines_for_speed_previous_1, offset_adjustment_1, range_adjustment_left_1, range_adjustment_right_1, img6, img2);
 
         //cout<<"speed_read_flag "<<speed_read_flag<<endl;
         //cout<<"white_mark_hit "<<white_mark_hit<<endl;
@@ -394,7 +394,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, int image_number)
             speed_text="Speed: "+to_string(int(speed_official))+" miles/hr";
             putText(img7,speed_text.c_str(), Point(250,150), FONT_HERSHEY_SIMPLEX, 4, Scalar(255,255,255),2,LINE_AA);
         }
-        cout<<"TIME: "<<image_number/30<<endl;
+        cout<<"TIME: "<<image_time<<endl;
         namedWindow("frame", WINDOW_NORMAL);
         imshow("frame",img7);
         waitKey(1);

@@ -19,13 +19,7 @@ using namespace cv;
 
 
 void
- Speed_estimator::absolute_speed_estimation(int image_number,
-   double muy_lane_vec_speed,
-   double mux_lane_vec_speed,
-   double base_ptx_lane_vec_speed,
-   double base_pty_lane_vec_speed,
-   Mat &img6,
-   Mat &img2)
+ Speed_estimator::absolute_speed_estimation(double &speed,int &road_nomark,int &capture_frameindex_for_speed,double &frametime,int &white_mark_hit,int &speed_read_flag,int &count_scanned_lines_reverse_for_speed,int &count_scanned_lines_for_speed,int &offset,int &offset_at_end_of_mark,int &offset_at_middle_of_mark,double muy_lane_vec_speed,double mux_lane_vec_speed,double base_ptx_lane_vec_speed,double base_pty_lane_vec_speed,int h1,double frametime_previous,double image_time,int count_scanned_lines_reverse_for_speed_previous,int count_scanned_lines_for_speed_previous,double offset_adjustment,int range_adjustment_left,int range_adjustment_right,Mat &img6,Mat &img2)
 {
 
    double Lintersection;
@@ -52,7 +46,6 @@ void
    offset_at_end_of_mark=0;
    offset_at_middle_of_mark=-1000;
    int any;
-
 
    //#Intersection between the Lane and the marker
    Lintersection=(0.7*h1-base_pty_lane_vec_speed)/muy_lane_vec_speed;
@@ -196,17 +189,17 @@ void
                 if ((capture_frameindex_for_speed==0) && (count_scanned_lines+count_scanned_lines_reverse>=40))
                 {
                     white_mark_hit=1;
-                    frameindex_for_speed=image_number;
+                    frametime=image_time;
                     count_scanned_lines_reverse_for_speed=count_scanned_lines_reverse;
                     count_scanned_lines_for_speed=count_scanned_lines;
                     capture_frameindex_for_speed=1;
 
-                    if (frameindex_for_speed_previous!=0)
+                    if (frametime_previous!=0)
                     {
 
-                        time_b=double(frameindex_for_speed-frameindex_for_speed_previous)/30;
-                        //cout<<"frameindex_for_speed "<<frameindex_for_speed<<endl;
-                        //cout<<"frameindex_for_speed_previous "<<frameindex_for_speed_previous<<endl;
+                        time_b=double(frametime-frametime_previous);
+                        //cout<<"frametime "<<frametime<<endl;
+                        //cout<<"frametime_previous "<<frametime_previous<<endl;
                         //cout<<"time "<<time_b<<endl;
                         //cin>>any;
                         speed=(40/time_b)*0.682;
