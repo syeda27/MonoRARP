@@ -62,7 +62,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, int image_number)
         //#Speed on left track (group2)
         speed_read_flag=0;
 
-        Speed_estimator::absolute_speed_estimation( speed, road_nomark, capture_frameindex_for_speed, frameindex_for_speed, white_mark_hit, speed_read_flag, count_scanned_lines_reverse_for_speed, count_scanned_lines_for_speed, offset, offset_at_end_of_mark, offset_at_middle_of_mark, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, h1, frameindex_for_speed_previous, image_number, count_scanned_lines_reverse_for_speed_previous, count_scanned_lines_for_speed_previous, offset_adjustment, range_adjustment_left, range_adjustment_right, img6, img2);
+        Speed_estimator::absolute_speed_estimation(image_number, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, img6, img2);
 
         //cout<<"speed_read_flag "<<speed_read_flag<<endl;
         //cout<<"white_mark_hit "<<white_mark_hit<<endl;
