@@ -12,4 +12,4 @@ g++ -std=c++11 -o \
   ../speed_estimator_utils/speed_estimation_get_speed.cpp \
   `pkg-config opencv --libs`
 
-./test_speed_estimator_class_hwy101.out
+time ./test_speed_estimator_class_hwy101.out

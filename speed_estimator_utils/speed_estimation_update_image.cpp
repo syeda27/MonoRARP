@@ -62,13 +62,13 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
         //#Speed on left track (group2)
         speed_read_flag=0;
 
-        Speed_estimator::absolute_speed_estimation( speed, road_nomark, capture_frameindex_for_speed, frameindex_for_speed, white_mark_hit, speed_read_flag, count_scanned_lines_reverse_for_speed, count_scanned_lines_for_speed, offset, offset_at_end_of_mark, offset_at_middle_of_mark, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, h1, frameindex_for_speed_previous, image_time, count_scanned_lines_reverse_for_speed_previous, count_scanned_lines_for_speed_previous, offset_adjustment, range_adjustment_left, range_adjustment_right, img6, img2);
+        Speed_estimator::absolute_speed_estimation_time( speed, road_nomark, capture_frameindex_for_speed, frametime, white_mark_hit, speed_read_flag, count_scanned_lines_reverse_for_speed, count_scanned_lines_for_speed, offset, offset_at_end_of_mark, offset_at_middle_of_mark, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, h1, frametime_previous, image_time, count_scanned_lines_reverse_for_speed_previous, count_scanned_lines_for_speed_previous, offset_adjustment, range_adjustment_left, range_adjustment_right, img6, img2);
 
         //cout<<"speed_read_flag "<<speed_read_flag<<endl;
         //cout<<"white_mark_hit "<<white_mark_hit<<endl;
         //cout<<"road_nomark "<<road_nomark<<endl;
         //cout<<"count_road_nomark "<<count_road_nomark<<endl;
-        //cout<<"frameindex_for_speed "<<frameindex_for_speed<<endl;
+        //cout<<"frametime "<<frametime<<endl;
         //cin>>any;
 
         if (speed_read_flag==1)
@@ -76,8 +76,8 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
             speed_official=speed;
             first_reading_available_flag=1;
             //cout<<"speed_read_flag"<<speed_read_flag<<endl;
-            //cout<<"frameindex_for_speed "<<frameindex_for_speed<<endl;
-            //cout<<"frameindex_for_speed_previous: "<<frameindex_for_speed_previous<<endl;
+            //cout<<"frametime "<<frametime<<endl;
+            //cout<<"frametime_previous: "<<frametime_previous<<endl;
             //cin>>any;
         }
 
@@ -92,7 +92,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
             white_mark_hit=0;
             count_road_nomark=0;
             capture_frameindex_for_speed=0;
-            frameindex_for_speed_previous=frameindex_for_speed;
+            frametime_previous=frametime;
             count_scanned_lines_reverse_for_speed_previous=count_scanned_lines_reverse_for_speed;
             count_scanned_lines_for_speed_previous=count_scanned_lines_for_speed;
         }
@@ -234,7 +234,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
         //#Speed on right track (group1)
         speed_read_flag_1=0;
 
-        Speed_estimator::absolute_speed_estimation( speed_1, road_nomark_1, capture_frameindex_for_speed_1, frameindex_for_speed_1, white_mark_hit_1, speed_read_flag_1, count_scanned_lines_reverse_for_speed_1, count_scanned_lines_for_speed_1, offset_1, offset_at_end_of_mark_1, offset_at_middle_of_mark_1, muy_lane_vec_final1_speed_permanent, mux_lane_vec_final1_speed_permanent, base_ptx_lane_vec_final1_speed_permanent, base_pty_lane_vec_final1_speed_permanent, h1, frameindex_for_speed_previous_1, image_time, count_scanned_lines_reverse_for_speed_previous_1, count_scanned_lines_for_speed_previous_1, offset_adjustment_1, range_adjustment_left_1, range_adjustment_right_1, img6, img2);
+        Speed_estimator::absolute_speed_estimation_time( speed_1, road_nomark_1, capture_frameindex_for_speed_1, frametime_1, white_mark_hit_1, speed_read_flag_1, count_scanned_lines_reverse_for_speed_1, count_scanned_lines_for_speed_1, offset_1, offset_at_end_of_mark_1, offset_at_middle_of_mark_1, muy_lane_vec_final1_speed_permanent, mux_lane_vec_final1_speed_permanent, base_ptx_lane_vec_final1_speed_permanent, base_pty_lane_vec_final1_speed_permanent, h1, frametime_previous_1, image_time, count_scanned_lines_reverse_for_speed_previous_1, count_scanned_lines_for_speed_previous_1, offset_adjustment_1, range_adjustment_left_1, range_adjustment_right_1, img6, img2);
 
         //cout<<"speed_read_flag "<<speed_read_flag<<endl;
         //cout<<"white_mark_hit "<<white_mark_hit<<endl;
@@ -260,7 +260,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
             white_mark_hit_1=0;
             count_road_nomark_1=0;
             capture_frameindex_for_speed_1=0;
-            frameindex_for_speed_previous_1=frameindex_for_speed_1;
+            frametime_previous_1=frametime_1;
             count_scanned_lines_reverse_for_speed_previous_1=count_scanned_lines_reverse_for_speed_1;
             count_scanned_lines_for_speed_previous_1=count_scanned_lines_for_speed_1;
         }
