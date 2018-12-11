@@ -17,6 +17,7 @@ using namespace cv;
 
 Speed_estimator::Speed_estimator()
 {
+    // TODO: args
 
 
     white_mark_hit=0;
@@ -63,7 +64,7 @@ Speed_estimator::Speed_estimator()
     base_pty_lane_vec_final2_previous=0;
 
 
-    initial_frame_was_processed_flag=0;  
+    initial_frame_was_processed_flag=0;
 
     first_reading_available_flag=0;
 
@@ -111,4 +112,9 @@ Speed_estimator::Speed_estimator()
     Right_lane_available_display=0;
 
 
+}
+
+
+Speed_estimator::~Speed_estimator()
+{
 }

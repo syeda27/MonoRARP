@@ -19,12 +19,13 @@ class Speed_estimator
     public:
 
     void Speed_estimator_update(string, int);
+    void Speed_estimator_update(Mat img, int image_number);
 
     void absolute_speed_estimation(double &speed,int &road_nomark,int &capture_frameindex_for_speed,int &frameindex_for_speed,int &white_mark_hit,int &speed_read_flag,int &count_scanned_lines_reverse_for_speed,int &count_scanned_lines_for_speed,int &offset,int &offset_at_end_of_mark,int &offset_at_middle_of_mark,double muy_lane_vec_speed,double mux_lane_vec_speed,double base_ptx_lane_vec_speed,double base_pty_lane_vec_speed,int h1,int frameindex_for_speed_previous,int image_number,int count_scanned_lines_reverse_for_speed_previous,int count_scanned_lines_for_speed_previous,double offset_adjustment,int range_adjustment_left,int range_adjustment_right,Mat &img6,Mat &img2);
 
     double get_speed();
 
-    Speed_estimator(); 
+    Speed_estimator();
     ~Speed_estimator();
 
     //string file_name;
@@ -108,7 +109,7 @@ class Speed_estimator
 
 
 
-    int initial_frame_was_processed_flag;  
+    int initial_frame_was_processed_flag;
 
     int first_reading_available_flag;
 
@@ -164,5 +165,3 @@ class Speed_estimator
     int any;
 
 };
-
-

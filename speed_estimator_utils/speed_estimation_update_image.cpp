@@ -16,10 +16,18 @@ using namespace cv;
 
 
 
-void Speed_estimator::Speed_estimator_update(string file_name, int image_number)
+/**
+ * A version of the update that i have deemed more useful.
+ * It accepts just an image and the time the image was recorded, as opposed
+ * to a file name which forces it to load from a file and not work with a source.
+ * Args:
+ *   img3: color version on an image
+ *   time: double of the time in seconds that the image was recorded
+ */
+void Speed_estimator::Speed_estimator_update(Mat img3, int image_number)
 {
-        Mat img = imread(file_name.c_str(), IMREAD_GRAYSCALE);
-        Mat img3 = imread(file_name.c_str());
+        Mat img;
+        cv::cvtColor(img3, img, CV_BGR2GRAY);
         Mat img2;
         Mat img4;
         Mat img6;

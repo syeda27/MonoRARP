@@ -25,9 +25,18 @@ int main(int argc, char const *argv[]) {
     }
 
     Speed_estimator speed_est = Speed_estimator();
+    /*
     for (int image_number=2700; image_number<=2800 ;image_number++) {
         string file_name = folder_name+to_string(image_number)+".jpg";
         speed_est.Speed_estimator_update(file_name, image_number);
+        speed_reading = speed_est.get_speed();
+        cout<<"speed_reading: "<<speed_reading<<endl;
+    }
+    */
+    for (int image_number=2700; image_number<=2800 ;image_number++) {
+        string file_name = folder_name+to_string(image_number)+".jpg";
+        Mat img3 = imread(file_name.c_str());
+        speed_est.Speed_estimator_update(img3, image_number);
         speed_reading = speed_est.get_speed();
         cout<<"speed_reading: "<<speed_reading<<endl;
     }
