@@ -143,3 +143,6 @@ Compile/*
 !Compile/CMakeLists.txt
 bin/
 lib/
+
+# MacOS
+.DS_Store
