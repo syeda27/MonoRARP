@@ -10,7 +10,16 @@ run tests with:
   - on Ubuntu:
     - `g++ -c -fPIC foo.cpp -o foo.o`
     - `g++ -shared -Wl,-soname,libfoo.so -o libfoo.so foo.o`
-2. python fooWrapper.py
+2. `python fooWrapper.py`
 3. should print "Hello" in the terminal
-4. Compile the Foo, speed version:
-  - Mac: `g++ -dynamiclib -flat_namespace foo_speed_estimation.cpp -o libspeedfoo.so`
+4. compiling foo, openCV version:
+  - on Ubuntu:
+    - ```
+    g++ -std=c++11 -c -fPIC `pkg-config opencv --cflags` foo_opencv.cpp -o foo.o `pkg-config opencv --libs`
+    ```
+    - ```
+    g++ -std=c++11 -shared -Wl,-soname,libfoo.so -o libfoo.so foo.o `pkg-config opencv --libs`
+    ```
+5. `python fooWrapper.py`
+6. should print "Hello" and open a huge window image.
+    - press any key while image is in foreground to close it.
