@@ -24,10 +24,10 @@ using namespace cv;
  * TODO: clean everythin!!!
  */
 
-Speed_estimator::Speed_estimator()
+Speed_estimator::Speed_estimator(bool do_display)
 {
     // TODO: args
-
+    display=do_display;
 
     white_mark_hit=0;
     count_road_nomark=0;
@@ -702,26 +702,31 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
 
         }
 
+        if (display == true) {
 
-        cout<<"speed_official: "<<speed_official<<endl;
+          cout<<"speed_official: "<<speed_official<<endl;
 
-        Mat img7;
+          Mat img7;
 
-        resize(img6, img7, Size(3840,2880), 0, 0, CV_INTER_LINEAR);
+          resize(img6, img7, Size(3840,2880), 0, 0, CV_INTER_LINEAR);
 
-        if (first_reading_available_flag!=0)
-        {
-            speed_text="Speed: "+to_string(int(speed_official))+" miles/hr";
-            putText(img7,speed_text.c_str(), Point(250,150), FONT_HERSHEY_SIMPLEX, 4, Scalar(255,255,255),2,LINE_AA);
-        }
-        cout<<"TIME: "<<image_time<<endl;
-        namedWindow("frame", WINDOW_NORMAL);
-        imshow("frame",img7);
-        waitKey(1);
+          if (first_reading_available_flag!=0)
+          {
+              speed_text="Speed: "+to_string(int(speed_official))+" miles/hr";
+              putText(img7,speed_text.c_str(), Point(250,150), FONT_HERSHEY_SIMPLEX, 4, Scalar(255,255,255),2,LINE_AA);
+          }
+          cout<<"TIME: "<<image_time<<endl;
+          namedWindow("frame", WINDOW_NORMAL);
+          imshow("frame",img7);
+          waitKey(1);
+      }
 }
 
 extern "C" {
-    Speed_estimator* Speed_estimator_new() { return new Speed_estimator(); }
+    Speed_estimator* Speed_estimator_new(bool display) {
+        cout << display << endl;
+        return new Speed_estimator(display);
+    }
     void Speed_estimator_hello_world(Speed_estimator* speed_estimator) {
         speed_estimator->hello_world();
     }
@@ -731,8 +736,8 @@ extern "C" {
           int height,
           int width,
           double time_s) {
-        const unsigned char * indata = (unsigned char *) image;
-        cout << indata[1] << endl;
+        //const unsigned char * indata = (unsigned char *) image;
+        //cout << indata[1] << endl;
         Mat mat = Mat(height, width, CV_8UC(3), image);
         speed_estimator->Speed_estimator_update(mat, time_s);
     }

@@ -18,7 +18,8 @@ class SpeedEstimator():
             self,
             launcher_args,
             default_speed=35,
-            verbose=False):
+            verbose=False,
+            display_speed_lane=False):
         """
         Speed in meters per second
         """
@@ -27,7 +28,8 @@ class SpeedEstimator():
             self.gps_interface = gps_utils.GPS_Interface(launcher_args.gps_source)
         self.use_lane_markings = launcher_args.lane_based_speed
         if self.use_lane_markings:
-            self.lane_based_speed_interface = lane_marking_speed_estimator.LaneMarkingSpeedEstimator()
+            self.lane_based_speed_interface = \
+                lane_marking_speed_estimator.LaneMarkingSpeedEstimator(display_speed_lane)
         self.default_speed = default_speed
         self.verbose = verbose
 

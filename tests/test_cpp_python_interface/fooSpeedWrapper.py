@@ -7,7 +7,7 @@ lib = cdll.LoadLibrary('./libspeedfoo.so')
 
 class Foo(object):
     def __init__(self):
-        self.obj = lib.Speed_estimator_new()
+        self.obj = lib.Speed_estimator_new(ctypes.c_bool(True))
 
     def bar(self):
         lib.Speed_estimator_hello_world(self.obj)
@@ -31,8 +31,8 @@ class Foo(object):
             image = cv2.imread("../GH_frames/"+str(im_num)+".jpg")
             #image = image[10:15,11:15]
             H, W, C = image.shape
-            print(H,W,C)
-            print(image[0,0,:])
+            #print(H,W,C)
+            #print(image[0,0,:])
             lib.Speed_estimator_update(self.obj,
                 ctypes.c_void_p(image.ctypes.data),
                 ctypes.c_int(H),

@@ -26,7 +26,6 @@ run tests with:
   - on Ubuntu:
     - ```
     g++ -std=c++11 -c -fPIC `pkg-config opencv --cflags` ../../speed_estimator_utils/speed_estimator.cpp -o foospeed.o `pkg-config opencv --libs`
-    g++ -std=c++11 -shared -Wl,-soname,libspeedfoo.so -o libspeedfoo.so foos
-peed.o `pkg-config opencv --libs`
+    g++ -std=c++11 -shared -Wl,-soname,libspeedfoo.so -o libspeedfoo.so foospeed.o `pkg-config opencv --libs`
     ```
 8. `python fooSpeedWrapper.py`

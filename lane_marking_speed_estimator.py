@@ -17,8 +17,8 @@ g++ -std=c++11 -shared -Wl,-soname,lib_speed_estimator.so \
 """
 
 class LaneMarkingSpeedEstimator(object):
-    def __init__(self):
-        self.obj = lib.Speed_estimator_new()
+    def __init__(self, display=False):
+        self.obj = lib.Speed_estimator_new(ctypes.c_bool(display))
         lib.Speed_estimator_get_speed.restype = ctypes.c_double
 
     def handle_image(self, image, frame_time):

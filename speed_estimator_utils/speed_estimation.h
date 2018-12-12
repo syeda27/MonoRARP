@@ -1,5 +1,4 @@
 #pragma once
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -28,11 +27,13 @@ class Speed_estimator
 
     double get_speed();
 
-    Speed_estimator();
+    Speed_estimator(bool do_display=false);
     ~Speed_estimator();
 
     //string file_name;
     string speed_text;
+
+    bool display;
 
     int h1;
     int w1;
