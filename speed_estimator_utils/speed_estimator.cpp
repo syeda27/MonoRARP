@@ -154,8 +154,6 @@ void
    int found_end_of_mark_reverse;
    int out_of_the_mark_reverse;
 
-   cout << "correct function" << endl;
-
    speed_read_flag=0;
    speed=0;
    offset=0;
@@ -719,7 +717,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
         cout<<"TIME: "<<image_time<<endl;
         namedWindow("frame", WINDOW_NORMAL);
         imshow("frame",img7);
-        waitKey(10);
+        waitKey(1);
 }
 
 extern "C" {

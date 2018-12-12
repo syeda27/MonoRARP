@@ -4,6 +4,8 @@ import ctypes
 from ctypes import cdll
 lib = cdll.LoadLibrary('./lib_speed_estimator.so')
 
+from driver_risk_utils import general_utils
+
 """
 Make sure the library is compiled beforehand.
 See tests/test_cpp_python_interface/README.txt, step 7, but with legitimate names:
@@ -17,6 +19,7 @@ g++ -std=c++11 -shared -Wl,-soname,lib_speed_estimator.so \
 class LaneMarkingSpeedEstimator(object):
     def __init__(self):
         self.obj = lib.Speed_estimator_new()
+        lib.Speed_estimator_get_speed.restype = ctypes.c_double
 
     def handle_image(self, image, frame_time):
         """
@@ -33,4 +36,7 @@ class LaneMarkingSpeedEstimator(object):
             ctypes.c_double(frame_time))
 
     def get_speed(self):
-        return lib.Speed_estimator_get_speed(self.obj)
+        """
+        must return ego vehicle speed in meters/second
+        """
+        return general_utils.mph_to_mps(lib.Speed_estimator_get_speed(self.obj))

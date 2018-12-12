@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("..")
-from driver_risk_utils import argument_utils
+from driver_risk_utils import argument_utils, general_utils
 import speed_estimator
 import cv2
 
@@ -26,3 +26,6 @@ for im_num in range(2700,2801):
 
     est.update_estimates(image, time)
     time += 1.0/fps
+
+assert round(est.get_reading()) == 17 # mps
+assert round(general_utils.mps_to_mph(est.get_reading())) == 37 #mph
