@@ -100,6 +100,6 @@ def test_720p_video():
     assert round(general_utils.mps_to_mph(est.get_reading())) == 37 #mph
 
 
-test_with_display()
-test_with_no_display()
-#test_720p_video()
+#test_with_display()
+#test_with_no_display()
+test_720p_video()

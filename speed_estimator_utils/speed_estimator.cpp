@@ -352,8 +352,28 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
         Mat img4;
         Mat img6;
 
-        img(Rect(0,940,2704-0,1240-940)).copyTo(img2);
-        img3(Rect(0,940,2704-0,1240-940)).copyTo(img4);
+        int h = img3.rows;
+        int w = img3.cols;
+
+        //int subframe_x_start = 0;
+        int subframe_y_start = 940;
+        int subframe_y_end = 1240;
+        if (h < 1240) {
+          subframe_y_start = 350;
+          subframe_y_end = 550;
+        }
+        //int subframe_y_start = 940;
+        //int subframe_y_end = 1240;
+
+        cout << "here" << endl;
+        cout << w << " " << subframe_y_start << " " << subframe_y_end << endl;
+        img(Rect(0, subframe_y_start, w, subframe_y_end-subframe_y_start)).copyTo(img2);
+        img3(Rect(0, subframe_y_start, w, subframe_y_end-subframe_y_start)).copyTo(img4);
+        // og height of ~2100, w of 2704
+        //img(Rect(0,940,2704-0,1240-940)).copyTo(img2);
+        //img3(Rect(0,940,2704-0,1240-940)).copyTo(img4);
+
+        cout << "there" << endl;
 
 
         h1 = img2.rows;

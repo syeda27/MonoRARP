@@ -15,7 +15,7 @@ using namespace std;
 using namespace cv;
 
 
-Speed_estimator::Speed_estimator()
+Speed_estimator::Speed_estimator(bool display)
 {
     // TODO: args
 
