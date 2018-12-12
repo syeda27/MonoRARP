@@ -719,7 +719,7 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
         cout<<"TIME: "<<image_time<<endl;
         namedWindow("frame", WINDOW_NORMAL);
         imshow("frame",img7);
-        waitKey(1);
+        waitKey(10);
 }
 
 extern "C" {
@@ -733,9 +733,9 @@ extern "C" {
           int height,
           int width,
           double time_s) {
-        const ushort * indata = (ushort *) image;
+        const unsigned char * indata = (unsigned char *) image;
         cout << indata[1] << endl;
-        Mat mat = Mat(height, width, CV_16UC(3), image);
+        Mat mat = Mat(height, width, CV_8UC(3), image);
         speed_estimator->Speed_estimator_update(mat, time_s);
     }
 }

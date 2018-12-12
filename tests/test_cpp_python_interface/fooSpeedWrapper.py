@@ -13,7 +13,7 @@ class Foo(object):
         lib.Speed_estimator_hello_world(self.obj)
 
     def image(self):
-        image = cv2.imread("../GH_frames/2700.jpg").astype('uint16')
+        image = cv2.imread("../GH_frames/2700.jpg")
         #image = image[10:15,11:15]
         H, W, C = image.shape
         print(H,W,C)
@@ -22,8 +22,25 @@ class Foo(object):
         ctypes.c_void_p(image.ctypes.data),
         ctypes.c_int(H),
         ctypes.c_int(W),
-        ctypes.c_double(100.0))
+        ctypes.c_double(0.0))
+
+    def test_all_images(self):
+        time = 0.0
+        fps = 30.0
+        for im_num in range(2700,2801):
+            image = cv2.imread("../GH_frames/"+str(im_num)+".jpg")
+            #image = image[10:15,11:15]
+            H, W, C = image.shape
+            print(H,W,C)
+            print(image[0,0,:])
+            lib.Speed_estimator_update(self.obj,
+                ctypes.c_void_p(image.ctypes.data),
+                ctypes.c_int(H),
+                ctypes.c_int(W),
+                ctypes.c_double(time))
+            time += 1.0/fps
 
 f = Foo()
 f.bar() #and you will see "Hello" on the screen
-f.image()
+#f.image()
+f.test_all_images()
