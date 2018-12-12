@@ -21,8 +21,7 @@ run tests with:
     g++ -std=c++11 -shared -Wl,-soname,libfoo.so -o libfoo.so foo.o `pkg-config opencv --libs`
     ```
 5. `python fooWrapper.py`
-6. should print "Hello" and open a huge window image.
-    - press any key while image is in foreground to close it.
+6. should print "Hello" and run the images for the speed test.
 7. Compile the speed estimator version
   - on Ubuntu:
     - ```

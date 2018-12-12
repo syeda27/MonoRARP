@@ -738,4 +738,7 @@ extern "C" {
         Mat mat = Mat(height, width, CV_8UC(3), image);
         speed_estimator->Speed_estimator_update(mat, time_s);
     }
+    double Speed_estimator_get_speed(Speed_estimator* speed_estimator) {
+        return speed_estimator->get_speed();
+    }
 }
