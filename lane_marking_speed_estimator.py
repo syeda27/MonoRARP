@@ -2,7 +2,8 @@ import cv2
 
 import ctypes
 from ctypes import cdll
-lib = cdll.LoadLibrary('./lib_speed_estimator.so')
+# TODO args
+lib = cdll.LoadLibrary('/home/derek/driver_risk_prediction_mono_video/lib_speed_estimator.so')
 
 from driver_risk_utils import general_utils
 
@@ -29,6 +30,7 @@ class LaneMarkingSpeedEstimator(object):
             for when the image was captured
         """
         H, W, C = image.shape
+        print(H,W,C)
         lib.Speed_estimator_update(self.obj,
             ctypes.c_void_p(image.ctypes.data),
             ctypes.c_int(H),
