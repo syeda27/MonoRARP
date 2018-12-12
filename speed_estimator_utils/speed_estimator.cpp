@@ -727,4 +727,15 @@ extern "C" {
     void Speed_estimator_hello_world(Speed_estimator* speed_estimator) {
         speed_estimator->hello_world();
     }
+    void Speed_estimator_update(
+          Speed_estimator* speed_estimator,
+          void* image,
+          int height,
+          int width,
+          double time_s) {
+        const ushort * indata = (ushort *) image;
+        cout << indata[1] << endl;
+        Mat mat = Mat(height, width, CV_16UC(3), image);
+        speed_estimator->Speed_estimator_update(mat, time_s);
+    }
 }
