@@ -34,6 +34,9 @@ def add_tracker_args(parser):
     parser.add_argument("--track", type=str2bool,
             default=defaults.DO_TRACKING)
     parser.add_argument("--tracker_type", type=str, default=defaults.TRACKER_TYPE)
+    parser.add_argument("--tracker_hold", type=int, default=defaults.TRACKER_HOLD)
+    parser.add_argument("--num_trackers", type=int, default=defaults.NUM_TRACKERS)
+    parser.add_argument("--num_tracker_particles", type=int, default=defaults.NUM_TRACKER_PARTICLES)
 
 def add_input_output_args(parser):
     parser.add_argument("--source", type=str,

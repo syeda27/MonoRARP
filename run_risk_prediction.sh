@@ -42,6 +42,7 @@ MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 DO_TRACK='true'
 TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
 TRACK_REFRESH=150             # 1 makes no refreshing
+TRACKER_HOLD=10             # If particle, how long to hold trackers for when no detections.
 
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 USE_GPS='false'             # use speed readings from a GPS
@@ -108,6 +109,7 @@ else
         --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
         --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
+        --tracker_hold $TRACKER_HOLD \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
         --lane_based_speed $LANE_BASED_SPEED \
         --accept_speed $ACCEPT_SPEED --detect_lanes $DETECT_LANES \

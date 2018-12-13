@@ -47,6 +47,7 @@ class Tracker:
 
         self.multi_tracker = None
         self.use_tracker = args.track
+        self.args = args
         if self.use_tracker:
             self._create_multi_tracker()
 
@@ -65,7 +66,11 @@ class Tracker:
                 self.tracker_type
             )
         elif self.tracker_type == "Particle":
-            self.multi_tracker = multi_trackers.ParticleTrackerWrapper()
+            self.multi_tracker = multi_trackers.ParticleTrackerWrapper(
+                self.args.num_tracker_particles,
+                self.args.num_trackers,
+                self.args.tracker_hold
+            )
             # TODO update args
         else:
             tracker_utils.raise_undefined_tracker_type(self.tracker_type)

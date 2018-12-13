@@ -30,6 +30,9 @@ def test_default_args():
     assert args.tracker_refresh == defaults.TRACKER_FORCE_REFRESH_EVERY_N_FRAMES
     assert args.track == argument_utils.str2bool(defaults.DO_TRACKING)
     assert args.tracker_type == defaults.TRACKER_TYPE
+    assert args.tracker_hold == defaults.TRACKER_HOLD
+    assert args.num_trackers == defaults.NUM_TRACKERS
+    assert args.num_tracker_particles == defaults.NUM_TRACKER_PARTICLES
 
     assert str(args.source) == defaults.SOURCE
     assert args.save == argument_utils.str2bool(defaults.SAVE)
