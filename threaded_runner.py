@@ -199,7 +199,6 @@ class ThreadedRunner(Runner):
         and everything else.
         It prints some summary statistics, and importantly handles destuction.
         """
-        self.timer = None
         self.reset_vars()
         self.init_camera(self.launcher.all_args.source)
         if self.launcher.all_args.save:
@@ -230,19 +229,14 @@ class ThreadedRunner(Runner):
             self.process_frame(self.thread_max_wait, self.thread_wait_time)
         self.done = True
         self.object_detector.done = True
-        self.print_timings()
-        self.print_more_timings()
 
         #self.thread1.join()
         self.object_detection.join()
         self.process_detections.join()
         self.obj_det_thread.join()
 
-        if self.launcher.all_args.save:
-            self.videoWriter.release()
-        self.camera.release()
-        if self.using_camera:
-            cv2.destroyAllWindows()
+        self.print_more_timings()
+        self._do_end_things()
 
 # TODO update description -- for object detector classs!
 """

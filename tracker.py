@@ -48,19 +48,29 @@ class Tracker:
         self.multi_tracker = None
         self.use_tracker = args.track
         self.args = args
-        if self.use_tracker:
-            self._create_multi_tracker()
 
         self.init_tracker = True
         self.labels = [] # i -> list of labels
         self.horizon = args.horizon
         self.category_index = category_index
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
+        if self.use_tracker:
+            self._create_multi_tracker()
+
+    def __del__(self):
+        string = "\n=============== Ending Tracker =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n==============\n"
+        print(string)
 
     def _create_multi_tracker(self):
         """
         Set the internal self.multi_tracker variable to one of the wrappers
         implemented in multi_trackers.py.
         """
+        self.timer.update_start("Initialization")
         if self.tracker_type == "KCF":
             self.multi_tracker = multi_trackers.OpenCVMultiTrackerWrapper(
                 self.tracker_type
@@ -74,6 +84,7 @@ class Tracker:
             # TODO update args
         else:
             tracker_utils.raise_undefined_tracker_type(self.tracker_type)
+        self.timer.update_end("Initialization")
 
     def needs_boxes(self):
         """ returns true if the tracker always needs object detections to run"""
@@ -95,9 +106,11 @@ class Tracker:
         the referenced state_object to clear its data.
         """
         if self.use_tracker and self.init_tracker:
+            self.timer.update_start("Reset")
             self._create_multi_tracker()
             self.lables = defaultdict(list)
             state_object.clear()
+            self.timer.update_end("Reset")
 
     def update_one(self, image_index, net_out, image, verbose=False):
         """
@@ -119,6 +132,7 @@ class Tracker:
           boxes_with_labels: dictionary <int : tuple<box, str> >
             dictionary of object key : tuple of box coordinates and class label
         """
+        self.timer.update_start("Update One")
         boxes_with_labels = dict()
         boxes = None
         if net_out is not None:
@@ -142,6 +156,8 @@ class Tracker:
             self.multi_tracker.initialize_tracker(image, boxes, self.labels)
             im_h, im_w, _ = image.shape
             for i,b in enumerate(boxes):
+                if i >= len(self.labels):
+                    self.labels.extend([""])
                 boxes_with_labels[i] = (
                     general_utils.convert(im_h, im_w, b),
                     self.labels[i]
@@ -151,4 +167,5 @@ class Tracker:
                 image, boxes, self.labels, verbose)
             if ok is False: # lost tracking
                 self.init_tracker = True
+        self.timer.update_end("Update One")
         return boxes_with_labels

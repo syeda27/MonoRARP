@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import runner
 import threaded_runner
-from driver_risk_utils import argument_utils
+from driver_risk_utils import argument_utils, general_utils
 
 import queue
 import threading
@@ -74,6 +74,18 @@ class TFObjectDetector(object_detector.ObjectDetector):
             if tensor_name in all_tensor_names:
                 self.tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
+    def _do_end_things(self, force=False):
+        """
+        call before returning from launch
+        """
+        string = "Ending Object Detector =============="
+        if force:
+            string += "\nWas forced."
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n=============="
+        print(string)
+
     def launch(self, queue_in_size=1, queue_out_size=1, wait_time=0.05, max_wait=0.5,
             verbose=False):
         """
@@ -88,6 +100,8 @@ class TFObjectDetector(object_detector.ObjectDetector):
         self.detections_out_q = queue.Queue(queue_out_size)
         self.output_1 = threading.Event()
         self.detections = 0
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
@@ -97,14 +111,17 @@ class TFObjectDetector(object_detector.ObjectDetector):
                     start = time.time()
                     while self.image_in_q.empty():
                         if self.done:
+                            self._do_end_things()
                             return
                         if verbose:
                             print("image queue empty", wait_time)
                         if time.time() - start >= max_wait:
                             print("Error, waited too long for an image in object detection launch thread.")
                             print("{} >= {}".format(time.time() - start, max_wait))
+                            self._do_end_things(True)
                             return
                         time.sleep(wait_time)
+                    self.timer.update_start("Detecting")
                     # get image and frame time frome queue
                     image_np, frame_time = self.image_in_q.get()
                     if verbose:
@@ -124,5 +141,5 @@ class TFObjectDetector(object_detector.ObjectDetector):
                     self.detections_out_q.put((image_np, net_out, frame_time))
                     if verbose:
                         print("put image")
-
-                print("Obj det launcher is done")
+                    self.timer.update_end("Detecting")
+                self._do_end_things()

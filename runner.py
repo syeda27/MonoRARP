@@ -74,6 +74,23 @@ class Runner:
         self.thread_wait_time = launcher.all_args.thread_wait_time
         self.thread_max_wait = launcher.all_args.thread_max_wait
         self.frames_ran_obj_det_on = 0
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
+
+    def _do_end_things(self):
+        if self.launcher.all_args.save:
+            self.videoWriter.release()
+        self.camera.release()
+        if self.using_camera:
+            cv2.destroyAllWindows()
+
+        string = "\n=============== Ending Runner =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n==============\n"
+        print(string)
+        self.print_timings()
+
 
     def reset_vars(self):
         """
@@ -285,20 +302,17 @@ class Runner:
 
     def visualize_one_image(self, net_out, i, frame_time):
         # Visualization of the results of a detection, not thread safe.
-        if self.timer:
-            self.timer.update_start("DetectObjects")
+        self.timer.update_start("DetectObjects")
         boxes_with_labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
         im_h, im_w, _ = self.input_buffer[i].shape
         self.update_state(boxes_with_labels, im_h, im_w, frame_time)
-        if self.timer:
-            self.timer.update_end("DetectObjects", len(boxes))
-            self.timer.update_start("GetRisk")
+        self.timer.update_end("DetectObjects", len(boxes))
+        self.timer.update_start("GetRisk")
 
         risk = self.get_risk()
 
-        if self.timer:
-            self.timer.update_end("GetRisk", 1)
-            self.timer.update_start("Display")
+        self.timer.update_end("GetRisk")
+        self.timer.update_start("Display")
         self.display_obj.update_image(self.input_buffer[i])
         img = self.display_obj.display_info(
                 self.state.get_current_states_quantities(),
@@ -309,8 +323,7 @@ class Runner:
                 frame_time=frame_time
             )
 
-        if self.timer:
-            self.timer.update_end("Display", 1)
+        self.timer.update_end("Display", 1)
 
         if self.launcher.all_args.save:
             self.videoWriter.write(img)
@@ -326,10 +339,7 @@ class Runner:
 
         Note: resets self.input_buffer to an empty list.
         """
-        self.timer = None
-        if profile:
-            self.timer = general_utils.Timing()
-            self.timer.update_start("AllCalls")
+        self.timer.update_start("AllCalls")
 
         self.speed_interface.update_estimates(self.input_buffer[0], frame_time)
 
@@ -340,20 +350,17 @@ class Runner:
                 or self.tracker_obj.init_tracker
                 or self.tracker_obj.needs_boxes()
             ):
-            if self.timer:
-                self.timer.update_start("NeuralNet")
+            self.timer.update_start("NeuralNet")
             net_out = self.sess.run(self.tensor_dict,
                                     feed_dict={self.image_tensor: self.input_buffer})
             self.frames_ran_obj_det_on += 1
-            if self.timer:
-                self.timer.update_end("NeuralNet", 1)
+            self.timer.update_end("NeuralNet", 1)
 
         self.visualize_one_image(net_out, 0, frame_time)
 
         self.input_buffer = list()
-        if self.timer:
-            self.timer.update_end("AllCalls")
-            self.timer.print_stats()
+        self.timer.update_end("AllCalls")
+        self.timer.print_stats()
 
     def process_frame(self, force_fps=0):
         """
@@ -434,10 +441,5 @@ class Runner:
         while self.camera.isOpened() and not self.done:
             self.process_frame()
         self.done = True # in case camera closes, but still want to be done.
-        self.print_timings()
 
-        if self.launcher.all_args.save:
-            self.videoWriter.release()
-        self.camera.release()
-        if self.using_camera:
-            cv2.destroyAllWindows()
+        self._do_end_things()

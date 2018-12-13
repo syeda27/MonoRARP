@@ -40,8 +40,8 @@ SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_1080p.mp4'
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 
 DO_TRACK='true'
-TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
-TRACK_REFRESH=150             # 1 makes no refreshing
+TRACKER_TYPE="KCF"     # KCF is opencv version. Particle for ours.
+TRACK_REFRESH=15             # 1 makes no refreshing
 TRACKER_HOLD=10             # If particle, how long to hold trackers for when no detections.
 
 DET_THRESH=0.01             # above 1 means nothing will get marked.

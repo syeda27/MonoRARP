@@ -125,9 +125,19 @@ class Timing:
         self.counts[key] += n
         self.durations[key] += time.time() - self.start_times[key]
 
-    def print_stats(self):
+    def print_stats(self, string=False):
+        """
+        A string of True means we will return a string instead of printing.
+        Useful for threads
+        """
+        output = ""
         for key in self.start_times.keys():
             if self.counts[key] == 0: continue
-            print("{} {} took: {}".format(
-                key, self.counts[key], self.durations[key])
-            )
+            if string:
+                output += "\n{} {} took: {}".format(
+                    key, self.counts[key], self.durations[key])
+            else:
+                print("{} {} took: {}".format(
+                    key, self.counts[key], self.durations[key])
+                )
+        return output

@@ -6,7 +6,7 @@ recent calculated speed when queried.
 Author: Derek
 """
 
-from driver_risk_utils import gps_utils
+from driver_risk_utils import gps_utils, general_utils
 import threading
 import lane_marking_speed_estimator
 
@@ -32,13 +32,24 @@ class SpeedEstimator():
                 lane_marking_speed_estimator.LaneMarkingSpeedEstimator(display_speed_lane)
         self.default_speed = default_speed
         self.verbose = verbose
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
+
+    def __del__(self):
+        string = "Ending Speed Estimator =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n=============="
+        print(string)
 
     def update_estimates(self, image, frame_time):
         """
         This is unnecessary for the gps estimator, but necessary for most others
         """
         if self.use_lane_markings:
+            self.timer.update_start("Lane Based Speed Update")
             self.lane_based_speed_interface.handle_image(image, frame_time)
+            self.timer.update_end("Lane Based Speed Update")
 
     def get_reading(self):
         """
@@ -46,9 +57,13 @@ class SpeedEstimator():
         """
         speed = []
         if self.use_gps:
+            self.timer.update_start("Get GPS Speed")
             speed.append(self.gps_interface.get_reading())
+            self.timer.update_end("Get GPS Speed")
         if self.use_lane_markings:
+            self.timer.update_start("Get LBS Speed")
             speed.append(self.lane_based_speed_interface.get_speed())
+            self.timer.update_end("Get LBS Speed")
         if len(speed) == 0:
             return self.default_speed
         if self.verbose:
