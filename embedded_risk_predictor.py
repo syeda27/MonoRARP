@@ -18,6 +18,16 @@ from driver_risk_utils import risk_prediction_utils, general_utils
 
 class EmbeddedRiskPredictor(RiskPredictor, Scene):
 
+    def __del__(self):
+        # if a threaded copy (just overall), do not print
+        if len(self.timer.start_times.keys()) == 1: return
+         
+        string = "\n=============== Ending Embedded Risk Predictor =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n==============\n"
+        print(string)
+
     def set_scene(self, state, lane_width=3.7):
         """
         Initializes the scene object with internal parameters.
@@ -58,8 +68,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
     def get_risk(self,
                  state,
                  risk_type="ttc",
-                 verbose=False,
-                 timer=None):
+                 verbose=False):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -72,8 +81,6 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             String, indicate which method to use to calculate the risk.
           verbose:
             Boolean, passed to called functions on whether to log.
-          timer: general_utils.timing object.
-            The object that is keeping track of various timing qualities.
 
         Returns
           risk:
@@ -83,6 +90,9 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
           ValueError:
             If an unsupported risk type is used.
         """
+        self.timer.update_start("Get Risk")
+        self.timer.update_start("Get Risk N")
+
         if risk_type.lower() == "ttc":
             risk = risk_prediction_utils.calculate_ttc(
                     state,
@@ -91,29 +101,28 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         elif risk_type.lower() == "online":
             if self.num_sims == 0:
                 return 0
-            if timer:
-                timer.update_start("SceneInit")
+            self.timer.update_start("SceneInit")
             self.set_scene(state)
-            if timer:
-                timer.update_end("SceneInit")
-                timer.update_start("RiskSim")
-                timer.update_start("CalculateRisk")
+            self.timer.update_end("SceneInit")
+            self.timer.update_start("RiskSim")
+            self.timer.update_start("CalculateRisk")
             risk = self.simulate(
                 self.num_sims,
                 self.sim_horizon,
                 self.sim_step,
-                verbose,
-                timer
+                verbose
             )
-            if timer:
-                timer.update_end("RiskSim", self.num_sims)
-                timer.update_end("CalculateRisk")
+            self.timer.update_end("RiskSim", self.num_sims)
+            self.timer.update_end("CalculateRisk", self.num_sims)
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         self.prev_risk = (risk + self.prev_risk) / 2.0
+        self.timer.update_end("Get Risk")
+        self.timer.update_end("Get Risk N", self.num_sims)
         return self.prev_risk
 
     def thread_deepcopy(self):
+        self.timer.update_start("Thread DeepCopy")
         new_object = EmbeddedRiskPredictor(
             sim_horizon=self.sim_horizon,
             sim_step=self.sim_step,
@@ -129,14 +138,14 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         new_object.ego_accel = deepcopy(self.ego_accel)
         new_object.means = deepcopy(self.means)
         new_object.variances = deepcopy(self.variances)
+        self.timer.update_end("Thread DeepCopy")
         return new_object
 
     def simulate(self,
                  N=100,
                  H=5,
                  step=0.2,
-                 verbose=False,
-                 timer=None):
+                 verbose=False):
         """
         Runs N simulations using the IDM driver model
 
@@ -149,8 +158,6 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             The step size to take, in seconds.
           verbose: boolean
             Whether or not to log various occurrences.
-          timer: general_utils.timing object.
-            The object that is keeping track of various timing qualities.
           threaded:
             Boolean, whether or not to thread the calculation of risk.
 
@@ -160,20 +167,18 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         if verbose:
             print("Simulating {} paths for horizon {} by steps of {}".format(
                 N, H, step))
-        if timer is not None:
-            timer.update_start("Simulating")
+        self.timer.update_start("Simulating")
 
         if self.max_threads > 1:
-            risk = self.get_risk_threaded(N, H, step, verbose, timer)
+            risk = self.get_risk_threaded(N, H, step, verbose)
         else:
             risk = 0
             for i in range(N):  # TODO thread
-                risk += self.simulate_one_path(H, step, verbose, timer)
-        if timer is not None:
-            timer.update_end("Simulating", N)
+                risk += self.simulate_one_path(H, step, verbose, self.timer)
+        self.timer.update_end("Simulating", N)
         return risk / N
 
-    def get_risk_threaded(self, N, H, step, verbose, timer=None):
+    def get_risk_threaded(self, N, H, step, verbose):
         risk = 0
         num_sims = 0
         self.thread_risk_queue = queue.Queue(self.max_threads)
@@ -188,7 +193,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
                            H,
                            step,
                            verbose,
-                           timer]) # only N deepcopies
+                           self.timer]) # only N deepcopies
                 ))
                 list_of_threads[i].start()
             for t in list_of_threads:
@@ -201,6 +206,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
     def simulate_one_threaded(self, scene_copy, H, step, verbose, timer=None):
         """
         scene_copy is actually a copy of this whole class...
+        Timer needed as argument, not using the timer in the potential class copy
         """
         risk = scene_copy.simulate_one_path(H, step, verbose, timer)
         self.thread_risk_queue.put(risk)
@@ -208,6 +214,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
     def simulate_one_path(self, H, step, verbose, timer):
         """
         Simulates one path out to time horizon H by step size (step).
+        Timer needed as argument, not using the timer in the potential class copy
 
         Arguments:
           H: float, seconds

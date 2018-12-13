@@ -36,7 +36,7 @@ class SpeedEstimator():
         self.timer.update_start("Overall")
 
     def __del__(self):
-        string = "Ending Speed Estimator =============="
+        string = "\n============== Ending Speed Estimator =============="
         self.timer.update_end("Overall")
         string += "\nTiming:" + self.timer.print_stats(True)
         string += "\n=============="

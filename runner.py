@@ -402,10 +402,13 @@ class Runner:
 
     def print_timings(self):
         end = time.time()
-        print("Total time: ", end - self.start)
-        print("Frames processed: ", self.elapsed)
-        print("Obj Det Frames processed: ", self.frames_ran_obj_det_on)
-        print("FPS: ", self.fps)
+        string = "\n====== Aggregates ======"
+        string += "\nTotal time: " + str(end - self.start)
+        string += "\nFrames processed: " + str(self.elapsed)
+        string += "\nObj Det Frames processed: " + str(self.frames_ran_obj_det_on)
+        string += "\nFPS: " + str(self.fps)
+        string += "\n==============\n"
+        print(string)
 
     def run(self):
         """

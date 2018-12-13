@@ -75,7 +75,7 @@ COL_TOL_Y=1.5    # meters
 TTC_H=1.0        # seconds
 TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
-EMBEDDED_RISK='false' # boolean, whether or not to calc risk while simulating.
+EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
 # YOLO deprecated in this manner
 if ($YOLO); then

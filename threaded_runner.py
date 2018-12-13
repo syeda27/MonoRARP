@@ -30,6 +30,8 @@ from object_detectors import tensorflow_obj_det_api
 
 import queue
 import threading
+from collections import defaultdict
+
 
 from runner import Runner
 
@@ -79,89 +81,92 @@ class ThreadedRunner(Runner):
                 print("Please enter a float or integer.")
 
     def process_detections_fn(self, wait_time=0.05):
-        process_detections_elapsed = 0
+        self.process_detections_elapsed = 0
         while not self.done or not self.object_detector.detections_out_q.empty():
             # even if done, will empty queue first
             if self.object_detector.detections_out_q.empty():
                 time.sleep(wait_time)
             else:
                 (image_np, net_out, frame_time) = self.object_detector.detections_out_q.get()
-                self.tracker_obj.update_if_init(process_detections_elapsed)
+                self.tracker_obj.update_if_init(self.process_detections_elapsed)
                 self.tracker_obj.check_and_reset_multitracker(self.state)
                 self.visualize_one_image(net_out, image_np, frame_time)
                 # process image_np and net_out
-                process_detections_elapsed += 1
+                self.process_detections_elapsed += 1
 
     def spawn_threads(self, queue_len=3):
+        self.num_dropped = defaultdict(int)
+        self.image_queue = queue.Queue(1)
+
         self.obj_det_thread = threading.Thread(
             target = self.object_detector.launch,
             name= "launch obj det",
-            kwargs={"wait_time":self.thread_wait_time, "max_wait":self.thread_max_wait}
+            args=([
+                queue_len,
+                queue_len,
+                self.thread_wait_time,
+                self.thread_max_wait*10])
         )
-        self.obj_det_thread.start()
 
-        self.image_queue = queue.Queue(1)
         self.object_detection = threading.Thread(
             target=self.handle_obj_det, name="obj_det", args=([
                 self.thread_wait_time,
-                5]), kwargs={}
+                self.thread_max_wait*10])
         )
-        self.object_detection.start()
 
-        self.num_dropped = 0
-        self.thread_queue = queue.Queue(queue_len)
         self.process_detections = threading.Thread(
             target=self.process_detections_fn, name="process_detections", args=([0.1]), kwargs={})
-        self.process_detections.start()
 
-    def block_for_queue(self, max_wait, wait_time):
-        """
-        Wait for the thread queue to not be full.
-        If we reach the max weight time and the thread queue (which is output)
-        is still full, we remove an element from it.
-        """
-        if not self.thread_queue.full(): return False
-        start = time.time()
-        while self.thread_queue.full() and time.time() - start < max_wait:
-            time.sleep(wait_time)
-        if self.thread_queue.full():
-            self.thread_queue.get() # remove the oldest image.
-            return True
-        return False
+        self.obj_det_thread.start()
+        self.object_detection.start()
+        self.process_detections.start()
 
     def handle_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
         # continuously run a loop to pass images to the object detector
+        # Reads from image_queue
+        # Writes to object_detector.image_in_q
+        first_loop_done = False
         while not self.done:
             start = time.time()
+            this_wait_max = max_wait
+            if not first_loop_done:
+                this_wait_max = max_wait * 10
             while self.image_queue.empty():
                 if self.done:
                     return
-                if time.time() - start >= max_wait:
+                if time.time() - start >= this_wait_max:
                     print("Error, waited too long for an image in object detection thread.")
-                    print("{} >= {}".format(time.time() - start, max_wait))
+                    print("{} >= {}".format(time.time() - start, this_wait_max))
                     return
                 time.sleep(wait_time)
             # get image and frame time frome queue
             image_np, frame_time = self.image_queue.get()
             if self.object_detector.image_in_q.full():
                 self.object_detector.image_in_q.get()
+                self.num_dropped["Object_Detector_In"] += 1
             self.object_detector.image_in_q.put((image_np, frame_time))
-
+            first_loop_done = True
 
     def wait_for_obj_det(self, max_wait=0.5):
-        start_detections = self.object_detector.detections
-        wait_succeed = self.object_detector.output_1.wait(max_wait)
-        if not wait_succeed:
+        start = time.time()
+        if self.elapsed <= 1:
+            wait_succeed = self.object_detector.output_1.wait(max_wait*5)
+        else:
+            wait_succeed = self.object_detector.output_1.wait(max_wait)
+        if wait_succeed:
+            self.object_detector.output_1.clear()
+        else:
             print("Error, waited too long for obj detections in wait_for_obj_det")
-        self.object_detector.output_1.clear()
-
+            print("{} > {}".format(time.time() - start, max_wait))
 
     def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
         """
         This is the main thread, aka not a seperately spawned thread
+        - Writes to image_queue
+        - runs speed estimator (if not self.sep_speed_est, wait for object detector)
+
         """
         self.elapsed += 1
-        self.highest_fps = general_utils.get_fps(self.start_loop, self.elapsed)
 
         _, image_np = self.camera.read()
         frame_time = time.time()
@@ -173,6 +178,7 @@ class ThreadedRunner(Runner):
 
         if self.image_queue.full():
             self.image_queue.get()
+            self.num_dropped["Image Queue"] += 1
         self.image_queue.put((image_np, frame_time))
         if not self.sep_speed_est:
             # wait for object detector to complete one pass
@@ -185,11 +191,12 @@ class ThreadedRunner(Runner):
 
     def print_more_timings(self):
         end = time.time()
-        print("Highest FPS: ", self.highest_fps)
-        print("Object Detection Through FPS: ", self.fps)
-        print("Dropped frames: ", self.num_dropped)
-        print("True FPS: ", (self.elapsed - self.num_dropped) / (end - self.start))
-        print("True Obj Det. FPS: ", (self.frames_ran_obj_det_on - self.num_dropped) / (end - self.start))
+        string = "\n====== Aggregates 2 ======"
+        string += "\nDropped frames: " + str(self.num_dropped)
+        string += "\nInput FPS: " + str(self.elapsed / (end - self.start))
+        string += "\nProceseded FPS: " + str(self.process_detections_elapsed / (end - self.start))
+        string += "\n==============\n"
+        print(string)
 
     def run(self):
         """
