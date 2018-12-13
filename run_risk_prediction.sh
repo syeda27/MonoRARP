@@ -33,6 +33,8 @@ SAVE='false'
 RUN='11a'
 FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
+SOURCE=1
+#RUN='3a'
 #SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
 #SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
 

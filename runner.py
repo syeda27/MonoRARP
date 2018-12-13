@@ -139,15 +139,9 @@ class Runner:
 
         assert self.camera.isOpened(), \
                 'Cannot capture source'
-        if self.using_camera:
-            cv2.namedWindow('', 0)
-            _, frame = self.camera.read()
-            self.height, self.width, _ = frame.shape
-            cv2.resizeWindow('', self.width, self.height)
-        else:
-            _, frame = self.camera.read()
-            self.height, self.width, _ = frame.shape
-
+        _, frame = self.camera.read()
+        self.height, self.width, _ = frame.shape
+        
     def init_video_write(self, FPS=6):
         """
         This function initializes the video writer. It should only be called
@@ -306,7 +300,7 @@ class Runner:
         boxes_with_labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
         im_h, im_w, _ = self.input_buffer[i].shape
         self.update_state(boxes_with_labels, im_h, im_w, frame_time)
-        self.timer.update_end("DetectObjects", len(boxes))
+        self.timer.update_end("DetectObjects", len(boxes_with_labels))
         self.timer.update_start("GetRisk")
 
         risk = self.get_risk()
@@ -360,7 +354,6 @@ class Runner:
 
         self.input_buffer = list()
         self.timer.update_end("AllCalls")
-        self.timer.print_stats()
 
     def process_frame(self, force_fps=0):
         """

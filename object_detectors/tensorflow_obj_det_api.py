@@ -123,9 +123,9 @@ class TFObjectDetector(object_detector.ObjectDetector):
                             self._do_end_things()
                             return
                         if verbose:
-                            print("image queue empty", wait_time)
+                            print("INFO: Image queue empty.", wait_time)
                         if time.time() - start >= this_wait_max:
-                            print("Error, waited too long for an image in object detection launch thread.")
+                            print("ERROR: waited too long for an image in object detection launch thread.")
                             print("{} >= {}".format(time.time() - start, this_wait_max))
                             self._do_end_things(True)
                             return
@@ -134,21 +134,21 @@ class TFObjectDetector(object_detector.ObjectDetector):
                     # get image and frame time frome queue
                     image_np, frame_time = self.image_in_q.get()
                     if verbose:
-                        print("Got image in launcher")
+                        print("INFO: Got image in launcher.")
                     net_out = sess.run(
                         self.tensor_dict,
                         feed_dict={self.image_tensor: [image_np]}
                     )
                     if verbose:
-                        print("net out run")
+                        print("INFO: net out run.")
                     self.num_detections += 1
                     self.output_1.set()
                     if self.detections_out_q.full():
                         self.detections_out_q.get()
                     if verbose:
-                        print("putting image")
+                        print("INFO: putting image.")
                     self.detections_out_q.put((image_np, net_out, frame_time))
                     if verbose:
-                        print("put image")
+                        print("INFO: put image.")
                     self.timer.update_end("Detecting")
                 self._do_end_things()

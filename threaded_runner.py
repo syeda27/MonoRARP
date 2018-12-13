@@ -45,8 +45,13 @@ class ThreadedRunner(Runner):
     last go around.
     """
 
+    def set_done(self):
+        self.done = True
+        self.object_detector.done = True
+
     def visualize_one_image(self, net_out, image, frame_time):
         # Visualization of the results of a detection
+
         boxes_with_labels = self.get_detected_objects(0, net_out, image)
         im_h, im_w, _ = image.shape
 
@@ -70,8 +75,7 @@ class ThreadedRunner(Runner):
 
         choice = cv2.waitKey(1)
         if choice == 27:
-            self.done = True
-            self.object_detector.done = True
+            self.set_done()
             return
         elif self.launcher.all_args.accept_speed and choice == ord('s'):
             speed = input("Enter speed (mph): ")
@@ -80,42 +84,65 @@ class ThreadedRunner(Runner):
             except ValueError:
                 print("Please enter a float or integer.")
 
-    def process_detections_fn(self, wait_time=0.05):
+    def process_detections_fn(self, wait_time=0.05, max_wait_time=1.0, verbose=False):
         self.process_detections_elapsed = 0
+        this_wait_time = max_wait_time*10
+        time.sleep(max_wait_time*2)
         while not self.done or not self.object_detector.detections_out_q.empty():
             # even if done, will empty queue first
-            if self.object_detector.detections_out_q.empty():
-                time.sleep(wait_time)
-            else:
-                (image_np, net_out, frame_time) = self.object_detector.detections_out_q.get()
-                self.tracker_obj.update_if_init(self.process_detections_elapsed)
-                self.tracker_obj.check_and_reset_multitracker(self.state)
-                self.visualize_one_image(net_out, image_np, frame_time)
-                # process image_np and net_out
-                self.process_detections_elapsed += 1
+            try:
+                (image_np, net_out, frame_time) = self.object_detector.detections_out_q.get(
+                    True, # do block
+                    this_wait_time # max time to wait
+                )
+                this_wait_time = max_wait_time
+            except queue.Empty:
+                self.set_done()
+                print("ERROR: Waited too long for an object detection")
+                if self.process_detections_elapsed == 0:
+                    print("INFO: Never got a detection")
+                return
+            self.tracker_obj.update_if_init(self.process_detections_elapsed)
+            self.tracker_obj.check_and_reset_multitracker(self.state)
+            self.visualize_one_image(net_out, image_np, frame_time)
+            # process image_np and net_out
+            if verbose:
+                print("INFO: successfully processed an image")
+            self.process_detections_elapsed += 1
+            start = time.time()
 
-    def spawn_threads(self, queue_len=3):
+    def spawn_threads(self, queue_len=3, verbose=False):
         self.num_dropped = defaultdict(int)
         self.image_queue = queue.Queue(1)
 
         self.obj_det_thread = threading.Thread(
-            target = self.object_detector.launch,
-            name= "launch obj det",
+            target=self.object_detector.launch,
+            name="launch obj det",
             args=([
                 queue_len,
                 queue_len,
                 self.thread_wait_time,
-                self.thread_max_wait*10])
+                self.thread_max_wait,
+                verbose])
         )
 
         self.object_detection = threading.Thread(
-            target=self.handle_obj_det, name="obj_det", args=([
+            target=self.handle_obj_det,
+            name="obj_det",
+            args=([
                 self.thread_wait_time,
-                self.thread_max_wait*10])
+                self.thread_max_wait,
+                verbose])
         )
 
         self.process_detections = threading.Thread(
-            target=self.process_detections_fn, name="process_detections", args=([0.1]), kwargs={})
+            target=self.process_detections_fn,
+            name="process_detections",
+            args=([
+                self.thread_wait_time,
+                self.thread_max_wait,
+                verbose])
+        )
 
         self.obj_det_thread.start()
         self.object_detection.start()
@@ -125,27 +152,20 @@ class ThreadedRunner(Runner):
         # continuously run a loop to pass images to the object detector
         # Reads from image_queue
         # Writes to object_detector.image_in_q
-        first_loop_done = False
         while not self.done:
-            start = time.time()
-            this_wait_max = max_wait
-            if not first_loop_done:
-                this_wait_max = max_wait * 10
-            while self.image_queue.empty():
-                if self.done:
-                    return
-                if time.time() - start >= this_wait_max:
-                    print("Error, waited too long for an image in object detection thread.")
-                    print("{} >= {}".format(time.time() - start, this_wait_max))
-                    return
-                time.sleep(wait_time)
-            # get image and frame time frome queue
-            image_np, frame_time = self.image_queue.get()
-            if self.object_detector.image_in_q.full():
-                self.object_detector.image_in_q.get()
-                self.num_dropped["Object_Detector_In"] += 1
-            self.object_detector.image_in_q.put((image_np, frame_time))
-            first_loop_done = True
+            try:
+                image_np, frame_time = self.image_queue.get(
+                    True, # block
+                    max_wait, # timeout
+                )
+                if self.object_detector.image_in_q.full():
+                    self.object_detector.image_in_q.get()
+                    self.num_dropped["Object_Detector_In"] += 1
+                self.object_detector.image_in_q.put((image_np, frame_time))
+            except queue.Empty:
+                if verbose:
+                    print("WARNING: Image queue was empty for too long")
+
 
     def wait_for_obj_det(self, max_wait=0.5):
         start = time.time()
@@ -156,7 +176,7 @@ class ThreadedRunner(Runner):
         if wait_succeed:
             self.object_detector.output_1.clear()
         else:
-            print("Error, waited too long for obj detections in wait_for_obj_det")
+            print("WARNING, waited too long for obj detections in wait_for_obj_det")
             print("{} > {}".format(time.time() - start, max_wait))
 
     def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
@@ -172,22 +192,24 @@ class ThreadedRunner(Runner):
         frame_time = time.time()
         if image_np is None:
             print('\nEnd of Video')
-            self.done = True
-            self.object_detector.done = True
+            self.set_done()
             return
 
         if self.image_queue.full():
             self.image_queue.get()
             self.num_dropped["Image Queue"] += 1
         self.image_queue.put((image_np, frame_time))
-        if not self.sep_speed_est:
+        if True:#not self.sep_speed_est:
             # wait for object detector to complete one pass
             self.wait_for_obj_det(max_wait*2)
+        else:
+            if self.elapsed == 1:
+                time.sleep(max_wait*2)
         self.speed_interface.update_estimates(image_np, frame_time)
         if verbose:
-            print("updated speed")
+            print("INFO: Updated speed.")
         self.state.set_ego_speed(self.speed_interface.get_reading())
-        time.sleep(wait_time)
+        time.sleep(wait_time/2)
 
     def print_more_timings(self):
         end = time.time()
@@ -233,8 +255,7 @@ class ThreadedRunner(Runner):
 
         while self.camera.isOpened() and not self.done:
             self.process_frame(self.thread_max_wait, self.thread_wait_time)
-        self.done = True
-        self.object_detector.done = True
+        self.set_done()
 
         #self.thread1.join()
         self.object_detection.join()
