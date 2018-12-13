@@ -1,10 +1,11 @@
 # Real time driver risk estimation using object detection
 ### Integrated inputs include monocular video sources and GPS
-
+** Need to update this documentation a bit. **
 ## Install Instructions
 * Nothing directly for this repo
 * If the use of YOLO is desired, install darkflow and the correct changes to net/help.py and net/build.py.
     - see https://github.com/djp42/darkflow2
+    - YOLO is currently deprecated (but can be implemented as an object_detector)
 * Need tensorflow/models/research/object_detection installed.
     - see https://github.com/tensorflow/models/tree/master/research/object_detection
     - We currently use just the resnet101 faster RCNN trained on the Kitti dataset
