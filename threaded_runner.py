@@ -26,7 +26,7 @@ sys.path.append(os.path.dirname(__file__))
 import tracker
 import display
 from driver_risk_utils import argument_utils, general_utils, gps_utils
-
+from object_detectors import tensorflow_obj_det_api
 
 import queue
 import threading
@@ -69,6 +69,7 @@ class ThreadedRunner(Runner):
         choice = cv2.waitKey(1)
         if choice == 27:
             self.done = True
+            self.object_detector.done = True
             return
         elif self.launcher.all_args.accept_speed and choice == ord('s'):
             speed = input("Enter speed (mph): ")
@@ -79,27 +80,38 @@ class ThreadedRunner(Runner):
 
     def process_detections_fn(self, wait_time=0.05):
         process_detections_elapsed = 0
-        while not self.done or not self.thread_queue.empty():
+        self.object_detector.q_lock_out.acquire()
+        while not self.done or not self.object_detector.detections_out_q.empty():
             # even if done, will empty queue first
-            if self.thread_queue.empty():
+            if self.object_detector.detections_out_q.empty():
+                self.object_detector.q_lock_out.release()
                 time.sleep(wait_time)
             else:
-                (image_np, net_out, frame_time) = self.thread_queue.get()
+                (image_np, net_out, frame_time) = self.object_detector.detections_out_q.get()
+                self.object_detector.q_lock_out.release()
                 self.tracker_obj.update_if_init(process_detections_elapsed)
                 self.tracker_obj.check_and_reset_multitracker(self.state)
                 self.visualize_one_image(net_out, image_np, frame_time)
                 # process image_np and net_out
                 process_detections_elapsed += 1
+            self.object_detector.q_lock_out.acquire()
+        self.object_detector.q_lock_out.release()
 
     def spawn_threads(self, queue_len=3):
-        if self.sep_obj_det:
-            self.image_queue = queue.Queue(1)
-            self.object_detection = threading.Thread(
-                target=self.run_obj_det, name="obj_det", args=([
-                    self.thread_wait_time,
-                    self.thread_max_wait]), kwargs={}
-            )
-            self.object_detection.start()
+        self.obj_det_thread = threading.Thread(
+            target = self.object_detector.launch,
+            name= "launch obj det",
+            kwargs={"wait_time":self.thread_wait_time, "max_wait":self.thread_max_wait}
+        )
+        self.obj_det_thread.start()
+
+        self.image_queue = queue.Queue(1)
+        self.object_detection = threading.Thread(
+            target=self.handle_obj_det, name="obj_det", args=([
+                self.thread_wait_time,
+                5]), kwargs={}
+        )
+        self.object_detection.start()
 
         self.num_dropped = 0
         self.thread_queue = queue.Queue(queue_len)
@@ -122,41 +134,31 @@ class ThreadedRunner(Runner):
             return True
         return False
 
-    def run_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
-        while not self.done or not self.thread_queue.empty():
+    def handle_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
+        # continuously run a loop to pass images to the object detector
+        while not self.done:
             start = time.time()
             while self.image_queue.empty():
-                if verbose:
-                    print("image queue empty", wait_time)
-                if self.done: return
+                if self.done:
+                    return
                 if time.time() - start >= max_wait:
                     print("Error, waited too long for an image in object detection thread.")
+                    print("{} >= {}".format(time.time() - start, max_wait))
                     return
                 time.sleep(wait_time)
             # get image and frame time frome queue
             image_np, frame_time = self.image_queue.get()
-            self.obj_det_on_image(image_np, frame_time, wait_time, max_wait, verbose)
+            if self.object_detector.image_in_q.full():
+                self.object_detector.image_in_q.get()
+            self.object_detector.image_in_q.put((image_np, frame_time))
 
-    def obj_det_on_image(
-            self, image_np, frame_time,
-            wait_time=0.05, max_wait=0.5,
-            verbose=False):
-        net_out = self.sess.run(
-            self.tensor_dict,
-            feed_dict={self.image_tensor: [image_np]}
-        )
-        if verbose:
-            print("net out run")
-        self.frames_ran_obj_det_on += 1
-        self.fps = general_utils.get_fps(self.start_loop, self.frames_ran_obj_det_on)
-        # update queue
-        image_was_removed = self.block_for_queue(max_wait, wait_time)
-        if image_was_removed:
-            self.num_dropped += 1
-            if verbose:
-                print("Blocked for too long, image {} removed.".format(
-                    self.elapsed - self.thread_queue_size))
-        self.thread_queue.put((image_np, net_out, frame_time))
+
+    def wait_for_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
+        start_detections = self.object_detector.detections
+        wait_succeed = self.object_detector.output_1.wait(max_wait)
+        if not wait_succeed:
+            print("Error, waited too long for obj detections in wait_for_obj_det")
+        self.object_detector.output_1.clear()
 
 
     def process_frame(self, max_wait=0.5, wait_time=0.05, verbose=False):
@@ -171,16 +173,19 @@ class ThreadedRunner(Runner):
         if image_np is None:
             print('\nEnd of Video')
             self.done = True
+            self.object_detector.done = True
             return
 
-        if self.sep_obj_det:
+        if self.image_queue.full():
+            self.image_queue.get()
+        self.image_queue.put((image_np, frame_time))
+        if not self.sep_speed_est:
             # put image and frame_time in image_queue
-            if self.image_queue.full():
-                self.image_queue.get()
-            self.image_queue.put((image_np, frame_time))
-        else:
-            self.obj_det_on_image(image_np, frame_time, wait_time, max_wait)
+            # wait for object detector to complete
+            self.wait_for_obj_det(wait_time, 5)
         self.speed_interface.update_estimates(image_np, frame_time)
+        if verbose:
+            print("updated speed")
         self.state.set_ego_speed(self.speed_interface.get_reading())
         time.sleep(wait_time)
 
@@ -204,22 +209,23 @@ class ThreadedRunner(Runner):
         self.init_camera(self.launcher.all_args.source)
         if self.launcher.all_args.save:
             self.init_video_write()
-        self.framework()
-        self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+        # obj detector
+        self.object_detector = tensorflow_obj_det_api.TFObjectDetector(self.launcher.all_args)
+
         # Tracker
         self.tracker_obj = tracker.Tracker(
             self.launcher.all_args,
             self.launcher.all_args.tracker_type,
             self.height,
             self.width,
-            self.launcher.category_index)
+            self.object_detector.category_index)
         # Display
         self.display_obj = display.Display()
 
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
 
-        self.sep_obj_det = self.using_camera
+        self.sep_speed_est = self.using_camera
         # when live video, we can run speed calcs in separate thread than obj det.
         self.spawn_threads(queue_len=self.thread_queue_size)
 
@@ -228,13 +234,14 @@ class ThreadedRunner(Runner):
         while self.camera.isOpened() and not self.done:
             self.process_frame(self.thread_max_wait, self.thread_wait_time)
         self.done = True
+        self.object_detector.done = True
         self.print_timings()
         self.print_more_timings()
 
         #self.thread1.join()
-        if self.sep_obj_det:
-            self.object_detection.join()
+        self.object_detection.join()
         self.process_detections.join()
+        self.obj_det_thread.join()
 
         if self.launcher.all_args.save:
             self.videoWriter.release()

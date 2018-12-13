@@ -30,31 +30,31 @@ class Launcher:
         """
         self.save_video = args.save
         self.save_path = args.save_path
-        self.model_name = args.model
-        self.path_to_checkpoint = self.model_name + '/frozen_inference_graph.pb'
-        self.path_to_labels = args.labels
-        if 'kitti' in self.path_to_labels:
-            self.num_classes = 2
-        else: #Coco?
-            self.num_classes = 90
-        self.all_args = args # make a copy for future use to avoid always referencing.
-        ####
-
-        self.detection_graph = tf.Graph()
-        with self.detection_graph.as_default():
-          od_graph_def = tf.GraphDef()
-          with tf.gfile.GFile(self.path_to_checkpoint, 'rb') as fid:
-            serialized_graph = fid.read()
-            od_graph_def.ParseFromString(serialized_graph)
-            tf.import_graph_def(od_graph_def, name='')
-
-        label_map = label_map_util.load_labelmap(self.path_to_labels)
-        categories = label_map_util.convert_label_map_to_categories(
-                label_map,
-                max_num_classes=self.num_classes,
-                use_display_name=True)
-        self.category_index = label_map_util.create_category_index(categories)
         self.all_args = args
+        if self.all_args.threaded_runner.lower() == "none":
+            self.model_name = args.model
+            self.path_to_checkpoint = self.model_name + '/frozen_inference_graph.pb'
+            self.path_to_labels = args.labels
+            if 'kitti' in self.path_to_labels:
+                self.num_classes = 2
+            else: #Coco?
+                self.num_classes = 90
+            ####
+
+            self.detection_graph = tf.Graph()
+            with self.detection_graph.as_default():
+              od_graph_def = tf.GraphDef()
+              with tf.gfile.GFile(self.path_to_checkpoint, 'rb') as fid:
+                serialized_graph = fid.read()
+                od_graph_def.ParseFromString(serialized_graph)
+                tf.import_graph_def(od_graph_def, name='')
+
+            label_map = label_map_util.load_labelmap(self.path_to_labels)
+            categories = label_map_util.convert_label_map_to_categories(
+                    label_map,
+                    max_num_classes=self.num_classes,
+                    use_display_name=True)
+            self.category_index = label_map_util.create_category_index(categories)
 
     def launch(self):
         """
@@ -64,17 +64,17 @@ class Launcher:
         Raises:
             ValueError if invalid threaded_runner method passed in.
         """
-        with tf.device(self.all_args.device):
-           with self.detection_graph.as_default():
-            with tf.Session() as sess:
-                if self.all_args.threaded_runner.lower() == "none":
+        if self.all_args.threaded_runner.lower() == "none":
+            with tf.device(self.all_args.device):
+               with self.detection_graph.as_default():
+                with tf.Session() as sess:
                     runner.Runner(self, sess).run()
-                elif self.all_args.threaded_runner.lower() == "b":
-                    threaded_runner.ThreadedRunner(self, sess).run()
-                else:
-                    raise ValueError(
-                        "Invalid method for threaded runner: {}".format(
-                            self.all_args.threaded_runner.lower()))
+        elif self.all_args.threaded_runner.lower() == "b":
+            threaded_runner.ThreadedRunner(self).run()
+        else:
+            raise ValueError(
+                "Invalid method for threaded runner: {}".format(
+                    self.all_args.threaded_runner.lower()))
 
 
 if __name__ == "__main__":

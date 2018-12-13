@@ -40,7 +40,7 @@ class Runner:
       init_camera() and init_video_write()
       get_detected_objects() and get_risk()
     """
-    def __init__(self, launcher, sess):
+    def __init__(self, launcher, sess=None):
         """
         Arguments
           launcher: a launcher object that contains some key components, like the arguments.
@@ -48,6 +48,8 @@ class Runner:
         """
         self.launcher = launcher
         self.sess = sess
+        # None to support not using it
+
         self.speed_interface = speed_estimator.SpeedEstimator(self.launcher.all_args)
 
         self.state = state_history.StateHistory()

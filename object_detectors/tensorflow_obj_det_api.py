@@ -18,8 +18,9 @@ from driver_risk_utils import argument_utils
 
 import queue
 import threading
+import object_detector
 
-class TFObjectDetector(ObjectDetector):
+class TFObjectDetector(object_detector.ObjectDetector):
     """
     A class to help facilitate using different object detectors in the future.
     """
@@ -29,6 +30,7 @@ class TFObjectDetector(ObjectDetector):
         Arguments
           args: a parser object from the argparse library.
         """
+        self.all_args = args
         self.model_name = args.model
         self.path_to_checkpoint = self.model_name + '/frozen_inference_graph.pb'
         self.path_to_labels = args.labels
@@ -72,7 +74,8 @@ class TFObjectDetector(ObjectDetector):
             if tensor_name in all_tensor_names:
                 self.tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
-    def launch(self, queue_in_size=2, queue_out_size=2, wait_time=0.05, max_wait=0.5):
+    def launch(self, queue_in_size=1, queue_out_size=1, wait_time=0.05, max_wait=0.5,
+            verbose=False):
         """
         Picks the device, tensorflow graph, and creates the tf session, before
         initializing and runner a runner.
@@ -80,30 +83,49 @@ class TFObjectDetector(ObjectDetector):
         Raises:
             ValueError if invalid threaded_runner method passed in.
         """
-        self._framework()
-        self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
         self.done = False
+        self.q_lock_in = threading.Lock()
+        self.q_lock_out = threading.Lock()
+        self.det_count_lock = threading.Lock()
         self.image_in_q = queue.Queue(queue_in_size)
         self.detections_out_q = queue.Queue(queue_out_size)
+        self.detections = 0
+        self.output_1 = threading.Event()
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
+                self._framework()
+                self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
                 while not self.done:
                     start = time.time()
                     while self.image_in_q.empty():
+                        if self.done:
+                            return
                         if verbose:
                             print("image queue empty", wait_time)
-                        if self.done: return
                         if time.time() - start >= max_wait:
-                            print("Error, waited too long for an image in object detection thread.")
+                            print("Error, waited too long for an image in object detection launch thread.")
+                            print("{} >= {}".format(time.time() - start, max_wait))
                             return
                         time.sleep(wait_time)
                     # get image and frame time frome queue
-                    image_np, frame_time = self.image_queue.get()
-                    net_out = self.sess.run(
+                    image_np, frame_time = self.image_in_q.get()
+                    if verbose:
+                        print("Got image in launcher")
+                    net_out = sess.run(
                         self.tensor_dict,
                         feed_dict={self.image_tensor: [image_np]}
                     )
                     if verbose:
                         print("net out run")
+                    self.detections += 1
+                    self.output_1.set()
+                    if self.detections_out_q.full():
+                        self.detections_out_q.get()
+                    if verbose:
+                        print("putting image")
                     self.detections_out_q.put((image_np, net_out, frame_time))
+                    if verbose:
+                        print("put image")
+
+                print("Obj det launcher is done")
