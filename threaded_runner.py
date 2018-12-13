@@ -80,22 +80,17 @@ class ThreadedRunner(Runner):
 
     def process_detections_fn(self, wait_time=0.05):
         process_detections_elapsed = 0
-        self.object_detector.q_lock_out.acquire()
         while not self.done or not self.object_detector.detections_out_q.empty():
             # even if done, will empty queue first
             if self.object_detector.detections_out_q.empty():
-                self.object_detector.q_lock_out.release()
                 time.sleep(wait_time)
             else:
                 (image_np, net_out, frame_time) = self.object_detector.detections_out_q.get()
-                self.object_detector.q_lock_out.release()
                 self.tracker_obj.update_if_init(process_detections_elapsed)
                 self.tracker_obj.check_and_reset_multitracker(self.state)
                 self.visualize_one_image(net_out, image_np, frame_time)
                 # process image_np and net_out
                 process_detections_elapsed += 1
-            self.object_detector.q_lock_out.acquire()
-        self.object_detector.q_lock_out.release()
 
     def spawn_threads(self, queue_len=3):
         self.obj_det_thread = threading.Thread(
@@ -249,7 +244,7 @@ class ThreadedRunner(Runner):
         if self.using_camera:
             cv2.destroyAllWindows()
 
-# TODO update description
+# TODO update description -- for object detector classs!
 """
 Main Thread:
 while not self.done:

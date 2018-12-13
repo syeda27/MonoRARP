@@ -84,13 +84,10 @@ class TFObjectDetector(object_detector.ObjectDetector):
             ValueError if invalid threaded_runner method passed in.
         """
         self.done = False
-        self.q_lock_in = threading.Lock()
-        self.q_lock_out = threading.Lock()
-        self.det_count_lock = threading.Lock()
         self.image_in_q = queue.Queue(queue_in_size)
         self.detections_out_q = queue.Queue(queue_out_size)
-        self.detections = 0
         self.output_1 = threading.Event()
+        self.detections = 0
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
