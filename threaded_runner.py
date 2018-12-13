@@ -148,7 +148,7 @@ class ThreadedRunner(Runner):
             self.object_detector.image_in_q.put((image_np, frame_time))
 
 
-    def wait_for_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
+    def wait_for_obj_det(self, max_wait=0.5):
         start_detections = self.object_detector.detections
         wait_succeed = self.object_detector.output_1.wait(max_wait)
         if not wait_succeed:
@@ -175,9 +175,8 @@ class ThreadedRunner(Runner):
             self.image_queue.get()
         self.image_queue.put((image_np, frame_time))
         if not self.sep_speed_est:
-            # put image and frame_time in image_queue
-            # wait for object detector to complete
-            self.wait_for_obj_det(wait_time, 5)
+            # wait for object detector to complete one pass
+            self.wait_for_obj_det(max_wait*2)
         self.speed_interface.update_estimates(image_np, frame_time)
         if verbose:
             print("updated speed")

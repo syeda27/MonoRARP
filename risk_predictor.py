@@ -42,7 +42,7 @@ sys.stdout.flush()
 import scene
 import time
 
-from driver_risk_utils import risk_prediction_utils
+from driver_risk_utils import risk_prediction_utils, general_utils
 
 class RiskPredictor:
     """
@@ -92,6 +92,16 @@ class RiskPredictor:
         )
         self.prev_risk = 0.0
         self.max_threads = max_threads
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
+
+    def __del__(self):
+        string = "\n=============== Ending Risk Predictor =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n==============\n"
+        print(string)
+
 
     def reset(self):
         """
@@ -103,8 +113,7 @@ class RiskPredictor:
     def get_risk(self,
                  state,
                  risk_type="ttc",
-                 verbose=False,
-                 timer=None):
+                 verbose=False):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -117,8 +126,6 @@ class RiskPredictor:
             String, indicate which method to use to calculate the risk.
           verbose:
             Boolean, passed to called functions on whether to log.
-          timer: general_utils.timing object.
-            The object that is keeping track of various timing qualities.
 
         Returns
           risk:
@@ -128,6 +135,8 @@ class RiskPredictor:
           ValueError:
             If an unsupported risk type is used.
         """
+        self.timer.update_start("Get Risk")
+        self.timer.update_start("Get Risk N")
         if risk_type.lower() == "ttc":
             risk = risk_prediction_utils.calculate_ttc(
                     state,
@@ -136,32 +145,28 @@ class RiskPredictor:
         elif risk_type.lower() == "online":
             if self.num_sims == 0:
                 return 0
-            if timer:
-                timer.update_start("SceneInit")
             this_scene = scene.Scene(
                     state.get_current_states(),
                     ego_vel=(0.0, state.get_ego_speed()),
                     ego_accel=(0.0, 0.0))  # TODO better initialization?
-            if timer:
-                timer.update_end("SceneInit")
-                timer.update_start("RiskSim")
+            self.timer.update_start("RiskSim")
             # TODO use self.max_threads for both making rollouts and calculating risk.
             rollouts = this_scene.simulate(
                     self.num_sims,
                     self.sim_horizon,
                     self.sim_step,
                     verbose,
-                    timer)
-            if timer:
-                timer.update_end("RiskSim", self.num_sims)
-                timer.update_start("CalculateRisk")
+                    self.timer)
+            self.timer.update_end("RiskSim", self.num_sims)
+            self.timer.update_start("CalculateRisk")
             risk = risk_prediction_utils.calculate_risk(
                     rollouts,
                     self.risk_args,
                     verbose)
-            if timer:
-                timer.update_end("CalculateRisk")
+            self.timer.update_end("CalculateRisk", self.num_sims)
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         self.prev_risk = (risk + self.prev_risk) / 2.0
+        self.timer.update_end("Get Risk")
+        self.timer.update_end("Get Risk N", self.num_sims)
         return self.prev_risk

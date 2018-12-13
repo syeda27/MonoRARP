@@ -133,7 +133,7 @@ class Runner:
         else:
             print('Press [ESC] to quit demo')
         self.camera = cv2.VideoCapture(input)
-        resolution = (1920, 1080)
+        resolution = (1280, 720) # [(640 x 480), (1280 x 720), (1920 x 1080)]
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
 
@@ -280,7 +280,7 @@ class Runner:
         calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
         if calculate_risk:
             return self.risk_predictor.get_risk(
-                    self.state, risk_type, verbose, self.timer)
+                    self.state, risk_type, verbose)
         return self.risk_predictor.prev_risk
 
     def update_state(self, boxes_with_labels, im_h, im_w, frame_time):
