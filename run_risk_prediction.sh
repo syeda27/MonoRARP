@@ -48,7 +48,7 @@ USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                              # Speeds input by the user overwrites other readings
-LANE_BASED_SPEED='true'
+LANE_BASED_SPEED='false'  # currently broken
 
 DEVICE='/gpu:0'
 # TODO simplify and make threaded runner either on or off, no options

@@ -72,18 +72,15 @@ def make_text(obj_key, this_state, frame_time):
     text = ""
     text2 = ""
     object_label = "obj: " + obj_key
-    speed_mult = 1.0
-    if frame_time is None:
-        speed_mult = fps
     if this_state is not None:
         if "distance_x" in this_state:
-            text += "dx: {0:.2f}, ".format(this_state['distance_x'])
+            text += "dx: {0:.2f} m, ".format(this_state['distance_x'])
         if "distance_y" in this_state:
-            text += "dy: {0:.2f}".format(this_state['distance_y'])
+            text += "dy: {0:.2f} m".format(this_state['distance_y'])
         if 'speed_x' in this_state:
-            text2 += "sx: {0:.2f}, ".format(this_state['speed_x']*speed_mult)
+            text2 += "sx: {0:.2f} mps, ".format(this_state['speed_x'])
         if 'speed_y' in this_state:
-            text2 += "sy: {0:.2f}".format(this_state['speed_y']*speed_mult)
+            text2 += "sy: {0:.2f} mps".format(this_state['speed_y'])
     return [object_label, text, text2]
 
 def outline_object_text(text_list, imgcv, disp_args, i):
@@ -107,7 +104,8 @@ def outline_global_text(img, risk, ego_speed_mph, disp_args):
                  disp_args,
                  thick_mult=1)
     outline_text(img,
-                 "ego speed: {0:.2f} mph".format(ego_speed_mph),
+                 "ego speed: {0:.2f} mph, {1:.2f} mps".format(
+                    ego_speed_mph, general_utils.mph_to_mps(ego_speed_mph)),
                  horiz,
                  vert - disp_args.space,
                  disp_args,

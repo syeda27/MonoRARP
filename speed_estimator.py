@@ -17,7 +17,7 @@ class SpeedEstimator():
     def __init__(
             self,
             launcher_args,
-            default_speed=35,
+            default_speed=15,
             verbose=False,
             display_speed_lane=False):
         """
