@@ -77,6 +77,7 @@ TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
+# YOLO deprecated in this manner
 if ($YOLO); then
     if (($SOURCE==1) || ($SOURCE==0)); then
         $SOURCE=camera$SOURCE
