@@ -67,12 +67,6 @@ class Launcher:
         with tf.device(self.all_args.device):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
-                """
-                if self.all_args.threaded:
-                    threaded_runner.ThreadedRunner(self, sess).run()
-                else:
-                    runner.Runner(self, sess).run()
-                """
                 if self.all_args.threaded_runner.lower() == "none":
                     runner.Runner(self, sess).run()
                 elif self.all_args.threaded_runner.lower() == "b":
