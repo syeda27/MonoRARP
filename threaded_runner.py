@@ -71,7 +71,7 @@ class ThreadedRunner(Runner):
 
         if self.launcher.all_args.save:
             self.videoWriter.write(img)
-        cv2.imshow('', img)
+        cv2.imshow('name', img)
 
         choice = cv2.waitKey(1)
         if choice == 27:

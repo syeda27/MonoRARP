@@ -1,5 +1,6 @@
 **this set of c++ code was written by Juan Carlos of the Allstate Corporation,
-with minor editing and integration by Derek Phillips of Stanford University**
+with minor editing and integration by djp42 of Stanford University
+(with ongoing work)**
 
 # Instructions
 ## Dependencies

@@ -35,7 +35,7 @@ rel_horizon ~= 0.5
 
 import numpy as np
 
-def calc_speed(state_for_object, to_use=5, verbose=False):
+def calc_speed(state_for_object, to_use=10, verbose=False):
     """
     Right now this function returns the average distance change per frame
      from the last to_use  frames.

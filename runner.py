@@ -141,7 +141,7 @@ class Runner:
                 'Cannot capture source'
         _, frame = self.camera.read()
         self.height, self.width, _ = frame.shape
-        
+
     def init_video_write(self, FPS=6):
         """
         This function initializes the video writer. It should only be called

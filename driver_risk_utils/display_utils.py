@@ -31,6 +31,8 @@ class DisplayArgs:
     def set_im(self, im):
         self.im_height, self.im_width, _ = im.shape
         self.set_thick()
+        self.space = int(self.im_height / 25)
+        self.top_margin = int(self.im_height / 25)
 
     def set_thick(self):
         self.thick = self.get_thick()
@@ -78,9 +80,9 @@ def make_text(obj_key, this_state, frame_time):
         if "distance_y" in this_state:
             text += "dy: {0:.2f} m".format(this_state['distance_y'])
         if 'speed_x' in this_state:
-            text2 += "sx: {0:.2f} mps, ".format(this_state['speed_x'])
+            text2 += "sx: {0:.2f} m/s, ".format(this_state['speed_x'])
         if 'speed_y' in this_state:
-            text2 += "sy: {0:.2f} mps".format(this_state['speed_y'])
+            text2 += "sy: {0:.2f} m/s".format(this_state['speed_y'])
     return [object_label, text, text2]
 
 def outline_object_text(text_list, imgcv, disp_args, i):
@@ -98,13 +100,13 @@ def outline_global_text(img, risk, ego_speed_mph, disp_args):
     horiz = int(disp_args.im_width / 2 - disp_args.space)
     vert = disp_args.im_height - disp_args.space
     outline_text(img,
-                 "risk: {0:.2f}".format(risk),
+                 "risk: {0:.3f}".format(risk),
                  horiz,
                  vert,
                  disp_args,
                  thick_mult=1)
     outline_text(img,
-                 "ego speed: {0:.2f} mph, {1:.2f} mps".format(
+                 "ego speed: {0:.2f} mph, {1:.2f} m/s".format(
                     ego_speed_mph, general_utils.mph_to_mps(ego_speed_mph)),
                  horiz,
                  vert - disp_args.space,

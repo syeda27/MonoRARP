@@ -33,7 +33,8 @@ SAVE='false'
 RUN='11a'
 FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-SOURCE=1
+SOURCE='/scratch/derek/video_captures/video_GH010034.mp4'
+#SOURCE=1
 #RUN='3a'
 #SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
 #SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
@@ -51,7 +52,7 @@ USE_GPS='false'             # use speed readings from a GPS
 GPS_SOURCE='gps_logging.txt'
 ACCEPT_SPEED='false'         # enter ego vehicle speed (currently mph).
                              # Speeds input by the user overwrites other readings
-LANE_BASED_SPEED='false'  # currently broken
+LANE_BASED_SPEED='true'  # currently broken
 
 DEVICE='/gpu:0'
 # TODO simplify and make threaded runner either on or off, no options
