@@ -188,18 +188,17 @@ class ThreadedRunner(Runner):
         """
         self.elapsed += 1
 
-        _, image_np = self.camera.read()
+        image_np = self.get_image()
         frame_time = time.time()
-        if image_np is None:
-            print('\nEnd of Video')
+        if self.done:
             self.set_done()
-            return
+            return # if no read image
 
         if self.image_queue.full():
             self.image_queue.get()
             self.num_dropped["Image Queue"] += 1
         self.image_queue.put((image_np, frame_time))
-        if True:#not self.sep_speed_est:
+        if not self.sep_speed_est:
             # wait for object detector to complete one pass
             self.wait_for_obj_det(max_wait*2)
         else:

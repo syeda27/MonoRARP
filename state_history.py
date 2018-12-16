@@ -33,6 +33,15 @@ class StateHistory:
         self.state_histories = defaultdict(list)
         # A dictionary of vehicle ID: list of vehicle state history
         self.ego_speed = 0
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
+
+    def __del__(self):
+        string = "\n=============== Ending State Estimator/History =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\n==============\n"
+        print(string)
 
     # some helpers
     def clear(self):
@@ -160,17 +169,27 @@ class StateHistory:
             The new state that we created, see vehicle_state.py
             (It is also appended to the internal state_histories.)
         """
+        self.timer.update_start("Update")
         state_len = len(self.state_histories[object_key])
         if state_len >= self.max_history:
             self.state_histories[object_key] = self.state_histories[object_key][-(self.max_history-1):]
+
+        self.timer.update_start("Distance")
         self._update_distance(args, box, im_h, im_w, object_key)
+        self.timer.update_end("Distance")
+
         self._update_time(object_key, time)
+
+        self.timer.update_start("Speed")
         self._update_speed(object_key)
+        self.timer.update_end("Speed")
 
         if do_calibrate:
             s_utils.calibrate(box, im_h, im_w)
         if test:
             self._log_test_output(args, box, im_h, im_w, object_key)
+
+        self.timer.update_end("Update")
         return self.state_histories[object_key][-1]
 
     # Private

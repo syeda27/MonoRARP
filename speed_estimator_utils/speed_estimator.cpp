@@ -399,21 +399,10 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
 
         Speed_estimator::absolute_speed_estimation_time( speed, road_nomark, capture_frameindex_for_speed, frametime, white_mark_hit, speed_read_flag, count_scanned_lines_reverse_for_speed, count_scanned_lines_for_speed, offset, offset_at_end_of_mark, offset_at_middle_of_mark, muy_lane_vec_final2_speed_permanent, mux_lane_vec_final2_speed_permanent, base_ptx_lane_vec_final2_speed_permanent, base_pty_lane_vec_final2_speed_permanent, h1, frametime_previous, image_time, count_scanned_lines_reverse_for_speed_previous, count_scanned_lines_for_speed_previous, offset_adjustment, range_adjustment_left, range_adjustment_right, img6, img2);
 
-        //cout<<"speed_read_flag "<<speed_read_flag<<endl;
-        //cout<<"white_mark_hit "<<white_mark_hit<<endl;
-        //cout<<"road_nomark "<<road_nomark<<endl;
-        //cout<<"count_road_nomark "<<count_road_nomark<<endl;
-        //cout<<"frametime "<<frametime<<endl;
-        //cin>>any;
-
         if (speed_read_flag==1)
         {
             speed_official=speed;
             first_reading_available_flag=1;
-            //cout<<"speed_read_flag"<<speed_read_flag<<endl;
-            //cout<<"frametime "<<frametime<<endl;
-            //cout<<"frametime_previous: "<<frametime_previous<<endl;
-            //cin>>any;
         }
 
         if ((road_nomark==1) && (white_mark_hit==1))
@@ -434,9 +423,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
 
         if (speed_read_flag==1)
         {
-            //print("offset: ",offset)
-            //print("count_scanned_lines_reverse_for_speed+count_scanned_lines_for_speed: ",count_scanned_lines_reverse_for_speed+count_scanned_lines_for_speed)
-            //#input("offset")
 
             if ((count_scanned_lines_reverse_for_speed+count_scanned_lines_for_speed<60) && (count_scanned_lines_reverse_for_speed+count_scanned_lines_for_speed>=51) && (exclude==0))
             {
@@ -444,9 +430,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 {
                     count_marks_detected_for_adjustment=count_marks_detected_for_adjustment+1;
                     offset_adjustment_acc=offset_adjustment_acc+offset;
-                    //cout<<"offset_considered:"<<offset<<endl;
-                    //print("offset_considered:",offset)
-                    //#input("conidered")
                 }
             }
             else
@@ -457,9 +440,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                   {
                     count_marks_detected_for_adjustment_b=count_marks_detected_for_adjustment_b+1;
                     offset_adjustment_acc_b=offset_adjustment_acc_b+offset;
-                    //cout<<"offset_considered:"<<offset<<endl;
-                    //print("offset_considered:",offset)
-                    //#input("conidered_b")
                   }
                 }
                 else
@@ -471,8 +451,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                             count_marks_detected_for_adjustment_c=count_marks_detected_for_adjustment_c+1;
                             offset_adjustment_acc_c=offset_adjustment_acc_c+offset;
                             cout<<"offset_considered:"<<offset<<endl;
-                            //print("offset_considered:",offset)
-                            //#input("conidered_c")
                         }
                     }
                 }
@@ -485,8 +463,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 count_marks_detected_for_adjustment=0;
                 offset_adjustment_acc=0;
                 count_adjustments=count_adjustments+1;
-                //print("offset_adjustment: ",offset_adjustment)
-                //#input("adjustment")
             }
 
             if (count_marks_detected_for_adjustment_b==2)
@@ -495,8 +471,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 count_marks_detected_for_adjustment_b=0;
                 offset_adjustment_acc_b=0;
                 count_adjustments_b=count_adjustments_b+1;
-                //print("offset_adjustment: ",offset_adjustment)
-                //#input("adjustment_b")
             }
 
             if (count_marks_detected_for_adjustment_c==2)
@@ -506,8 +480,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 offset_adjustment_acc_c=0;
                 count_adjustments_c=count_adjustments_c+1;
                 cout<<"offset_adjustment: "<<offset_adjustment<<endl;
-                //print("offset_adjustment: ",offset_adjustment)
-                //#input("adjustment_c")
             }
 
             if (count_adjustments==4)
@@ -571,17 +543,10 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
 
         Speed_estimator::absolute_speed_estimation_time( speed_1, road_nomark_1, capture_frameindex_for_speed_1, frametime_1, white_mark_hit_1, speed_read_flag_1, count_scanned_lines_reverse_for_speed_1, count_scanned_lines_for_speed_1, offset_1, offset_at_end_of_mark_1, offset_at_middle_of_mark_1, muy_lane_vec_final1_speed_permanent, mux_lane_vec_final1_speed_permanent, base_ptx_lane_vec_final1_speed_permanent, base_pty_lane_vec_final1_speed_permanent, h1, frametime_previous_1, image_time, count_scanned_lines_reverse_for_speed_previous_1, count_scanned_lines_for_speed_previous_1, offset_adjustment_1, range_adjustment_left_1, range_adjustment_right_1, img6, img2);
 
-        //cout<<"speed_read_flag "<<speed_read_flag<<endl;
-        //cout<<"white_mark_hit "<<white_mark_hit<<endl;
-        //cout<<"road_nomark "<<road_nomark<<endl;
-        //cout<<"count_road_nomark "<<count_road_nomark<<endl;
-
         if (speed_read_flag_1==1)
         {
             speed_official=speed_1;
             first_reading_available_flag=1;
-            //cout<<"speed_read_flag_1"<<speed_read_flag_1<<endl;
-            //cout<<"speed_1: "<<speed_1<<endl;
         }
 
         if ((road_nomark_1==1) && (white_mark_hit_1==1))
@@ -612,9 +577,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 {
                     count_marks_detected_for_adjustment_1=count_marks_detected_for_adjustment_1+1;
                     offset_adjustment_acc_1=offset_adjustment_acc_1+offset_1;
-                    //cout<<"offset_considered:"<<offset<<endl;
-                    //print("offset_considered:",offset)
-                    //#input("conidered")
                 }
             }
             else
@@ -625,9 +587,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                   {
                     count_marks_detected_for_adjustment_b_1=count_marks_detected_for_adjustment_b_1+1;
                     offset_adjustment_acc_b_1=offset_adjustment_acc_b_1+offset_1;
-                    //cout<<"offset_considered:"<<offset<<endl;
-                    //print("offset_considered:",offset)
-                    //#input("conidered_b")
                   }
                 }
                 else
@@ -639,8 +598,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                             count_marks_detected_for_adjustment_c_1=count_marks_detected_for_adjustment_c_1+1;
                             offset_adjustment_acc_c_1=offset_adjustment_acc_c_1+offset_1;
                             cout<<"offset_considered_1:"<<offset_1<<endl;
-                            //print("offset_considered:",offset)
-                            //#input("conidered_c")
                         }
                     }
                 }
@@ -653,8 +610,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 count_marks_detected_for_adjustment_1=0;
                 offset_adjustment_acc_1=0;
                 count_adjustments_1=count_adjustments+1;
-                //print("offset_adjustment: ",offset_adjustment)
-                //#input("adjustment")
             }
 
             if (count_marks_detected_for_adjustment_b_1==2)
@@ -663,8 +618,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 count_marks_detected_for_adjustment_b_1=0;
                 offset_adjustment_acc_b_1=0;
                 count_adjustments_b_1=count_adjustments_b_1+1;
-                //print("offset_adjustment: ",offset_adjustment)
-                //#input("adjustment_b")
             }
 
             if (count_marks_detected_for_adjustment_c_1==2)
@@ -674,8 +627,6 @@ void Speed_estimator::Speed_estimator_update(Mat img3, double image_time)
                 offset_adjustment_acc_c_1=0;
                 count_adjustments_c_1=count_adjustments_c_1+1;
                 cout<<"offset_adjustment_1: "<<offset_adjustment_1<<endl;
-                //print("offset_adjustment: ",offset_adjustment)
-                //#input("adjustment_c")
             }
 
             if (count_adjustments_1==4)

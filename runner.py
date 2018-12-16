@@ -136,11 +136,12 @@ class Runner:
         resolution = (1280, 720) # [(640 x 480), (1280 x 720), (1920 x 1080)]
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+        (self.rsz_width, self.rsz_height) = resolution
 
         assert self.camera.isOpened(), \
                 'Cannot capture source'
         _, frame = self.camera.read()
-        self.height, self.width, _ = frame.shape
+        self.width, self.height = resolution
 
     def init_video_write(self, FPS=6):
         """
@@ -186,6 +187,19 @@ class Runner:
             if tensor_name in all_tensor_names:
                 self.tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
+    def get_image(self):
+        """
+        use this in case we want to do any camera processing.
+        """
+        _, image_np = self.camera.read()
+        if image_np is None:
+            print('\nEnd of Video')
+            self.done = True
+            return None
+        img = cv2.resize(image_np,(self.rsz_width,self.rsz_height))
+        return img
+
+
     def read_image(self):
         """
         Read an image from the camera into the internal variables.
@@ -195,12 +209,7 @@ class Runner:
           tracker_obj: updates the shape based on this image.
           done: Set to true when the video ends (only triggered on file sources)
         """
-        _, image_np = self.camera.read()
-        if image_np is None:
-            print('\nEnd of Video')
-            self.done = True
-            return
-
+        image_np = self.get_image()
         #image_np_expanded = np.expand_dims(image_np, axis=0)
         self.input_buffer.append(image_np)
 
