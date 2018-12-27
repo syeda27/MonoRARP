@@ -2,7 +2,6 @@
 ### Integrated inputs include monocular video sources and GPS
 
 ## Install Instructions
-* Nothing directly for this repo
 * If the use of YOLO is desired, install darkflow and the correct changes to net/help.py and net/build.py.
     - see https://github.com/djp42/darkflow2
 * Need tensorflow/models/research/object_detection installed.
@@ -16,5 +15,8 @@
         - `opencv-contrib-python`
         - `matplotlib`
         - `Pillow`
+* For GPS:
+   - sudp apt install gpsd
+
 
 *This research was funded by The Allstate Corporation.*
