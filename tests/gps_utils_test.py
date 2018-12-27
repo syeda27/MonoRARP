@@ -3,6 +3,7 @@ import numpy as np
 import sys
 
 sys.path.append("..")
+sys.path.append("../driver_risk_utils/")
 import gps_utils
 
 GPS_INTERFACE = gps_utils.GPS_Interface("logs_gps/gps_attempt2.log",
@@ -28,19 +29,23 @@ last_reading_line = GPS_INTERFACE.get_last_reading_line(new_file)
 assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,160347.000,A,3745.4843,N,12223.8672,W,0.00,26.10,271218,,,A*44\n"
 
 last_reading_line = GPS_INTERFACE.get_last_valid_reading_line(new_file)
-assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,160347.000,A,3745.4843,N,12223.8672,W,0.00,26.10,271218,,,A*44"
+assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,160347.000,A,3745.4843,N,12223.8672,W,0.00,26.10,271218,,,A*44\n"
 
 
 (time, lat, lon) = GPS_INTERFACE.parse_line(last_reading_line)
 print(time)
 print(lat)
 print(lon)
-assert time == "183423.000"
+#160347.000
+#('37', '45.4843', 'N')
+#('122', '23.8672', 'W')
+
+assert time == "160347.000"
 assert lat[0] == "37"
-assert lat[1] == "25.2744"
+assert lat[1] == "45.4843"
 assert lat[2] == "N"
 assert lon[0] == "122"
-assert lon[1] == "10.4042"
+assert lon[1] == "23.8672"
 assert lon[2] == "W"
 
 # now test speed
