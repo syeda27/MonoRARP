@@ -61,10 +61,10 @@ THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
 THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
 THREAD_MAX_WAIT=1.0          # maximum amount of time to block on a queue, sec.
 
-FOCAL=350
+FOCAL=115
 CAR_WIDTH=1.8                # meters
-CAMERA_HEIGHT=1.15           # meters
-MIN_CAMERA_ANGLE=54.5        # degrees
+CAMERA_HEIGHT=.8636           # meters
+MIN_CAMERA_ANGLE=42.355        # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
 RELATIVE_HORIZON=0.5         # between 0 and 1
 
