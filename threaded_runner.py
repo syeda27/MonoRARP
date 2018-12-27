@@ -65,7 +65,6 @@ class ThreadedRunner(Runner):
                 risk,
                 self.state.get_ego_speed_mph(),
                 boxes_with_labels,
-                fps=self.fps,
                 frame_time=frame_time
             )
 

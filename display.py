@@ -26,7 +26,6 @@ class Display:
                      risk,
                      speed,
                      boxes_with_labels,
-                     fps=6.0,
                      frame_time=None,
                      show_global_stats=True):
         i = 0
