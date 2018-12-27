@@ -328,8 +328,10 @@ class StateHistory:
             rel_horizon=args.horizon, verbose=True)
         print("Bounding Box 2")
         s_utils.bottom_bounding_box_distance2(box, im_h, im_w,
-                rel_horizon=args.horizonargs.focal,
-                camera_focal_len=args.cameraH, carW=args.carW, verbose=True)
+                rel_horizon=args.horizon,
+                camera_focal_len=args.focal,
+                camera_height=args.cameraH,
+                carW=args.carW, verbose=True)
         print("Average distance y:", self.state_histories[object_key][-1]["distance_y"])
         print("Average distance x:", self.state_histories[object_key][-1]["distance_x"])
         s_utils.calc_speed(self.state_histories[object_key], verbose=True)

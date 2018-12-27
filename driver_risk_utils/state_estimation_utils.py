@@ -290,9 +290,9 @@ def calibrate(
         box,
         im_h,
         im_w,
-        object_width=0.127,
-        object_height=0.1143,
-        distance=0.2286):
+        object_width=0.125,
+        object_height=0.105,
+        distance=0.25):
     """
     Prints out focal lengths for the camera (computes both width and height to
     make sure they are similar)

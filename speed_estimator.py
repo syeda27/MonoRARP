@@ -17,7 +17,7 @@ class SpeedEstimator():
     def __init__(
             self,
             launcher_args,
-            default_speed=15,
+            default_speed=31.4,
             verbose=False,
             display_speed_lane=False):
         """
@@ -59,10 +59,12 @@ class SpeedEstimator():
         if self.use_gps:
             self.timer.update_start("Get GPS Speed")
             speed.append(self.gps_interface.get_reading())
+            print("gps_speed: ", str(speed[-1]))
             self.timer.update_end("Get GPS Speed")
         if self.use_lane_markings:
             self.timer.update_start("Get LBS Speed")
             speed.append(self.lane_based_speed_interface.get_speed())
+            print("lane_speed: ", str(speed[-1]))
             self.timer.update_end("Get LBS Speed")
         if len(speed) == 0:
             return self.default_speed
