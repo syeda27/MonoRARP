@@ -22,13 +22,13 @@ with open(new_file, "r") as f:
     assert lines[-1] == "gpsd:PROG: GPRMC ends a reporting cycle.\n"
 
     print(lines[0])
-    assert lines[0] == "gpsd:IO: <= GPS: $GPGSA,M,3,17,28,19,13,30,15,01,07,18,,,,1.9,1.0,1.6*3E\n"
+    assert lines[0] == "gpsd:IO: <= GPS: $GPGSV,3,2,12,24,17,059,37,18,16,310,29,04,00,000,24,14,41,198,19*7E\n"
 
 last_reading_line = GPS_INTERFACE.get_last_reading_line(new_file)
-assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,183423.000,A,3725.2744,N,12210.4042,W,0.00,264.67,030618,,,A*7A\n"
+assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,160347.000,A,3745.4843,N,12223.8672,W,0.00,26.10,271218,,,A*44\n"
 
 last_reading_line = GPS_INTERFACE.get_last_valid_reading_line(new_file)
-assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,183423.000,A,3725.2744,N,12210.4042,W,0.00,264.67,030618,,,A*7A\n"
+assert last_reading_line == "gpsd:IO: <= GPS: $GPRMC,160347.000,A,3745.4843,N,12223.8672,W,0.00,26.10,271218,,,A*44"
 
 
 (time, lat, lon) = GPS_INTERFACE.parse_line(last_reading_line)
