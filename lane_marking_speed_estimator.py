@@ -30,7 +30,7 @@ class LaneMarkingSpeedEstimator(object):
             for when the image was captured
         """
         H, W, C = image.shape
-        print(H,W,C)
+        #print(H,W,C)
         lib.Speed_estimator_update(self.obj,
             ctypes.c_void_p(image.ctypes.data),
             ctypes.c_int(H),
