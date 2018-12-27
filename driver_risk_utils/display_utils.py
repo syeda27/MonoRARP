@@ -130,6 +130,15 @@ def outline_text(imgcv, text, left, top, disp_args, thick_mult=1):
                 disp_args.color,
                 disp_args.get_thick()*thick_mult)
 
+def mark_center(imgcv, disp_args, radius=5, thick_mult=1):
+    im_height, im_width, _ = imgcv.shape
+
+    cv2.circle(
+        imgcv,
+        (int(disp_args.im_width/2), int(disp_args.im_height/2)),
+        radius,
+        disp_args.black,
+        2*disp_args.get_thick()*thick_mult)
 
 def display(args,
             state,
