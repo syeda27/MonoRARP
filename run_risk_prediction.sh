@@ -30,9 +30,9 @@ SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=0
 SOURCE=1
 
-SAVE='false'
-RUN='SB-1'
-SAVE_PATH=${START_LOC}'/12-27-hwy280-'${RUN}'.mp4'
+SAVE='true'
+RUN='test'
+SAVE_PATH='/scratch/derek/video_captures/12-27/12-27-hwy280-'${RUN}'.mp4'
 
 #FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'

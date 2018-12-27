@@ -45,6 +45,6 @@ class Display:
             i += 1
         if show_global_stats:
             display_utils.outline_global_text(self.imgcv, risk, speed, self.d_args)
-        self.imgcv = cv2.resize(self.imgcv,(1280,720)) #[(640 x 480), (1280 x 720), (1920 x 1080)]
+        #self.imgcv = cv2.resize(self.imgcv,(1280,720)) #[(640 x 480), (1280 x 720), (1920 x 1080)]
 
         return self.imgcv

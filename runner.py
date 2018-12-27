@@ -81,8 +81,7 @@ class Runner:
         if self.launcher.all_args.save:
             self.videoWriter.release()
         self.camera.release()
-        if self.using_camera:
-            cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
 
         string = "\n=============== Ending Runner =============="
         self.timer.update_end("Overall")
@@ -144,7 +143,7 @@ class Runner:
         _, frame = self.camera.read()
         self.width, self.height = resolution
 
-    def init_video_write(self, FPS=6):
+    def init_video_write(self, FPS=10):
         """
         This function initializes the video writer. It should only be called
         if it has been determined through the launcher args that we want to save
@@ -156,17 +155,21 @@ class Runner:
         Arguments
           FPS: the target frames per second for the video writer.
         """
-        # TODO better testing of FPS to make sure nothing breaks or anything like that
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
         if self.using_camera:
             fps=FPS
         else:
             fps = round(self.camera.get(cv2.CAP_PROP_FPS))
+
+        frame_width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+
+        print("Creating video writer of w, h: ", frame_width, frame_height)
         self.videoWriter = cv2.VideoWriter(
-                self.launcher.save_path,
-                fourcc,
-                fps,
-                (self.width, self.height))
+            self.launcher.save_path,
+            fourcc,
+            fps,
+            (frame_width, frame_height))
 
     def framework(self):
         """
@@ -197,8 +200,10 @@ class Runner:
             print('\nEnd of Video')
             self.done = True
             return None
-        img = cv2.resize(image_np,(self.rsz_width,self.rsz_height))
-        return img
+        if not self.using_camera:
+            img = cv2.resize(image_np,(self.rsz_width,self.rsz_height))
+            return img
+        return image_np
 
 
     def read_image(self):
@@ -331,7 +336,7 @@ class Runner:
 
         if self.launcher.all_args.save:
             self.videoWriter.write(img)
-        cv2.imshow('', img)
+        cv2.imshow('image', img)
 
     def process_queue(self, frame_time, profile=False):
         """
@@ -437,6 +442,8 @@ class Runner:
             self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
+        cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('image', 1280,720)
 
         # TODO bottom 4 should be in a thread.
         if self.launcher.all_args.accept_speed:

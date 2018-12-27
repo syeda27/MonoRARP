@@ -71,7 +71,11 @@ class ThreadedRunner(Runner):
 
         if self.launcher.all_args.save:
             self.videoWriter.write(img)
-        cv2.imshow('name', img)
+        if not self.has_displayed:
+            cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+            cv2.resizeWindow('image', 1280,720)
+            self.has_displayed = True
+        cv2.imshow('image', img)
 
         choice = cv2.waitKey(1)
         if choice == 27:
@@ -242,6 +246,7 @@ class ThreadedRunner(Runner):
             self.object_detector.category_index)
         # Display
         self.display_obj = display.Display()
+        self.has_displayed = False
 
         if self.launcher.all_args.accept_speed:
             print("Press 's' to enter speed.")
