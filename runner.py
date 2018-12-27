@@ -133,7 +133,8 @@ class Runner:
         else:
             print('Press [ESC] to quit demo')
         self.camera = cv2.VideoCapture(input)
-        resolution = (1280, 720) # [(640 x 480), (1280 x 720), (1920 x 1080)]
+        resolution = (1920, 1080) # [(640 x 480), (1280 x 720), (1920 x 1080)]
+        #resolution = (1280, 720) # [(640 x 480), (1280 x 720), (1920 x 1080)]
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
         (self.rsz_width, self.rsz_height) = resolution
