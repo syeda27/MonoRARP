@@ -27,7 +27,8 @@ class Display:
                      speed,
                      boxes_with_labels,
                      frame_time=None,
-                     show_global_stats=True):
+                     show_global_stats=True,
+                     rel_horizon=0.5):
         i = 0
         for object_key, (b, label) in sorted(boxes_with_labels.items()):
             aspect_ratio_off = general_utils.check_aspect_ratio(b)
@@ -45,5 +46,6 @@ class Display:
         if show_global_stats:
             display_utils.outline_global_text(self.imgcv, risk, speed, self.d_args)
         #self.imgcv = cv2.resize(self.imgcv,(1280,720)) #[(640 x 480), (1280 x 720), (1920 x 1080)]
-        display_utils.mark_center(self.imgcv, self.d_args)
+        display_utils.mark_center_lines(self.imgcv, self.d_args)
+        display_utils.mark_horizon_line(self.imgcv, self.d_args, rel_horizon)
         return self.imgcv

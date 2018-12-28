@@ -328,7 +328,8 @@ class Runner:
                 risk,
                 self.state.get_ego_speed_mph(),
                 boxes_with_labels,
-                frame_time=frame_time
+                frame_time=frame_time,
+                rel_horizon=self.launcher.all_args.horizon
             )
 
         self.timer.update_end("Display", 1)

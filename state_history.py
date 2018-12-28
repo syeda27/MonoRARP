@@ -225,6 +225,7 @@ class StateHistory:
                 print("Triangle distance: {}".format(state_dict["distance_y_t"]))
         elif verbose:
             print("No triangle distance, too far off-center.")
+        '''
         d_bbb = s_utils.bottom_bounding_box_distance(
             box,
             im_h,
@@ -235,8 +236,9 @@ class StateHistory:
             carW = args.carW,
             rel_horizon=args.horizon,
             verbose=verbose)
-        #if d_bbb is not None:
-        #    state_dict["distance_y_b"], state_dict["distance_x_b"] = d_bbb
+        if d_bbb is not None:
+            state_dict["distance_y_b"], state_dict["distance_x_b"] = d_bbb
+        '''
         state_dict["distance_y_b2"], state_dict["distance_x_b2"] = \
                 s_utils.bottom_bounding_box_distance2(
                     box,

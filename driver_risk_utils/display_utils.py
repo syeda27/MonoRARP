@@ -140,6 +140,23 @@ def mark_center(imgcv, disp_args, radius=5, thick_mult=1):
         disp_args.black,
         2*disp_args.get_thick()*thick_mult)
 
+def mark_center_lines(imgcv, disp_args, thick_mult=1):
+    center_x = int(disp_args.im_width/2)
+    center_y = int(disp_args.im_height/2)
+    p1 = (center_x, 0)
+    p2 = (center_x, disp_args.im_height)
+    make_line(imgcv, p1, p2)
+    p1 = (0, center_y)
+    p2 = (disp_args.im_width, center_y)
+    make_line(imgcv, p1, p2)
+
+def mark_horizon_line(imgcv, disp_args, rel_horizon, thick_mult=1):
+    horizon_y = disp_args.im_height * (1- rel_horizon)
+    p1 = (0, horizon_y)
+    p2 = (disp_args.im_width, horizon_y)
+    make_line(imgcv, p1, p2, color=(0,255,0))
+
+
 def display(args,
             state,
             risk,
