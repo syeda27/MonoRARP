@@ -30,13 +30,14 @@ SOURCE=${START_LOC}/videos/test_1.avi
 #SOURCE=0
 SOURCE=1
 
-SAVE='true'
-RUN='test'
+SAVE='false'
+RUN='video_capture'
+SOURCE='/scratch/derek/video_captures/12-27/12-27-hwy280-'${RUN}'.mp4'
 SAVE_PATH='/scratch/derek/video_captures/12-27/12-27-hwy280-'${RUN}'.mp4'
 
 #FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
 #SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-#SOURCE='/scratch/derek/video_captures/video_GH010034.mp4'
+SOURCE='/scratch/derek/video_captures/video_GH010034.mp4'
 #SOURCE=1
 #RUN='3a'
 #SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
@@ -61,12 +62,15 @@ THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
 THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
 THREAD_MAX_WAIT=1.0          # maximum amount of time to block on a queue, sec.
 
-FOCAL=115
+FOCAL=1495                    # Genius at 1080p is ~850, at 720p is ~550
 CAR_WIDTH=1.8                # meters
-CAMERA_HEIGHT=.8636           # meters
+CAMERA_HEIGHT=1.08           # meters, for subaru forester, 1.2m
 MIN_CAMERA_ANGLE=42.355        # degrees
 MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
-RELATIVE_HORIZON=0.5         # between 0 and 1
+RELATIVE_HORIZON=0.55        # between 0 and 1, above 0.5 is above centerline
+RESOLUTION_H=1080 # 0 means both not set
+RESOLUTION_W=1920 # 0 means both not set
+
 
 RISK_N_SIMS=5
 RISK_H=5        # seconds
@@ -110,6 +114,7 @@ else
         --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
         --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
         --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
+        --resolution_h $RESOLUTION_H --resolution_w $RESOLUTION_W \
         --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
         --tracker_hold $TRACKER_HOLD \
         --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \

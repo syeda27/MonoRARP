@@ -17,6 +17,8 @@ def add_camera_args(parser):
             default=defaults.CAMERA_MAX_HORIZONTAL_ANGLE_deg)
     parser.add_argument("--horizon", type=float,
             default=defaults.HORIZON)
+    parser.add_argument("--resolution_h", type=int, default=defaults.RESOLUTION_H)
+    parser.add_argument("--resolution_w", type=int, default=defaults.RESOLUTION_W)
 
 def add_speed_args(parser):
     parser.add_argument("--use_gps", type=str2bool,

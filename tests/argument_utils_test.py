@@ -2,7 +2,9 @@
 # Currently tests are run by running the python script
 
 import time
-
+import sys
+sys.path.append("..")
+sys.path.append("../driver_risk_utils/")
 import defaults
 import argument_utils
 
@@ -20,6 +22,8 @@ def test_default_args():
     assert args.cameraMinAngle == defaults.CAMERA_MIN_VERTICAL_ANGLE_deg
     assert args.cameraMaxHorizAngle == defaults.CAMERA_MAX_HORIZONTAL_ANGLE_deg
     assert args.horizon == defaults.HORIZON
+    assert args.resolution_h == defaults.RESOLUTION_H
+    assert args.resolution_w == defaults.RESOLUTION_W
 
     assert args.use_gps == argument_utils.str2bool(defaults.USE_GPS)
     assert args.gps_source == defaults.GPS_SOURCE

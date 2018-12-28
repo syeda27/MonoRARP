@@ -132,16 +132,19 @@ class Runner:
         else:
             print('Press [ESC] to quit demo')
         self.camera = cv2.VideoCapture(input)
-        resolution = (1920, 1080) # [(640 x 480), (1280 x 720), (1920 x 1080)]
-        #resolution = (1280, 720) # [(640 x 480), (1280 x 720), (1920 x 1080)]
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
-        (self.rsz_width, self.rsz_height) = resolution
+        res = (self.launcher.all_args.resolution_w, self.launcher.all_args.resolution_h)
+        self.rsz = False
+        if res[0] != 0 and res[1] != 0:
+            assert res in {(640,480), (1280,720), (1920,1080)}
+            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
+            self.rsz = True
+            (self.rsz_width, self.rsz_height) = res
 
         assert self.camera.isOpened(), \
                 'Cannot capture source'
         _, frame = self.camera.read()
-        self.width, self.height = resolution
+        self.height, self.width, _ = frame.shape
 
     def init_video_write(self, FPS=10):
         """
@@ -200,7 +203,7 @@ class Runner:
             print('\nEnd of Video')
             self.done = True
             return None
-        if not self.using_camera:
+        if not self.using_camera and self.rsz:
             img = cv2.resize(image_np,(self.rsz_width,self.rsz_height))
             return img
         return image_np

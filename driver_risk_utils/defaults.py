@@ -34,7 +34,7 @@ THREAD_MAX_WAIT = 0.5
 DETECT_LANES = "False"
 
 ## GPS DEFAULTS ##
-USE_GPS = "True"
+USE_GPS = "False"
 GPS_SOURCE = "gps_logging.txt"
 ACCEPT_SPEED = "False"
 LANE_BASED_SPEED = "False"
@@ -52,6 +52,8 @@ NUM_TRACKER_PARTICLES = 10
 SOURCE = "0"
 SAVE = "True"
 SAVE_PATH = '/home/derek/object_detection_mono_video/video.avi'
+RESOLUTION_H = 0 # 0 means does not set either
+RESOLUTION_W = 0 # 0 means does not set either
 
 ## RISK DEFAULTS ##
 RISK_N_SIMS = 10  # Number of simulations to run
