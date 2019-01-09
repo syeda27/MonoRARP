@@ -2,14 +2,24 @@
 This file implements the ThreadedRunner class, which supports (ideally) a couple
 different methods for threading the DRIVR system.
 
-Method A:
-Highly decomposed threading.
-NOT IMPLEMENTED
-
 Method B:
-Use the main thread for GPU object detection, and have a queue to communicate
-with the thread doing tracker, risk, display, etc.
-
+Main thread
+  - Handles the camera processing
+  - calls the speed estimator
+    - we want this to run as often as possible, which is why we have it in the
+      outer loop.
+  - send images to the object detector queue, very fast.
+Object Detector
+  - Runs the object detector through Queue interfaces:
+    - see object_detectors/tensorflow_obj_det_api.launch()
+Object Detector Handler
+  - Populates object_detector's input queue whenever possible, with key task
+    of keeping it at length 1 (requires emptying it often)
+Process Detections
+  - Reads from the object detector's output queue to start all remaining
+    components of the system: tracker, state, risk, display.
+  - splitting this into more threads does not increase runtime since they are all
+    serial processes that fully occupy the CPU already.
 """
 
 import numpy as np
@@ -23,16 +33,14 @@ import time
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-import tracker
-import display
-from driver_risk_utils import argument_utils, general_utils, gps_utils
-from object_detectors import tensorflow_obj_det_api
-
 import queue
 import threading
 from collections import defaultdict
 
-
+import tracker
+import display
+from driver_risk_utils import argument_utils, general_utils, gps_utils
+from object_detectors import tensorflow_obj_det_api
 from runner import Runner
 
 
@@ -40,16 +48,33 @@ class ThreadedRunner(Runner):
     """
     This class is a subclass of Runner, that implements threaded versions of
     the functions.
-    The motivation is to use threads to allow for maximum GPU utilization.
+    The motivation is to use threads to allow for maximum GPU and CPU utilization.
     Instead of waiting for the object detection, we process the image we got
-    last go around.
+    last go around, speeding up overall runtime through parallel processes.
     """
 
     def set_done(self):
+        """
+        Set the "done" flag signalling the different components to terminate cleanly.
+        """
         self.done = True
         self.object_detector.done = True
 
     def visualize_one_image(self, net_out, image, frame_time):
+        """
+        Visualize the results of a detections.
+        Calls most subcomponents, including get_detected_objects() to update
+        the tracker, update_state(), get_risk(), and dsiplay_obj().
+        Also handles videoWriter (should be handled elsewhere in the future) and
+        user input.
+
+        Arguments:
+          net_out: the dictionary containing the outputs from the object
+            detection network.
+          image: np.array() - the image to process.
+          frame_time: float - the time in seconds that the image was first processed.
+            The precision should be at least milliseconds.
+        """
         # Visualization of the results of a detection
 
         boxes_with_labels = self.get_detected_objects(0, net_out, image)
@@ -89,7 +114,18 @@ class ThreadedRunner(Runner):
                 print("Please enter a float or integer.")
 
     def process_detections_fn(self, wait_time=0.05, max_wait_time=1.0, verbose=False):
+        """
+        One of the functions that becomes a thread, this is responsible for
+        reading output from the object detector thread and updating the tracker,
+        then the visualize_one_image().
+        This is can be thought of as the tracker thread, although it includes all
+        of the state estimation, risk prediction, and display as well.
+
+        If it waits to long, it sets everything to be done, prints an ERROR,
+        and exits.
+        """
         self.process_detections_elapsed = 0
+        # wait longer at the beginning to let things get set up
         this_wait_time = max_wait_time*10
         time.sleep(max_wait_time*2)
         while not self.done or not self.object_detector.detections_out_q.empty():
@@ -113,9 +149,11 @@ class ThreadedRunner(Runner):
             if verbose:
                 print("INFO: successfully processed an image")
             self.process_detections_elapsed += 1
-            start = time.time()
 
     def spawn_threads(self, queue_len=3, verbose=False):
+        """
+        Call to create and start all of the required threads and queues.
+        """
         self.num_dropped = defaultdict(int)
         self.image_queue = queue.Queue(1)
 
@@ -153,9 +191,11 @@ class ThreadedRunner(Runner):
         self.process_detections.start()
 
     def handle_obj_det(self, wait_time=0.05, max_wait=0.5, verbose=False):
-        # continuously run a loop to pass images to the object detector
-        # Reads from image_queue
-        # Writes to object_detector.image_in_q
+        """
+        Continuously run a loop to pass images to the object detector
+        Reads from image_queue
+        Writes to object_detector.image_in_q
+        """
         while not self.done:
             try:
                 image_np, frame_time = self.image_queue.get(
@@ -172,6 +212,11 @@ class ThreadedRunner(Runner):
 
 
     def wait_for_obj_det(self, max_wait=0.5):
+        """
+        Wait for the object detector to complete its first pass,
+        signalling that its initialization is complete.
+        print warnings if waiting too long
+        """
         start = time.time()
         if self.elapsed <= 1:
             wait_succeed = self.object_detector.output_1.wait(max_wait*5)
@@ -215,6 +260,9 @@ class ThreadedRunner(Runner):
         time.sleep(wait_time/2)
 
     def print_more_timings(self):
+        """
+        Help log timing information by printing some statistics.
+        """
         end = time.time()
         string = "\n====== Aggregates 2 ======"
         string += "\nDropped frames: " + str(self.num_dropped)
@@ -268,33 +316,3 @@ class ThreadedRunner(Runner):
 
         self.print_more_timings()
         self._do_end_things()
-
-# TODO update description -- for object detector classs!
-"""
-Main Thread:
-while not self.done:
-    read image.
-    update self.done (video ends, etc.)
-    speed estimator
-    if live video:
-        overwrite the length 1 image_queue with most recent image
-        let the Object detection thread run
-    else (saved video file):
-        run object detection on current image
-
-Object Det Thread (Optional):
-    run object detection
-    send image, net_out to queue 2
-    wait for queue 2 to not be full
-    If full for too long, remove the first image.
-
-Thread 2:
-while not self.done or queue not empty
-    take image, net_out from queue 2.
-    update tracker. (its cpu).
-    Get risk from image + boxes.
-        - this generally involves more threads
-    display image.
-    save image if applicable. etc.
-
-"""

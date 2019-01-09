@@ -78,6 +78,10 @@ class Runner:
         self.timer.update_start("Overall")
 
     def _do_end_things(self):
+        """
+        Before being terminate, these actions must complete.
+        Includes releasing the videowriter.
+        """
         if self.launcher.all_args.save:
             self.videoWriter.release()
         self.camera.release()
@@ -313,7 +317,21 @@ class Runner:
                 time=frame_time)
 
     def visualize_one_image(self, net_out, i, frame_time):
-        # Visualization of the results of a detection, not thread safe.
+        """
+        Visualize the results of a detections.
+        Calls most subcomponents, including get_detected_objects() to update
+        the tracker, update_state(), get_risk(), and dsiplay_obj().
+        Also handles videoWriter (should be handled elsewhere in the future) and
+        user input.
+
+        Arguments:
+          net_out: the dictionary containing the outputs from the object
+            detection network.
+          i: integer, the index into the input_buffer to get the image.
+            - DEPRECATED, will always be 0.
+          frame_time: float - the time in seconds that the image was first processed.
+            The precision should be at least milliseconds.
+        """
         self.timer.update_start("DetectObjects")
         boxes_with_labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
         im_h, im_w, _ = self.input_buffer[i].shape
@@ -412,6 +430,9 @@ class Runner:
                 print("Please enter a float or integer.")
 
     def print_timings(self):
+        """
+        Print some helpful aggregate information about how long it takes.
+        """
         end = time.time()
         string = "\n====== Aggregates ======"
         string += "\nTotal time: " + str(end - self.start)
