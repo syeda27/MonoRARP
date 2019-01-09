@@ -10,7 +10,7 @@ import vehicle_state
 class StateHistory:
     """
     Use the state to keep track of states associated with vehicles over time.
-    The "states" are quantaties such as relative position and velocity.
+    The "states" are quantities such as relative position and velocity.
     The state is simply a class that tracks some things like absolute ego speed
     and the history of "states"
 
