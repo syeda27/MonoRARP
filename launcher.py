@@ -32,6 +32,8 @@ class Launcher:
         self.save_path = args.save_path
         self.all_args = args
         if self.all_args.threaded_runner.lower() == "none":
+            # otherwise, we don't have to do this, it is handled in the object
+            # detector thread.
             self.model_name = args.model
             self.path_to_checkpoint = self.model_name + '/frozen_inference_graph.pb'
             self.path_to_labels = args.labels
@@ -59,7 +61,8 @@ class Launcher:
     def launch(self):
         """
         Picks the device, tensorflow graph, and creates the tf session, before
-        initializing and runner a runner.
+        initializing and running a runner.
+        It distinguishes between a single and multi-threaded runner object.
 
         Raises:
             ValueError if invalid threaded_runner method passed in.
