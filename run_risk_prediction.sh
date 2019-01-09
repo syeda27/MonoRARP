@@ -5,12 +5,6 @@
 # make a script to call another script, that just seems unnecessary...
 # But alas, I did just that, and it works pretty well.
 
-# Be in the virtualenv b, if you want yolo
-#source `which virtualenvwrapper.sh`
-#workon tf-py3
-
-YOLO=false # true or false
-
 START_LOC=$(pwd)
 # TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
 TF_LOC='/home/derek/env_tf_models_research/object_detection'
@@ -82,56 +76,38 @@ TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 
-# YOLO deprecated in this manner
-if ($YOLO); then
-    if (($SOURCE==1) || ($SOURCE==0)); then
-        $SOURCE=camera$SOURCE
-    fi
-    cd ~/darkflow
-    cmd = 'flow --model cfg/yolov2.cfg --load bin/yolov2.weights \
-        --demo $SOURCE --gpu 0.75 \
-        --labels cfg/coco.names'
-    if ($SAVE=='true'); then
-        cmd = $(cmd)' --saveVideo'
-    fi
-    mv video.avi $SAVE_PATH
-    cd $START_LOC
-else
+JOBS=`jobs -p`
+if [ '$USE_GPS' = 'true' ]; then
+    echo "Running gps command to $GPS_SOURCE"
+    sudo gpsd -S 2949 -n -N -D 5 -b /dev/ttyUSB0 &> $GPS_SOURCE &
     JOBS=`jobs -p`
-    if [ '$USE_GPS' = 'true' ]; then
-        echo "Running gps command to $GPS_SOURCE"
-        sudo gpsd -S 2949 -n -N -D 5 -b /dev/ttyUSB0 &> $GPS_SOURCE &
-        JOBS=`jobs -p`
-        sleep 1
-        # TODO if you need to, change this command
-    fi
-    cd $TF_LOC
-
-    python3 $(echo $START_LOC)/launcher.py \
-        --source $SOURCE --model $MODEL --device $DEVICE \
-        --save $SAVE --save_path $SAVE_PATH \
-        --focal $FOCAL --carW $CAR_WIDTH \
-        --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
-        --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
-        --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
-        --resolution_h $RESOLUTION_H --resolution_w $RESOLUTION_W \
-        --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
-        --tracker_hold $TRACKER_HOLD \
-        --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
-        --lane_based_speed $LANE_BASED_SPEED \
-        --accept_speed $ACCEPT_SPEED \
-        --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
-        --ttc_H $TTC_H --ttc_step $TTC_STEP \
-        --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
-        --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
-        --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
-        --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME
-    cd $START_LOC
-    for job in $JOBS
-    do
-        echo "killing job $job"
-        kill $job
-    done
-
-    #deactivate
+    sleep 1
+    # TODO if you need to, change this command
 fi
+cd $TF_LOC
+
+python3 $(echo $START_LOC)/launcher.py \
+    --source $SOURCE --model $MODEL --device $DEVICE \
+    --save $SAVE --save_path $SAVE_PATH \
+    --focal $FOCAL --carW $CAR_WIDTH \
+    --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
+    --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
+    --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
+    --resolution_h $RESOLUTION_H --resolution_w $RESOLUTION_W \
+    --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
+    --tracker_hold $TRACKER_HOLD \
+    --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
+    --lane_based_speed $LANE_BASED_SPEED \
+    --accept_speed $ACCEPT_SPEED \
+    --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
+    --ttc_H $TTC_H --ttc_step $TTC_STEP \
+    --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
+    --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
+    --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
+    --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME
+cd $START_LOC
+for job in $JOBS
+do
+    echo "killing job $job"
+    kill $job
+done
