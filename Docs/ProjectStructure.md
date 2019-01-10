@@ -63,7 +63,7 @@ With the threaded_runner, we are able to easily separate the obejct detector int
 This will help with the substitution of additional object detection networks to compare to, as long as the input/output of the classes is the same, which is defined in the abstract object_detector class.
 
 ### Lane Detector (lane_detector.py) - WORK IN PROGRESS
-This is an attempt to detect the lane markings on the road, and does not currently work.
+This is an attempt to detect the lane markings on the road, and does not currently work. See `lane_detection_utils` and the associated `README` for details.
 
 
 ## Tests
