@@ -2,7 +2,7 @@
 ### Integrated inputs include monocular video sources and GPS
 
 # Improvements to make
-* Prioritize these improvements
+* Better tests, as always
 * Clean up organization a bit. Everything isnt a util... make a bin/ folder.
 * Continue cleaning up code, especially tracker and lane detector.
 * Improve the tracking
@@ -29,7 +29,8 @@
 * Develop an offline risk predictor based on the results we have here.
     - A lot of possibilities here, including creating our own video - to - risk dataset, or just using the state information as the input
 * Build or buy a camera stand that allows easy verification of angles
-* Better tests, as always
+* Convert more and more of the code to C++ to speed up runtime.
+* Experiment with converting to a ROS-compatible setup.
 
 
 
