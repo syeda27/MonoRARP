@@ -2,15 +2,15 @@
 ### Integrated inputs include monocular video sources and GPS
 
 ## Install Instructions
-* If the use of YOLO is desired, install darkflow and the correct changes to net/help.py and net/build.py.
-    - see https://github.com/djp42/darkflow2
+* Clone this repo.
 * Need tensorflow/models/research/object_detection installed.
     - see https://github.com/tensorflow/models/tree/master/research/object_detection
     - We currently use just the resnet101 faster RCNN trained on the Kitti dataset
         - You will need to download the pretrained model
+* Update the `run_risk_prediction.sh` and check the `driver_risk_utils/defaults.py` to make sure the relevant path arguments are correct.
 * Need openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
-    - If using pip:
+    - If using pip or pip3:
       - `pip install --user <package_name>`
         - `opencv-contrib-python`
         - `matplotlib`

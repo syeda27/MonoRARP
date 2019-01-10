@@ -2,7 +2,7 @@
 ### Integrated inputs include monocular video sources and GPS
 
 ## File Breakdown
-The repo is broken down into a variety of sub-components that I will call modules.
+The repo is broken down into a variety of sub-components that I will call modules. It can get complicated at times, so this docuement is designed to help sort through the mess.
 
 ### Launcher: (launcher.py)
 This file sets up the Tensorflow framework and calls the respective Runner or ThreadedRunner, depending on the arguments.
@@ -64,7 +64,7 @@ This will help with the substitution of additional object detection networks to 
 
 ### Lane Detector (lane_detector.py) - WORK IN PROGRESS
 This is an attempt to detect the lane markings on the road, and does not currently work.
-Also see lane_detection_utils. It will be apparent that the code is not ready for the light of day and i
+
 
 ## Tests
 I have a *tests* folder which includes some test scripts. I would not call them entirely robust as of yet, but some of the modules are a lot harder to test than others.
