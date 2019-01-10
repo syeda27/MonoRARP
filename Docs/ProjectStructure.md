@@ -58,9 +58,16 @@ Multiple different types of trackers are supported, which are also user specifie
 For more details I recommend starting at tracker.py and looking through the code and subclasses.
 The main idea is to take in an image and potentially bounding boxes output by an object detection network, and tracking the objects over time.
 
+### Object Detector (object_detector.py)
+With the threaded_runner, we are able to easily separate the obejct detector into its own class object.
+This will help with the substitution of additional object detection networks to compare to, as long as the input/output of the classes is the same, which is defined in the abstract object_detector class.
+
+### Lane Detector (lane_detector.py) - WORK IN PROGRESS
+This is an attempt to detect the lane markings on the road, and does not currently work.
+Also see lane_detection_utils. It will be apparent that the code is not ready for the light of day and i
 
 ## Tests
-I have a *tests* folder which includes some test scripts. I would not call them entirely robust as of yet, but some of the modules are a lot harder to test than others. The GPS testing is probably the best one.
+I have a *tests* folder which includes some test scripts. I would not call them entirely robust as of yet, but some of the modules are a lot harder to test than others.
 
 For things like the STATE, instead of testing as its normally defined I have that *calibrations* folder, which is where I was printing out distance calculations in known setups. I do think I need to repeat this at some point with a better setup, the original test was in a parking lot that I do not think was entirely flat...
 
