@@ -69,12 +69,14 @@ RESOLUTION_W=1920 # 0 means both not set
 RISK_N_SIMS=5
 RISK_H=5        # seconds
 RISK_STEP=0.25   # seconds
-COL_TOL_X=1.0    # meters
-COL_TOL_Y=1.5    # meters
-TTC_H=1.0        # seconds
+COL_TOL_X=2.0    # meters
+COL_TOL_Y=2.0    # meters
+TTC_H=10.0        # seconds
 TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
+RISK_TYPE="TTC" # "TTC" for constant delta v, or "Online" for sims with models
+CALC_RISK_EVERY_N_FRAMES=1
 
 JOBS=`jobs -p`
 if [ '$USE_GPS' = 'true' ]; then
@@ -97,11 +99,11 @@ python3 $(echo $START_LOC)/launcher.py \
     --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
     --tracker_hold $TRACKER_HOLD \
     --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
-    --lane_based_speed $LANE_BASED_SPEED \
-    --accept_speed $ACCEPT_SPEED \
+    --lane_based_speed $LANE_BASED_SPEED --accept_speed $ACCEPT_SPEED \
     --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
-    --ttc_H $TTC_H --ttc_step $TTC_STEP \
+    --risk_type $RISK_TYPE --ttc_H $TTC_H --ttc_step $TTC_STEP \
     --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
+    --calc_risk_n $CALC_RISK_EVERY_N_FRAMES \
     --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
     --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
     --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME

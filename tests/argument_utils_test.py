@@ -64,6 +64,7 @@ def test_default_args():
     assert args.col_tol_x == defaults.COLLISION_TOL_X_m
     assert args.col_tol_y == defaults.COLLISION_TOL_Y_m
     assert args.embedded_risk == argument_utils.str2bool(defaults.EMBEDDED_RISK)
+    assert args.risk_type == defaults.RISK_TYPE
 
     assert args.detect_lanes == argument_utils.str2bool(defaults.DETECT_LANES)
 

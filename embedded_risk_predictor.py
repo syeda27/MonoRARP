@@ -21,7 +21,7 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
     def __del__(self):
         # if a threaded copy (just overall), do not print
         if len(self.timer.start_times.keys()) == 1: return
-         
+
         string = "\n=============== Ending Embedded Risk Predictor =============="
         self.timer.update_end("Overall")
         string += "\nTiming:" + self.timer.print_stats(True)
@@ -90,17 +90,16 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
           ValueError:
             If an unsupported risk type is used.
         """
+        risk = None
         self.timer.update_start("Get Risk")
-        self.timer.update_start("Get Risk N")
 
         if risk_type.lower() == "ttc":
             risk = risk_prediction_utils.calculate_ttc(
                     state,
                     self.risk_args,
                     verbose)
-        elif risk_type.lower() == "online":
-            if self.num_sims == 0:
-                return 0
+        elif risk_type.lower() == "online" and self.num_sims > 0:
+            self.timer.update_start("Get Risk N")
             self.timer.update_start("SceneInit")
             self.set_scene(state)
             self.timer.update_end("SceneInit")
@@ -114,11 +113,13 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             )
             self.timer.update_end("RiskSim", self.num_sims)
             self.timer.update_end("CalculateRisk", self.num_sims)
+            self.timer.update_end("Get Risk N", self.num_sims)
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
+        if risk is None:
+            risk = 0
         self.prev_risk = (risk + self.prev_risk) / 2.0
         self.timer.update_end("Get Risk")
-        self.timer.update_end("Get Risk N", self.num_sims)
         return self.prev_risk
 
     def thread_deepcopy(self):

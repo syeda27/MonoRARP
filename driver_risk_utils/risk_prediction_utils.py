@@ -57,7 +57,7 @@ def calculate_ttc(
 
     Arguments:
         state:
-          the State object that is used to get current positions / speeds for vehicles.
+          the StateHistory object that is used to get current positions / speeds for vehicles.
         risk_args:
           the parameters class for risk predictor, containing parameters like
           collisions tolerances, horizon to use, etc.
@@ -76,8 +76,9 @@ def calculate_ttc(
         t += risk_args.step
         ego_pos_x = 0 # for now, assume no lateral motion.
         ego_pos_y = state.get_ego_speed() * t
-        for veh_id in state.states.keys():
-            this_state = state.states[veh_id][-1]
+        for veh_id in state.state_histories.keys():
+            this_state = state.state_histories[veh_id][-1].quantities
+                # most recent vehicle_state
             new_pos_x = None
             new_pos_y = None
             if "distance_x" in this_state and "speed_x" in this_state:

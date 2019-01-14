@@ -135,16 +135,15 @@ class RiskPredictor:
           ValueError:
             If an unsupported risk type is used.
         """
+        risk = None
         self.timer.update_start("Get Risk")
-        self.timer.update_start("Get Risk N")
         if risk_type.lower() == "ttc":
             risk = risk_prediction_utils.calculate_ttc(
                     state,
                     self.risk_args,
                     verbose)
-        elif risk_type.lower() == "online":
-            if self.num_sims == 0:
-                return 0
+        elif risk_type.lower() == "online" and self.num_sims > 0:
+            self.timer.update_start("Get Risk N")
             this_scene = scene.Scene(
                     state.get_current_states(),
                     ego_vel=(0.0, state.get_ego_speed()),
@@ -164,9 +163,11 @@ class RiskPredictor:
                     self.risk_args,
                     verbose)
             self.timer.update_end("CalculateRisk", self.num_sims)
+            self.timer.update_end("Get Risk N", self.num_sims)
         else:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
+        if risk is None:
+            risk = 0
         self.prev_risk = (risk + self.prev_risk) / 2.0
         self.timer.update_end("Get Risk")
-        self.timer.update_end("Get Risk N", self.num_sims)
         return self.prev_risk

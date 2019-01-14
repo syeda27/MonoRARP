@@ -82,7 +82,7 @@ class ThreadedRunner(Runner):
 
         self.update_state(boxes_with_labels, im_h, im_w, frame_time)
 
-        risk = self.get_risk()
+        risk = self.get_risk(risk_type=self.launcher.all_args.risk_type)
 
         self.display_obj.update_image(image)
         img = self.display_obj.display_info(

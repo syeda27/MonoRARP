@@ -3,8 +3,8 @@ import math
 import numpy as np
 
 """
-A particle-based object tracker implemented by Juan Carlos Aragon of Allstate and
-edited by djp42 and aroyc of Stanford.
+A particle-based object tracker originally implemented by Juan Carlos Aragon of
+Allstate and edited by djp42 and aroyc of Stanford.
 
 The main idea is to use particle filtering with importance sampling to predict
 where tracked boxes will be, allowing association between frames and the potential

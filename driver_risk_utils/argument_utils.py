@@ -91,6 +91,7 @@ def add_risk_args(parser):
     parser.add_argument("--col_tol_x", type=float, default=defaults.COLLISION_TOL_X_m)
     parser.add_argument("--col_tol_y", type=float, default=defaults.COLLISION_TOL_Y_m)
     parser.add_argument("--embedded_risk", type=str2bool, default=defaults.EMBEDDED_RISK)
+    parser.add_argument("--risk_type", type=str, default=defaults.RISK_TYPE)
 
 
 """

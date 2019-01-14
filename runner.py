@@ -293,8 +293,8 @@ class Runner:
           risk: a float as returned by self.risk_predictor.get_risk() indicating
             the predicted danger towards the driver.
         """
-        calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 1
-        if calculate_risk:
+        calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 0
+        if calculate_risk and self.elapsed > 0:
             return self.risk_predictor.get_risk(
                     self.state, risk_type, verbose)
         return self.risk_predictor.prev_risk
@@ -339,7 +339,7 @@ class Runner:
         self.timer.update_end("DetectObjects", len(boxes_with_labels))
         self.timer.update_start("GetRisk")
 
-        risk = self.get_risk()
+        risk = self.get_risk(risk_type=self.launcher.all_args.risk_type)
 
         self.timer.update_end("GetRisk")
         self.timer.update_start("Display")
