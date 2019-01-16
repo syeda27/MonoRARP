@@ -149,6 +149,7 @@ class Runner:
                 'Cannot capture source'
         _, frame = self.camera.read()
         self.height, self.width, _ = frame.shape
+        print("Input device of size (h,w): {},{}".format(self.height, self.width))
 
     def init_video_write(self, FPS=10):
         """
@@ -208,7 +209,9 @@ class Runner:
             self.done = True
             return None
         if not self.using_camera and self.rsz:
+            self.timer.update_start("Resize")
             img = cv2.resize(image_np,(self.rsz_width,self.rsz_height))
+            self.timer.update_end("Resize")
             return img
         return image_np
 

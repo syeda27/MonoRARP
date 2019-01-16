@@ -133,4 +133,11 @@ def do_arg_checks(args):
         'KCF tracker must refresh'
     if args.track and args.tracker_type == "KCF" and args.threaded_runner == 'B':
         print("Warning: KCF tracker not 100% compatible with threaded runner B, and will drop frames.")
+    if args.risk_type.lower() == "ttc":
+        print("TTC risk selected, forcing no speed estimator.")
+        args.use_gps = False
+        args.accept_speed = False
+        args.lane_based_speed = False
+        args.embedded_risk = False
+        args.max_risk_threads = 1
     return args

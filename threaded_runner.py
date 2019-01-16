@@ -236,6 +236,7 @@ class ThreadedRunner(Runner):
 
         """
         self.elapsed += 1
+        self.fps = general_utils.get_fps(self.start_loop, self.elapsed)
 
         image_np = self.get_image()
         frame_time = time.time()
