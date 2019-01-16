@@ -59,15 +59,15 @@ THREAD_MAX_WAIT=1.0          # maximum amount of time to block on a queue, sec.
 FOCAL=1495                    # Genius at 1080p is ~850, at 720p is ~550
 CAR_WIDTH=1.8                # meters
 CAMERA_HEIGHT=1.08           # meters, for subaru forester, 1.2m
-MIN_CAMERA_ANGLE=42.355        # degrees
-MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
-RELATIVE_HORIZON=0.55        # between 0 and 1, above 0.5 is above centerline
+#MIN_CAMERA_ANGLE=42.355        # degrees
+#MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
+RELATIVE_HORIZON=0.545        # between 0 and 1, above 0.5 is above centerline
 RESOLUTION_H=1080 # 0 means both not set
 RESOLUTION_W=1920 # 0 means both not set
 
 
 RISK_N_SIMS=5
-RISK_H=5        # seconds
+RISK_H=10.0        # seconds
 RISK_STEP=0.25   # seconds
 COL_TOL_X=2.0    # meters
 COL_TOL_Y=2.0    # meters
@@ -75,7 +75,7 @@ TTC_H=10.0        # seconds
 TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
-RISK_TYPE="TTC" # "TTC" for constant delta v, or "Online" for sims with models
+RISK_TYPE="Online" # "TTC" for constant delta v, or "Online" for sims with models
 CALC_RISK_EVERY_N_FRAMES=1
 
 JOBS=`jobs -p`
@@ -93,8 +93,7 @@ python3 $(echo $START_LOC)/launcher.py \
     --save $SAVE --save_path $SAVE_PATH \
     --focal $FOCAL --carW $CAR_WIDTH \
     --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
-    --cameraMinAngle $MIN_CAMERA_ANGLE --horizon $RELATIVE_HORIZON \
-    --cameraMaxHorizAngle $MAX_CAMERA_ANGLE_HORIZ \
+    --horizon $RELATIVE_HORIZON \
     --resolution_h $RESOLUTION_H --resolution_w $RESOLUTION_W \
     --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
     --tracker_hold $TRACKER_HOLD \
