@@ -97,6 +97,8 @@ def calc_speed(state_for_object, to_use=10, verbose=False):
 
 def triangle_similarity_distance(box, F, W):
     """
+    *This is unused in paper version of system*
+    
     Performs the triangle similarity distance calculation.
 
     Arguments:
@@ -115,7 +117,7 @@ def triangle_similarity_distance(box, F, W):
     if object_width_pixels == 0: return np.Inf
     return (W * F) / object_width_pixels
 
-def bottom_bounding_box_distance(
+def bottom_bounding_box_distance_angles(
         box,
         im_h,
         im_w,
@@ -126,6 +128,8 @@ def bottom_bounding_box_distance(
         carW=1.8,
         verbose=False):
     """
+    *This is unused in paper version of system*
+
     Using our first method, compute the distance to the bottom of the bounding
     box. This leverages the knowledge that a horizontal line in the real world
     is also a horizontal line in the image.
@@ -186,6 +190,8 @@ def triangle_for_x(
         carW=1.8,
         verbose=False):
     """
+    *This is unused in paper version of system*
+
     Finds the lateral distance to the object within the `box`, in the real world.
     Uses the triangle distance method to find this distance.
     Finds distance (lateral) to furthest edge of the box, then subtract half a car width
@@ -224,7 +230,7 @@ def triangle_for_x(
     dx = dy * np.tan(np.deg2rad(beta)) - carW / 2.0
     return dx
 
-def bottom_bounding_box_distance2(
+def bottom_bounding_box_distance(
         box,
         im_h,
         im_w,

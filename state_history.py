@@ -217,30 +217,8 @@ class StateHistory:
         if verbose:
             print(object_key)
         state_dict = dict()
-        if s_utils.centered_enough(box, im_w):
-            # when further off center than this, we do not trust this distance.
-            state_dict["distance_y_t"] = s_utils.triangle_similarity_distance(
-                box, args.focal, args.carW)
-            if verbose:
-                print("Triangle distance: {}".format(state_dict["distance_y_t"]))
-        elif verbose:
-            print("No triangle distance, too far off-center.")
-        '''
-        d_bbb = s_utils.bottom_bounding_box_distance(
-            box,
-            im_h,
-            im_w,
-            camera_height=args.cameraH,
-            camera_min_angle=args.cameraMinAngle,
-            camera_beta_max=args.cameraMaxHorizAngle,
-            carW = args.carW,
-            rel_horizon=args.horizon,
-            verbose=verbose)
-        if d_bbb is not None:
-            state_dict["distance_y_b"], state_dict["distance_x_b"] = d_bbb
-        '''
-        state_dict["distance_y_b2"], state_dict["distance_x_b2"] = \
-                s_utils.bottom_bounding_box_distance2(
+        state_dict["distance_y"], state_dict["distance_x"] = \
+                s_utils.bottom_bounding_box_distance(
                     box,
                     im_h,
                     im_w,
@@ -249,17 +227,13 @@ class StateHistory:
                     camera_height=args.cameraH,
                     carW=args.carW,
                     verbose=verbose)
+        if state_dict["distance_y"] is None or state_dict["distance_x"] is None:
+            raise ValueError("ERROR: No distance estimated.")
 
         new_vehicle_state = vehicle_state.VehicleState()
         new_vehicle_state.quantities["distance_x"] = \
-            s_utils.left_of_center(box, im_w) * np.mean(
-                [v for k,v in state_dict.items()
-                    if "distance_x" in k and v is not None]
-            )
-        new_vehicle_state.quantities["distance_y"] = np.mean(
-            [v for k,v in state_dict.items()
-                if "distance_y" in k and v is not None]
-            )
+                s_utils.left_of_center(box, im_w) * state_dict["distance_x"]
+        new_vehicle_state.quantities["distance_y"] = state_dict["distance_y"]
         if verbose:
             print("Average Dx, Dy: {}, {}".format(
                 new_vehicle_state.quantities["distance_x"],
@@ -322,14 +296,14 @@ class StateHistory:
         print(distance_to_far_box_edge < im_w / 10)
         print("dy:", s_utils.triangle_similarity_distance(box, args.focal, args.carW))
         print("Bounding Box 1")
-        s_utils.bottom_bounding_box_distance(box, im_h, im_w,
+        s_utils.bottom_bounding_box_distance_angles(box, im_h, im_w,
             camera_height=args.cameraH,
             camera_min_angle=args.cameraMinAngle,
             camera_beta_max=args.cameraMaxHorizAngle,
             carW = args.carW,
             rel_horizon=args.horizon, verbose=True)
         print("Bounding Box 2")
-        s_utils.bottom_bounding_box_distance2(box, im_h, im_w,
+        s_utils.bottom_bounding_box_distance(box, im_h, im_w,
                 rel_horizon=args.horizon,
                 camera_focal_len=args.focal,
                 camera_height=args.cameraH,
