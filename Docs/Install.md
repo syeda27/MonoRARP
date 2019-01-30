@@ -11,7 +11,7 @@
 * Need openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
     - If using pip or pip3:
-      - `pip install --user <package_name>`
+      - `pip install --user <package_name>` for the below packages
         - `opencv-contrib-python`
         - `matplotlib`
         - `Pillow`

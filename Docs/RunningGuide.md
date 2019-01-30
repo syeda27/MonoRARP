@@ -12,10 +12,4 @@
 * The script's main goal is to run launcher.py with the appropriate flags. It also handles GPS logging and some other things.
 * To use the speed_estimator based on lane markings, see [../speed_estimator_utils/README.md](../speed_estimator_utils/README.md) for details.
 
-### C++ (WORK IN PROGRESS)
-* To compile and run in C++:
-    - `./compile_cpp.sh`  <-- this cleans all of the exisiting CMake files and compiled binaries,and then runs `cmake` and `make` in the `Compile` directory.
-    - Then run the binaries in the `bin` file.
-    - This is nowhere near complete, do not expect it to work.
-
 *This research was funded by The Allstate Corporation.*
