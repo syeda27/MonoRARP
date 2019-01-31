@@ -20,7 +20,7 @@ Additionally, we have found that the "ok" output provided by OpenCV tracker is n
 (the tracker says that everything is ok and still and invalid jump happened) and thus some of the mechanisms mentioned
 below are needed.
 
-### 1) Tracker Fails - Repositioning the Tracker:
+#### 1) Tracker Fails - Repositioning the Tracker:
 Something that worked in the past was to keep a record of the last known X and Y coordinates of the detection-bounding-
 box’s centroid that is closest to the tracker’s current position (which is the X-Y coordinates of the tracker-bounding-box’s
 centroid). In this case the closest detection-bounding-box is what we call the one "associated" with the tracker. On
@@ -49,7 +49,7 @@ the radius then the tracker can be re-initialized to this bounding box so tracke
 period expired then the tracker needs to be shutdown and a new vehicle needs to be selected to initiate a new tracking.
 
 
-### 2) Neural Network Detection Fails:
+#### 2) Neural Network Detection Fails:
 Even in a situation when there is no abrupt jump of the tracker-bounding-box the neural network detector could fail and the
 detector-bounding-box vanishes. This is precisely one of the justifications for the existence of the tracker. In this case thetracker uses its own model to keep moving from frame to frame and hopefully following the associated vehicle. How do we
 know that the associated bounding-box vanished?,
@@ -91,8 +91,10 @@ when there is a failure. The situation where both fail simultaneous is considere
 In OpenCV when you need to reposition the tracker it is necessary to actually create the tracker again to re-initialize the
 tracker. Below are two lines in python that accomplish this.
 
-```tracker = cv2.TrackerTLD_create()
-ok = tracker.init(frame, bbox)```
+```
+tracker = cv2.TrackerTLD_create()
+ok = tracker.init(frame, bbox)
+```
 
 Here bbox is the rectangle corresponding to the bounding box to be used for initialization. At least in python we have found
 that just by doing `tracker.init(frame, bbox)` is not enough to get the tracker initialized on a new bounding box, Thus
