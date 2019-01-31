@@ -1,6 +1,4 @@
-# Real time driver risk estimation using object detection
-### Integrated inputs include monocular video sources and GPS
-
+# MonoRARP
 ## File Breakdown
 The repo is broken down into a variety of sub-components that I will call modules. It can get complicated at times, so this docuement is designed to help sort through the mess.
 
