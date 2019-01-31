@@ -1,7 +1,6 @@
-# Real time driver risk estimation using object detection
-### Integrated inputs include monocular video sources and GPS
+# MonoRARP
 
-# Improvements to make
+## Improvements to make
 * Better tests, as always
 * Clean up organization a bit. Everything isnt a util... make a bin/ folder.
 * Continue cleaning up code, especially tracker and lane detector.
