@@ -1,17 +1,15 @@
-# Real time driver risk estimation using object detection
-### Integrated inputs include monocular video sources and GPS
-** For version associated with the IEEE IVS 2019 paper submission, see the [IV2019 branch](https://github.com/djp42/driver_risk_prediction_mono_video/tree/IV2019) of this repository. **
+# MonoRARP - Monocular Real-time Automotive Risk Prediction
+#### Summary
+This system is designed to take as input monocular video and output predictions of the automotive risk for the ego vehicle in real time (We see predictions at over 5 Hz for a 10 second risk horizon using common hardware). Almost all of the parameters are configurable, including the risk prediction time horizon. For more details, please see the code and our research paper** [link]().
+
+** For the exact code version associated with the IEEE IVS 2019 paper submission, see the [IV2019 branch](https://github.com/djp42/driver_risk_prediction_mono_video/tree/IV2019) of this repository.
+
 ## Install Instructions
-* Nothing directly for this repo
-* If the use of YOLO is desired, install darkflow and the correct changes to net/help.py and net/build.py.
-    - see https://github.com/djp42/darkflow2
-    - YOLO is currently deprecated (but can be implemented as an object_detector)
-    - see https://github.com/djp42/darkflow2#using-darkflow-from-another-python-application
-* Need tensorflow/models/research/object_detection installed.
+* tensorflow/models/research/object_detection installed.
     - see https://github.com/tensorflow/models/tree/master/research/object_detection
     - We currently use just the resnet101 faster RCNN trained on the Kitti dataset
         - You will need to download the pretrained model
-* Need openCV, numpy, etc. for python3
+* openCV, numpy, etc. for python3
     - By the way, the repo is built using python3 because it is about time we all made the switch...
 
 * See [Docs/Install.md](Docs/Install.md) for full instructions
@@ -32,4 +30,6 @@ See [Docs/FutureWork.md](Docs/FutureWork.md)
 
 
 
-*This research was funded by The Allstate Corporation.*
+*This research was funded by The Allstate Corporation and conducted by the Stanford Intelligent Systems Laboratory.*
+
+&Dagger; -- The name is a work in progress and any suggestions are appreciated
