@@ -1,5 +1,4 @@
-# Real time driver risk estimation using object detection
-### Integrated inputs include monocular video sources and GPS
+# MonoRARP
 
 ## Running Guide
 * If all you want to do is run it, the only file you need to care about is run_risk_prediction.sh
