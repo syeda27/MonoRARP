@@ -1,6 +1,6 @@
 # Real time driver risk estimation using object detection
 ### Integrated inputs include monocular video sources and GPS
-** Need to update this documentation a bit. **
+** For version associated with the IEEE IVS 2019 paper submission, see the [IV2019 branch](https://github.com/djp42/driver_risk_prediction_mono_video/tree/IV2019) of this repository. **
 ## Install Instructions
 * Nothing directly for this repo
 * If the use of YOLO is desired, install darkflow and the correct changes to net/help.py and net/build.py.
