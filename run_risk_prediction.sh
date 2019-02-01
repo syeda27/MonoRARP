@@ -16,28 +16,14 @@ MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 DEVICE='/gpu:0'
 
-SOURCE=${START_LOC}/videos/kitti_5s.mp4
-SOURCE=${START_LOC}/videos/test_1.avi
-#SOURCE=${START_LOC}/videos/Untitled2.mov
-
 # FOR WEBCAMS:
 #SOURCE=0
-SOURCE=1
+#SOURCE=1
 
 SAVE='false'
-RUN='video_capture'
-SOURCE='/scratch/derek/video_captures/12-27/12-27-hwy280-'${RUN}'.mp4'
-SAVE_PATH='/scratch/derek/video_captures/12-27/12-27-hwy280-'${RUN}'.mp4'
 
-#FULL_HD='FullFOVandHD/' # 'FullFOVandHD/' or just empty ''
-#SOURCE='/scratch/derek/video_captures/'${FULL_HD}'video'${RUN}'.mp4'
-SOURCE='/scratch/derek/video_captures/video_GH010034.mp4'
-#SOURCE=1
-#RUN='3a'
-#SOURCE='/scratch/derek/video_captures/video'${RUN}'.mp4'
-#SOURCE='/scratch/derek/video_captures/dist_test_'${RUN}'.mp4'
-
-#SAVE_PATH='/scratch/derek/video_captures/'${RUN}'_1080p.mp4'
+SOURCE='videos/video_GH010034-congested.mp4'
+#SAVE_PATH='videos/output_1080p.mp4'
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.
@@ -59,8 +45,6 @@ THREAD_MAX_WAIT=1.0          # maximum amount of time to block on a queue, sec.
 FOCAL=1495                    # Genius at 1080p is ~850, at 720p is ~550
 CAR_WIDTH=1.8                # meters
 CAMERA_HEIGHT=1.08           # meters, for subaru forester, 1.2m
-#MIN_CAMERA_ANGLE=42.355        # degrees
-#MAX_CAMERA_ANGLE_HORIZ=115.0 # degrees, aka FOV
 RELATIVE_HORIZON=0.545        # between 0 and 1, above 0.5 is above centerline
 RESOLUTION_H=1080 # 0 means both not set
 RESOLUTION_W=1920 # 0 means both not set
