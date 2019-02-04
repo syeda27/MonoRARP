@@ -25,7 +25,7 @@ Since it is being run offline, we can afford to be more accurate and precise, bu
 not as efficient in some processes.
 The most obvious example of this is using a slower neural network.
 
-### Overall design
+### Overall design tradeoffs
 The main change we want to support is really just saving more outputs from each
 component.
 There are many different possible approaches to this, so we discuss the options here.
@@ -53,6 +53,7 @@ Another tradeoff is how often to save output.
       - How often do you batch?
       - Which components know how often we batch?
       - Within a batch, do the identifiers reset?
+   - Note: Easier with centralized than distributed.
 3. Every frame, new file for each frame:
    - Pro: Same benefit of no appending.
    - Con: Lots of files are generated. File I/Os are slow. This creates a lot of them.
@@ -62,6 +63,26 @@ Another tradeoff is how often to save output.
    - Pro: Do not need a consistent batching, as long as there is a consistent ID.
    - Pro: limited number of files generated.
    - Con: Either need to load file to memory or have a filetype that is appendable. Prevents Pickling.
+
+### Final design
+We opt to begin by implementing a (1) distributed offline version that saves
+a new file as a `<component>/<global_frame_num>.pkl` every frame (3).
+This can be easily extended to the batched case (2) if we end up with that need.
+This should offer the most flexibility in terms of loading from individual
+components for later online use cases as well.
+
+### TODOs:
+ * A new argument to every component for the current global frame number.
+ * Each component will need a `save` and `load` method
+ * Each component will need to be initialized with the save path.
+   - Include a `check_make_directory()` method.
+   - The save path should be `results/<component_name>/<global_frame_num>.pkl`
+ * After this is complete, investigate better object detectors.
+
+### Guidelines:
+ * Create a `data/` folder to store the videos.
+ * Create a `results/` folder to store the output.
+   - In our case, both of these will be symbolic links to an external hard drive.
 
 
 *This research was funded by The Allstate Corporation.*
