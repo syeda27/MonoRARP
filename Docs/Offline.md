@@ -72,9 +72,15 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
+ * A new argument to indicate if we are running the offline version.
+   - To start, this only needs to be supported in the single-threaded case.
  * A new argument to every component for the current global frame number.
  * Each component will need a `save` and `load` method
+   - These should be utils that get passed in a `component_name`, `frame_num`,
+   and `data` for saving or `component_name`, `frame_num` for loading.
  * Each component will need to be initialized with the save path.
+   - Have an internal flag on whether or not it should save (or load) from the path.
+   - Must support saving from a path as well as loading from a path.
    - Include a `check_make_directory()` method.
    - The save path should be `results/<component_name>/<global_frame_num>.pkl`
  * After this is complete, investigate better object detectors.
