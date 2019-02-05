@@ -3,7 +3,7 @@
 This system is designed to take as input monocular video and output predictions of the automotive risk for the ego vehicle in real time (We see predictions at over 5 Hz for a 10 second risk horizon using common hardware).
 Almost all of the parameters are configurable, including the risk prediction time horizon. For more details, please see the code and our [research paper](https://arxiv.org/abs/1902.01293).**
 
-** For the exact code version associated with the IEEE IVS 2019 paper submission, see the [IV2019 branch](https://github.com/djp42/driver_risk_prediction_mono_video/tree/IV2019) of this repository.
+** For the exact code version associated with the IEEE IVS 2019 paper submission, see the [IV2019 branch](https://github.com/sisl/MonoRARP/tree/IV2019) of this repository.
 
 ## Install Instructions
 * tensorflow/models/research/object_detection installed.
