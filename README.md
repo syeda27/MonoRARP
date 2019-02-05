@@ -5,6 +5,7 @@
 This branch (IV2019) is a snapshot of the repository when we submitted our paper to the IEEE Intelligent Vehicles Symposium 2019.
 It should work, although we anticipate making a few edits in the near future.
 The main (and limited) changes from the master branch at the time of submission are that we tried to limit the extraneous information present on this branch.
+The paper we refer to can be found on [arxiv](https://arxiv.org/abs/1902.01293).**
 
 ## Install Instructions
 * Need tensorflow/models/research/object_detection installed.
