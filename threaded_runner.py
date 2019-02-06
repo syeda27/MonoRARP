@@ -53,6 +53,14 @@ class ThreadedRunner(Runner):
     last go around, speeding up overall runtime through parallel processes.
     """
 
+    def __init__(self, launcher, sess=None):
+        super(ThreadedRunner, self).__init__(launcher, sess)
+        self.force_speed_wait = launcher.all_args.offline
+        # TODO currently unused
+        # if running offline, we force the speed estimator to wait.
+        # There is an option add the ability to force a specific FPS from the
+        # video, in which case we would need to change that behavior.
+
     def set_done(self):
         """
         Set the "done" flag signalling the different components to terminate cleanly.

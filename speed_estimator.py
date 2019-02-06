@@ -23,6 +23,7 @@ class SpeedEstimator():
         """
         Speed in meters per second
         """
+        self.offline = launcher_args.offline
         self.use_gps = launcher_args.use_gps
         if self.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher_args.gps_source)
@@ -42,7 +43,7 @@ class SpeedEstimator():
         string += "\n=============="
         print(string)
 
-    def update_estimates(self, image, frame_time):
+    def update_estimates(self, image, frame_time, img_id=None):
         """
         This is unnecessary for the gps estimator, but necessary for most others
         """

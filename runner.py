@@ -48,11 +48,15 @@ class Runner:
         """
         self.launcher = launcher
         self.sess = sess
+        self.offline = launcher.all_args.offline
         # None to support not using it
 
         self.speed_interface = speed_estimator.SpeedEstimator(self.launcher.all_args)
 
-        self.state = state_history.StateHistory()
+        self.state = state_history.StateHistory(
+            all_args=self.launcher.all_args,
+            offline=self.launcher.all_args.offline
+        )
         self.state.set_ego_speed_mph(35)
 
         risk_constructor = risk_predictor.RiskPredictor
@@ -302,22 +306,12 @@ class Runner:
                     self.state, risk_type, verbose)
         return self.risk_predictor.prev_risk
 
-    def update_state(self, boxes_with_labels, im_h, im_w, frame_time):
+    def update_state(self, boxes_with_labels, im_h, im_w, frame_time, img_id=None):
         """
         Pulled out from display utils. Goes through and updates the state
         based on the boxes and labels.
         """
-        for object_key, (b, label) in boxes_with_labels.items():
-            (left, right, top, bot) = b
-            aspect_ratio_off = general_utils.check_aspect_ratio(b)
-            if label != "car" or aspect_ratio_off:
-                continue
-            self.state.update_state(
-                (left, right, top, bot),
-                im_h, im_w,
-                self.launcher.all_args,
-                object_key=object_key,
-                time=frame_time)
+        self.state.update_all_states(boxes_with_labels, im_h, im_w, frame_time, img_id)
 
     def visualize_one_image(self, net_out, i, frame_time):
         """

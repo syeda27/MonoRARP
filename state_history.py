@@ -28,13 +28,15 @@ class StateHistory:
     if the need arises it would be easy to accomodate.
     """
 
-    def __init__(self, max_history=10):
+    def __init__(self, max_history=10, all_args=None, offline=False):
         self.max_history = max_history
         self.state_histories = defaultdict(list)
         # A dictionary of vehicle ID: list of vehicle state history
         self.ego_speed = 0
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
+        self.all_args = all_args
+        self.offline = offline
 
     def __del__(self):
         string = "\n=============== Ending State Estimator/History =============="
@@ -125,6 +127,27 @@ class StateHistory:
         Sets the stored absolute ego vehicle speed, given speed in miles/hr.
         """
         self.ego_speed = general_utils.mph_to_mps(speed_mph)
+
+    def update_all_states(self, boxes_with_labels, im_h, im_w, frame_time, img_id=None):
+        """
+        Loops over update_state() for each object
+        """
+        if self.offline:
+            data = {}
+        for object_key, (b, label) in boxes_with_labels.items():
+            (left, right, top, bot) = b
+            aspect_ratio_off = general_utils.check_aspect_ratio(b)
+            if label != "car" or aspect_ratio_off:
+                continue
+            this_state = self.update_state(
+                (left, right, top, bot),
+                im_h, im_w,
+                self.all_args,
+                object_key=object_key,
+                time=frame_time).quantities
+            if self.offline:
+                data[object_key] = this_state
+        # if self.offline: save data
 
     # TODO if no object key, finds closest box from last frame
     # TODO smooth distance

@@ -1,11 +1,10 @@
-:'
- We want to create an offline version of the risk prediction model that
- is accurate enough to produce reasonable ground truth labels for a given video.
- The key is that we are no longer constrained by the real-time nature of the
- problem. We begin by using a more computationally intensive object detector,
- and more trackers/particles. Once that is working I will revisit if we should
- try something else.
-'
+# We want to create an offline version of the risk prediction model that
+# is accurate enough to produce reasonable ground truth labels for a given video.
+# The key is that we are no longer constrained by the real-time nature of the
+# problem. We begin by using a more computationally intensive object detector,
+# and more trackers/particles. Once that is working I will revisit if we should
+# try something else.
+
 # TODO save outputs to a csv (based on a flag).
 # TODO bigger object detection model.
 # TODO more tracker particles.
@@ -23,9 +22,8 @@ DET_THRESH=0.01             # above 1 means nothing will get marked.
 DEVICE='/gpu:0'
 
 SAVE='false'
-RUN='video_capture'
-SOURCE='/scratch/derek/video_captures/video_GH010034.mp4'
-SAVE_PATH='/scratch/derek/video_captures/video_GH010034_offline.mp4'
+SOURCE='/scratch/derek/Allstate_data/video3.mp4'
+SAVE_PATH='/scratch/derek/Allstate_data/video_3_offline.mp4'
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"
@@ -34,8 +32,7 @@ TRACKER_HOLD=10
 USE_GPS='false'             # use speed readings from a GPS
 LANE_BASED_SPEED='true'
 
-# TODO simplify and make threaded runner either on or off, no options
-THREADED_RUNNER='B'          # The runner-level threading method, or 'None'
+THREADED_RUNNER='None'          # The runner-level threading method, or 'None'
 THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
 THREAD_WAIT_TIME=0.02        # The minimum amount of time to block on a queue, sec.
 THREAD_MAX_WAIT=1.0          # maximum amount of time to block on a queue, sec.
@@ -43,22 +40,24 @@ THREAD_MAX_WAIT=1.0          # maximum amount of time to block on a queue, sec.
 FOCAL=1495                    # Genius at 1080p is ~850, at 720p is ~550
 CAR_WIDTH=1.8                # meters
 CAMERA_HEIGHT=1.08           # meters, for subaru forester, 1.2m
-RELATIVE_HORIZON=0.545        # between 0 and 1, above 0.5 is above centerline
-RESOLUTION_H=1080 # 0 means both not set
-RESOLUTION_W=1920 # 0 means both not set
+RELATIVE_HORIZON=0.485        # between 0 and 1, above 0.5 is above centerline
+RESOLUTION_H=0 # 0 means both not set
+RESOLUTION_W=0 # 0 means both not set
 
-
-RISK_N_SIMS=50
+RISK_N_SIMS=200
 RISK_H=10.0        # seconds
 RISK_STEP=0.25   # seconds
-COL_TOL_X=2.0    # meters
-COL_TOL_Y=2.0    # meters
+COL_TOL_X=3.0    # meters
+COL_TOL_Y=3.0    # meters
 TTC_H=10.0        # seconds
 TTC_STEP=0.25    # seconds
 RISK_THREADS=10  # max number of threads (>1 --> threaded risk calcs)
 EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 RISK_TYPE="Online" # "TTC" for constant delta v, or "Online" for sims with models
 CALC_RISK_EVERY_N_FRAMES=1
+
+OFFLINE='true'
+
 
 JOBS=`jobs -p`
 if [ '$USE_GPS' = 'true' ]; then
@@ -80,14 +79,15 @@ python3 $(echo $START_LOC)/launcher.py \
     --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
     --tracker_hold $TRACKER_HOLD \
     --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
-    --lane_based_speed $LANE_BASED_SPEED --accept_speed $ACCEPT_SPEED \
+    --lane_based_speed $LANE_BASED_SPEED \
     --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
     --risk_type $RISK_TYPE --ttc_H $TTC_H --ttc_step $TTC_STEP \
     --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
     --calc_risk_n $CALC_RISK_EVERY_N_FRAMES \
     --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
     --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
-    --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME
+    --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME \
+    --offline $OFFLINE
 cd $START_LOC
 for job in $JOBS
 do
