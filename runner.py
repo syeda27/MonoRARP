@@ -71,7 +71,8 @@ class Runner:
             ttc_step=launcher.all_args.ttc_step,
             collision_tolerance_x=launcher.all_args.col_tol_x,
             collision_tolerance_y=launcher.all_args.col_tol_y,
-            max_threads=launcher.all_args.max_risk_threads
+            max_threads=launcher.all_args.max_risk_threads,
+            offline=launcher.all_args.offline
         )
         self.reset_vars()
         self.thread_queue_size = launcher.all_args.thread_queue_size
@@ -460,7 +461,8 @@ class Runner:
             self.launcher.all_args.tracker_type,
             self.height,
             self.width,
-            self.launcher.category_index)
+            self.launcher.category_index,
+            self.offline)
         # Display
         self.display_obj = display.Display()
         cv2.namedWindow('image',cv2.WINDOW_NORMAL)

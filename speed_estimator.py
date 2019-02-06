@@ -46,6 +46,8 @@ class SpeedEstimator():
     def update_estimates(self, image, frame_time, img_id=None):
         """
         This is unnecessary for the gps estimator, but necessary for most others
+        img_id:
+          Integer. Used to specify how to save the data, if running in offline mode.
         """
         if self.use_lane_markings:
             self.timer.update_start("Lane Based Speed Update")

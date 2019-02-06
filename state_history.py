@@ -131,6 +131,8 @@ class StateHistory:
     def update_all_states(self, boxes_with_labels, im_h, im_w, frame_time, img_id=None):
         """
         Loops over update_state() for each object
+        img_id:
+          Integer. Used to specify how to save the data, if running in offline mode.
         """
         if self.offline:
             data = {}

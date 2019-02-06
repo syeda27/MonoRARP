@@ -300,7 +300,8 @@ class ThreadedRunner(Runner):
             self.launcher.all_args.tracker_type,
             self.height,
             self.width,
-            self.object_detector.category_index)
+            self.object_detector.category_index,
+            self.offline)
         # Display
         self.display_obj = display.Display()
         self.has_displayed = False

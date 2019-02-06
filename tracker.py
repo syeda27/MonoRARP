@@ -25,7 +25,8 @@ class Tracker:
                  tracker_type,
                  image_height,
                  image_width,
-                 category_index):
+                 category_index,
+                 offline=False):
         """
         Arguents
           args, and argument_utils args object, containing:
@@ -40,7 +41,11 @@ class Tracker:
             Width of the image in pixels. Integer.
           category_index:
             Dictionary for what categories are which from the model.
+          offline:
+            Bool, a flag representing whether or not we want to run the offline
+            version of this module.
         """
+        self.offline = offline
         self.tracker_type = tracker_type
         self.det_thresh = args.det_thresh
         self.tracker_refresh = args.tracker_refresh
@@ -112,7 +117,7 @@ class Tracker:
             state_object.clear()
             self.timer.update_end("Reset")
 
-    def update_one(self, image_index, net_out, image, verbose=False):
+    def update_one(self, image_index, net_out, image, verbose=False, img_id=None):
         """
         The main function that is called. Uses the image and object detections
         to update the tracker given a single image.
@@ -127,6 +132,8 @@ class Tracker:
             The image.
           verbose: boolean.
             True if we want to print extra logging info.
+          img_id:
+            Integer. Used to specify save data filename, if running in offline mode.
 
         Returns:
           boxes_with_labels: dictionary <int : tuple<box, str> >

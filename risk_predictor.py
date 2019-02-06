@@ -58,7 +58,8 @@ class RiskPredictor:
                  ttc_step=0.25,
                  collision_tolerance_x=2.0,
                  collision_tolerance_y=2.0,
-                 max_threads=10):
+                 max_threads=10,
+                 offline=False):
         """
         Arguments
           num_sims:
@@ -78,6 +79,9 @@ class RiskPredictor:
           max_threads:
             Int, the maximum number of threads to spawn at any given time.
             Setting this number to <= 1 will force the non-threaded method.
+          offline:
+            Bool, a flag representing whether or not we want to run the offline
+            version of this module.
         """
         self.num_sims = num_sims
         self.sim_horizon = sim_horizon
@@ -94,6 +98,7 @@ class RiskPredictor:
         self.max_threads = max_threads
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
+        self.offline = offline
 
     def __del__(self):
         string = "\n=============== Ending Risk Predictor =============="
@@ -113,7 +118,8 @@ class RiskPredictor:
     def get_risk(self,
                  state,
                  risk_type="ttc",
-                 verbose=False):
+                 verbose=False,
+                 img_id=None):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -126,6 +132,8 @@ class RiskPredictor:
             String, indicate which method to use to calculate the risk.
           verbose:
             Boolean, passed to called functions on whether to log.
+          img_id:
+            Integer. Used to specify save data filename, if running in offline mode.
 
         Returns
           risk:
