@@ -3,7 +3,7 @@ import cv2
 import ctypes
 from ctypes import cdll
 # TODO args
-lib = cdll.LoadLibrary('/home/derek/driver_risk_prediction_mono_video/lib_speed_estimator.so')
+lib = cdll.LoadLibrary('/home/derek/MonoRARP/lib_speed_estimator.so')
 
 from driver_risk_utils import general_utils
 
