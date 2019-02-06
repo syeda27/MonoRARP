@@ -68,6 +68,8 @@ def test_default_args():
 
     assert args.detect_lanes == argument_utils.str2bool(defaults.DETECT_LANES)
 
+    assert args.offline == argument_utils.str2bool(defaults.OFFLINE)
+
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 
 if __name__ == "__main__":

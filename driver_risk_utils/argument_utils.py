@@ -81,7 +81,6 @@ def add_thread_args(parser):
     parser.add_argument("--max_risk_threads", type=int,
             default=defaults.RISK_THREADS)
 
-
 def add_risk_args(parser):
     parser.add_argument("--n_risk_sims", type=int, default=defaults.RISK_N_SIMS)
     parser.add_argument("--risk_H", type=float, default=defaults.RISK_HORIZON)
@@ -93,6 +92,8 @@ def add_risk_args(parser):
     parser.add_argument("--embedded_risk", type=str2bool, default=defaults.EMBEDDED_RISK)
     parser.add_argument("--risk_type", type=str, default=defaults.RISK_TYPE)
 
+def add_offline_args(parser):
+    parser.add_argument("--offline", type=str2bool, default=defaults.OFFLINE)
 
 """
 parse_args creates a parser object, adds the arguments and default arguments,
@@ -112,6 +113,7 @@ def parse_args():
     add_general_args(parser)
     add_risk_args(parser)
     add_thread_args(parser)
+    add_offline_args(parser)
     args = parser.parse_args()
 
     return do_arg_checks(args)

@@ -64,9 +64,12 @@ TTC_STEP = 0.5
 COLLISION_TOL_X_m = 1 # what constitutes a collision?
 COLLISION_TOL_Y_m = 2
 EMBEDDED_RISK = "True"
-RISK_TYPE = "TTC"  # "TTC" for constant delta v, or "Online" for sims with models
+RISK_TYPE = "Online"  # "TTC" for constant delta v, or "Online" for sims with models
 """
 EMBEDDED_RISK indicates whether to simulate and calculate risk at
 the same time.
 It avoids deepcopies and is more efficient, but less modular.
 """
+
+## DEFAULTS FOR THE OFFLINE VERSION ##
+OFFLINE = "False"
