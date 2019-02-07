@@ -57,7 +57,7 @@ EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 RISK_TYPE="TTC" # "TTC" for constant delta v, or "Online" for sims with models
 CALC_RISK_EVERY_N_FRAMES=1
 
-OFFLINE='true'
+OFFLINE='true'   # indicates we do not care about runtime and want to save all results.
 RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'
 OVERWRITE_SAVES='true'
 

@@ -76,12 +76,14 @@ components for later online use cases as well.
  speed calculations.
  * After this is complete, investigate better object detectors.
  * Test the save_output and other methods in `offline_utils.py` and elsewhere to ensure data integrity.
- * Implement a `load` method for each component (optional?)
+ * Implement a `load` method for each component
+   - This can be external to the components, but needed to compare predictions with
+   the ground truth.
 
 ### Guidelines:
- * Create a `data/` folder to store the videos.
- * Create a `results/` folder to store the output.
-   - In our case, both of these will be symbolic links to an external hard drive.
+ * Modify the `run_offline_risk_prediction.sh` script to point to the appropriate
+ video location (`SOURCE`), indicate offline mode (`OFFLINE='true'`), and indicate
+ the directory to save the data outputs to (`RESULTS_SAVE_PATH`).
 
 
 *This research was funded by The Allstate Corporation.*
