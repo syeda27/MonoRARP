@@ -118,8 +118,13 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         if risk is None:
             risk = 0
+        # TODO average indicated by an argument?
         self.prev_risk = (risk + self.prev_risk) / 2.0
         self.timer.update_end("Get Risk")
+        if self.offline:
+            # save does not average last two risk predictions
+            offline_utils.save_output(risk, self.component_name, img_id, self.save_path,
+                overwrite=self.overwrite_saves)
         return self.prev_risk
 
     def thread_deepcopy(self):

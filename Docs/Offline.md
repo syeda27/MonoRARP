@@ -75,9 +75,7 @@ components for later online use cases as well.
  * Each component will need a `save` method, and associated "Component Name". Additionally, need the `path_to_results`.
    - Object Detector
    - Tracker
-   - State Estimator
    - Speed Estimator
-   - Risk Predictor
  * Each component will need to be initialized with the save path.
    - Have an internal flag on whether or not it should save (or load) from the path.
    - Must support saving from a path as well as loading from a path.

@@ -37,6 +37,9 @@ class StateHistory:
         self.timer.update_start("Overall")
         self.all_args = all_args
         self.offline = offline
+        self.save_path = all_args.results_save_path
+        self.overwrite_saves = all_args.overwrite_saves
+        self.component_name = "STATE"
 
     def __del__(self):
         string = "\n=============== Ending State Estimator/History =============="
@@ -149,7 +152,9 @@ class StateHistory:
                 time=frame_time).quantities
             if self.offline:
                 data[object_key] = this_state
-        # if self.offline: save data
+        if self.offline:
+            offline_utils.save_output(data, self.component_name, img_id, self.save_path,
+                overwrite=self.overwrite_saves)
 
     # TODO if no object key, finds closest box from last frame
     # TODO smooth distance

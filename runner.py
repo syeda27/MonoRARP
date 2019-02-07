@@ -72,7 +72,9 @@ class Runner:
             collision_tolerance_x=launcher.all_args.col_tol_x,
             collision_tolerance_y=launcher.all_args.col_tol_y,
             max_threads=launcher.all_args.max_risk_threads,
-            offline=launcher.all_args.offline
+            offline=launcher.all_args.offline,
+            save_path=launcher.all_args.results_save_path,
+            overwrite_saves=launcher.all_args.overwrite_saves
         )
         self.reset_vars()
         self.thread_queue_size = launcher.all_args.thread_queue_size

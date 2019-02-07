@@ -42,7 +42,7 @@ sys.stdout.flush()
 import scene
 import time
 
-from driver_risk_utils import risk_prediction_utils, general_utils
+from driver_risk_utils import risk_prediction_utils, general_utils, offline_utils
 
 class RiskPredictor:
     """
@@ -59,7 +59,9 @@ class RiskPredictor:
                  collision_tolerance_x=2.0,
                  collision_tolerance_y=2.0,
                  max_threads=10,
-                 offline=False):
+                 offline=False,
+                 save_path="results",
+                 overwrite_saves=False):
         """
         Arguments
           num_sims:
@@ -82,6 +84,10 @@ class RiskPredictor:
           offline:
             Bool, a flag representing whether or not we want to run the offline
             version of this module.
+          save_path:
+            String, if offline is true, need a path to save to.
+          overwrite_saves:
+            Boolean, passed to save_output().
         """
         self.num_sims = num_sims
         self.sim_horizon = sim_horizon
@@ -99,6 +105,10 @@ class RiskPredictor:
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
         self.offline = offline
+        self.save_path = save_path
+        self.overwrite_saves = overwrite_saves
+        self.component_name = "RISK"
+        # TODO: load path?
 
     def __del__(self):
         string = "\n=============== Ending Risk Predictor =============="
@@ -106,7 +116,6 @@ class RiskPredictor:
         string += "\nTiming:" + self.timer.print_stats(True)
         string += "\n==============\n"
         print(string)
-
 
     def reset(self):
         """
@@ -176,6 +185,11 @@ class RiskPredictor:
             raise ValueError("Unsupported risk type of: {}".format(risk_type))
         if risk is None:
             risk = 0
+        # TODO average indicated by an argument?
         self.prev_risk = (risk + self.prev_risk) / 2.0
         self.timer.update_end("Get Risk")
+        if self.offline:
+            # save does not average last two risk predictions
+            offline_utils.save_output(risk, self.component_name, img_id, self.save_path,
+                overwrite=self.overwrite_saves)
         return self.prev_risk
