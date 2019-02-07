@@ -68,6 +68,8 @@ def add_general_args(parser):
     # 1 to update every frame
     parser.add_argument("--device", type=str,
             default=defaults.DEVICE)
+    # if we do not want to show the speed, set to false
+    parser.add_argument("--show_speed", type=str2bool, default=defaults.SHOW_SPEED)
 
 def add_thread_args(parser):
     parser.add_argument("--threaded_runner", type=str,
@@ -137,11 +139,12 @@ def do_arg_checks(args):
         'KCF tracker must refresh'
     if args.track and args.tracker_type == "KCF" and args.threaded_runner == 'B':
         print("Warning: KCF tracker not 100% compatible with threaded runner B, and will drop frames.")
-    if args.risk_type.lower() == "ttc":
+    if args.risk_type.lower() == "ttc" and args.offline == False:
         print("TTC risk selected, forcing no speed estimator.")
         args.use_gps = False
         args.accept_speed = False
-        #args.lane_based_speed = False
+        args.lane_based_speed = False
         args.embedded_risk = False
         args.max_risk_threads = 1
+        args.show_speed = False
     return args

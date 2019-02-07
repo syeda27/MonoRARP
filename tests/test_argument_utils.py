@@ -62,6 +62,7 @@ class TestArguments(unittest.TestCase):
         self.assertEqual(args.carW, defaults.CAR_WIDTH_m)
         self.assertEqual(args.calc_risk_n, defaults.CALC_RISK_EVERY_N_FRAMES)
         self.assertEqual(args.device, defaults.DEVICE)
+        self.assertEqual(args.show_speed, argument_utils.str2bool(defaults.SHOW_SPEED))
 
     def test_default_thread(self):
         args = argument_utils.parse_args()

@@ -100,7 +100,8 @@ class ThreadedRunner(Runner):
                 self.state.get_ego_speed_mph(),
                 boxes_with_labels,
                 frame_time=frame_time,
-                rel_horizon=self.launcher.all_args.horizon
+                rel_horizon=self.launcher.all_args.horizon,
+                show_speed=self.launcher.all_args.show_speed
             )
 
         if self.launcher.all_args.save:

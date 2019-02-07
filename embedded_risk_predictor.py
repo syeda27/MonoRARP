@@ -14,7 +14,7 @@ from copy import deepcopy
 from risk_predictor import RiskPredictor
 from scene import Scene
 
-from driver_risk_utils import risk_prediction_utils, general_utils
+from driver_risk_utils import risk_prediction_utils, general_utils, offline_utils
 
 class EmbeddedRiskPredictor(RiskPredictor, Scene):
 

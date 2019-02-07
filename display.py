@@ -28,7 +28,8 @@ class Display:
                      boxes_with_labels,
                      frame_time=None,
                      show_global_stats=True,
-                     rel_horizon=0.5):
+                     rel_horizon=0.5,
+                     show_speed=True):
         i = 0
         for object_key, (b, label) in sorted(boxes_with_labels.items()):
             aspect_ratio_off = general_utils.check_aspect_ratio(b)
@@ -44,6 +45,7 @@ class Display:
             display_utils.outline_rectangle(self.imgcv, b, self.d_args, object_key)
             i += 1
         if show_global_stats:
+            if not show_speed: speed = None
             display_utils.outline_global_text(self.imgcv, risk, speed, self.d_args)
         #self.imgcv = cv2.resize(self.imgcv,(1280,720)) #[(640 x 480), (1280 x 720), (1920 x 1080)]
         display_utils.mark_center_lines(self.imgcv, self.d_args)

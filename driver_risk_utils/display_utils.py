@@ -105,6 +105,7 @@ def outline_global_text(img, risk, ego_speed_mph, disp_args):
                  vert,
                  disp_args,
                  thick_mult=1)
+    if ego_speed_mph is None: return
     outline_text(img,
                  "ego speed: {0:.2f} mph, {1:.2f} m/s".format(
                     ego_speed_mph, general_utils.mph_to_mps(ego_speed_mph)),

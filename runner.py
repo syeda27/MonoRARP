@@ -143,8 +143,7 @@ class Runner:
         if not self.using_camera:
             assert os.path.isfile(input), \
                     'file {} does not exist'.format(input)
-        else:
-            print('Press [ESC] to quit demo')
+        print('Press [ESC] to quit demo')
         self.camera = cv2.VideoCapture(input)
         res = (self.launcher.all_args.resolution_w, self.launcher.all_args.resolution_h)
         self.rsz = False
@@ -157,6 +156,19 @@ class Runner:
 
         assert self.camera.isOpened(), \
                 'Cannot capture source'
+
+        self.video_fps = None
+        if not self.using_camera:
+            assert os.path.isfile(input), \
+                    'file {} does not exist'.format(input)
+            # From:
+            #   https://www.learnopencv.com/how-to-find-frame-rate-or-frames-per-second-fps-in-opencv-python-cpp/
+            # Find OpenCV version
+            (major_ver, _, _) = (cv2.__version__).split('.')
+            if int(major_ver) < 3:
+                self.video_fps = self.camera.get(cv2.cv.CV_CAP_PROP_FPS)
+            else:
+                self.video_fps = self.camera.get(cv2.CAP_PROP_FPS)
         _, frame = self.camera.read()
         self.height, self.width, _ = frame.shape
         self.image_id += 1
@@ -349,7 +361,8 @@ class Runner:
                 self.state.get_ego_speed_mph(),
                 boxes_with_labels,
                 frame_time=frame_time,
-                rel_horizon=self.launcher.all_args.horizon
+                rel_horizon=self.launcher.all_args.horizon,
+                show_speed=self.launcher.all_args.show_speed
             )
 
         self.timer.update_end("Display", 1)
