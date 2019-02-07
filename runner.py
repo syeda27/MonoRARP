@@ -382,6 +382,7 @@ class Runner:
             net_out = self.sess.run(self.tensor_dict,
                                     feed_dict={self.image_tensor: self.input_buffer})
             self.frames_ran_obj_det_on += 1
+            # TODO this is where we get the frameID that we can use to save the data.
             self.timer.update_end("NeuralNet", 1)
 
         self.visualize_one_image(net_out, 0, frame_time)

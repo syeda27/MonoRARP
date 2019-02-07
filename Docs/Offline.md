@@ -72,9 +72,6 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * A new argument to indicate if we are running the offline version.
-   - To start, this only needs to be supported in the single-threaded case.
- * A new argument to every component for the current global frame number.
  * Each component will need a `save` and `load` method
    - These should be utils that get passed in a `component_name`, `frame_num`,
    and `data` for saving or `component_name`, `frame_num` for loading.

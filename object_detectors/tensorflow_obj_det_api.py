@@ -31,6 +31,7 @@ class TFObjectDetector(object_detector.ObjectDetector):
           args: a parser object from the argparse library.
         """
         self.all_args = args
+        self.offline = self.all_args.offline
         self.model_name = args.model
         self.path_to_checkpoint = self.model_name + '/frozen_inference_graph.pb'
         self.path_to_labels = args.labels

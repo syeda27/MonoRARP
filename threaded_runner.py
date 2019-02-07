@@ -255,7 +255,7 @@ class ThreadedRunner(Runner):
         if self.image_queue.full():
             self.image_queue.get()
             self.num_dropped["Image Queue"] += 1
-        self.image_queue.put((image_np, frame_time))
+        self.image_queue.put((image_np, frame_time)) # Add frameid here?
         if not self.sep_speed_est:
             # wait for object detector to complete one pass
             self.wait_for_obj_det(max_wait*2)
