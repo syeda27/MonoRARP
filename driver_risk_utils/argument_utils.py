@@ -94,6 +94,8 @@ def add_risk_args(parser):
 
 def add_offline_args(parser):
     parser.add_argument("--offline", type=str2bool, default=defaults.OFFLINE)
+    parser.add_argument("--results_save_path", type=str, default=defaults.RESULTS_SAVE_PATH)
+    parser.add_argument("--overwrite_saves", type=str2bool, default=defaults.OVERWRITE_SAVES)
 
 """
 parse_args creates a parser object, adds the arguments and default arguments,

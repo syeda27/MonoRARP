@@ -73,3 +73,5 @@ It avoids deepcopies and is more efficient, but less modular.
 
 ## DEFAULTS FOR THE OFFLINE VERSION ##
 OFFLINE = "False"
+RESULTS_SAVE_PATH = "results"
+OVERWRITE_SAVES = "False"

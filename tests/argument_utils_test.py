@@ -30,7 +30,6 @@ def test_default_args():
     assert args.accept_speed == argument_utils.str2bool(defaults.ACCEPT_SPEED)
     assert args.lane_based_speed == argument_utils.str2bool(defaults.LANE_BASED_SPEED)
 
-
     assert args.tracker_refresh == defaults.TRACKER_FORCE_REFRESH_EVERY_N_FRAMES
     assert args.track == argument_utils.str2bool(defaults.DO_TRACKING)
     assert args.tracker_type == defaults.TRACKER_TYPE
@@ -69,6 +68,8 @@ def test_default_args():
     assert args.detect_lanes == argument_utils.str2bool(defaults.DETECT_LANES)
 
     assert args.offline == argument_utils.str2bool(defaults.OFFLINE)
+    assert args.results_save_path == defaults.RESULTS_SAVE_PATH
+    assert args.overwrite_saves == argument_utils.str2bool(defaults.OVERWRITE_SAVES)
 
     print("Test completed successfully in {:.2} seconds".format(time.time() - start))
 

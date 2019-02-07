@@ -21,10 +21,11 @@ MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 DET_THRESH=0.01             # above 1 means nothing will get marked.
 DEVICE='/gpu:0'
 
-SAVE='false'
+SAVE='false' # This is to save the video
 SOURCE='/scratch/derek/Allstate_data/video3.mp4'
 SAVE_PATH='/scratch/derek/Allstate_data/video_3_offline.mp4'
 
+# TODO more trakcers and tracker particles
 DO_TRACK='true'
 TRACKER_TYPE="Particle"
 TRACK_REFRESH=250             # 1 makes no refreshing
@@ -57,6 +58,8 @@ RISK_TYPE="TTC" # "TTC" for constant delta v, or "Online" for sims with models
 CALC_RISK_EVERY_N_FRAMES=1
 
 OFFLINE='true'
+RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'
+OVERWRITE_SAVES='false'
 
 
 JOBS=`jobs -p`
@@ -87,7 +90,8 @@ python3 $(echo $START_LOC)/launcher.py \
     --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
     --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
     --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME \
-    --offline $OFFLINE
+    --offline $OFFLINE --results_save_path $RESULTS_SAVE_PATH \
+    --overwrite_saves $OVERWRITE_SAVES
 cd $START_LOC
 for job in $JOBS
 do
