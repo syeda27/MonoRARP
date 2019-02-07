@@ -83,6 +83,7 @@ components for later online use cases as well.
  * Argument to switch from time-dependence to frame-dependence for things like
  speed calculations.
  * After this is complete, investigate better object detectors.
+ * Test the save_output and other methods in `offline_utils.py` and elsewhere to ensure data integrity.
 
 ### Guidelines:
  * Create a `data/` folder to store the videos.
