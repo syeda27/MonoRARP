@@ -13,7 +13,8 @@ class TestSaveMethods(unittest.TestCase):
         data0 = {"Test": 100}
         data1 = {"Test": (1,2,3)}
         data2 = {"Test": [1,2,3,4]}
-        self.data = [data0, data1, data2]
+        data3 = {"1": {"Test": [1,2,3]}}
+        self.data = [data0, data1, data2, data3]
 
     def test_all_options(self):
         # Test that save_output works as expected."
@@ -32,11 +33,13 @@ class TestSaveMethods(unittest.TestCase):
 
         # test the load options
         data0 = offline_utils.load_input("test", 0, RESULTS, verbose=True)
-        assert data0 == {"Test": 100}
+        self.assertEqual(data0, {"Test": 100})
         data1 = offline_utils.load_input("test", 1, RESULTS, verbose=True)
-        assert data1 == {"Test": (1,2,3)}
+        self.assertEqual(data1, {"Test": (1,2,3)})
         data2 = offline_utils.load_input("test", 2, RESULTS, verbose=True)
-        assert data2 == {"Test": [1,2,3,4]}
+        self.assertEqual(data2, {"Test": [1,2,3,4]})
+        data3 = offline_utils.load_input("test", 3, RESULTS, verbose=True)
+        self.assertEqual(data3, {"1": {"Test": [1,2,3]}})
 
 RESULTS = "/tmp/test_results"
 
