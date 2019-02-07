@@ -72,9 +72,12 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * Each component will need a `save` and `load` method
-   - These should be utils that get passed in a `component_name`, `frame_num`,
-   and `data` for saving or `component_name`, `frame_num` for loading.
+ * Each component will need a `save` method, and associated "Component Name". Additionally, need the `path_to_results`.
+   - Object Detector
+   - Tracker
+   - State Estimator
+   - Speed Estimator
+   - Risk Predictor
  * Each component will need to be initialized with the save path.
    - Have an internal flag on whether or not it should save (or load) from the path.
    - Must support saving from a path as well as loading from a path.
@@ -84,6 +87,7 @@ components for later online use cases as well.
  speed calculations.
  * After this is complete, investigate better object detectors.
  * Test the save_output and other methods in `offline_utils.py` and elsewhere to ensure data integrity.
+ * Implement a `load` method for each component (optional?)
 
 ### Guidelines:
  * Create a `data/` folder to store the videos.
