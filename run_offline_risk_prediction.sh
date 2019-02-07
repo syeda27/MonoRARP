@@ -59,7 +59,7 @@ CALC_RISK_EVERY_N_FRAMES=1
 
 OFFLINE='true'
 RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'
-OVERWRITE_SAVES='false'
+OVERWRITE_SAVES='true'
 
 
 JOBS=`jobs -p`

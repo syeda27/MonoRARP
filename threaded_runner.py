@@ -88,7 +88,8 @@ class ThreadedRunner(Runner):
         boxes_with_labels = self.get_detected_objects(0, net_out, image)
         im_h, im_w, _ = image.shape
 
-        self.update_state(boxes_with_labels, im_h, im_w, frame_time)
+        self.state.update_all_states(boxes_with_labels, im_h, im_w, frame_time,
+            img_id=self.image_id)
 
         risk = self.get_risk(risk_type=self.launcher.all_args.risk_type)
 
@@ -265,7 +266,7 @@ class ThreadedRunner(Runner):
         self.speed_interface.update_estimates(image_np, frame_time)
         if verbose:
             print("INFO: Updated speed.")
-        self.state.set_ego_speed(self.speed_interface.get_reading())
+        self.state.set_ego_speed(self.speed_interface.get_reading(self.image_id))
         time.sleep(wait_time/2)
 
     def print_more_timings(self):
@@ -300,8 +301,7 @@ class ThreadedRunner(Runner):
             self.launcher.all_args.tracker_type,
             self.height,
             self.width,
-            self.object_detector.category_index,
-            self.offline)
+            self.object_detector.category_index)
         # Display
         self.display_obj = display.Display()
         self.has_displayed = False

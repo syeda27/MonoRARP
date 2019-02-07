@@ -72,15 +72,6 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * Each component will need a `save` method, and associated "Component Name". Additionally, need the `path_to_results`.
-   - Object Detector
-   - Tracker
-   - Speed Estimator
- * Each component will need to be initialized with the save path.
-   - Have an internal flag on whether or not it should save (or load) from the path.
-   - Must support saving from a path as well as loading from a path.
-   - Include a `check_make_directory()` method.
-   - The save path should be `results/<component_name>/<global_frame_num>.pkl`
  * Argument to switch from time-dependence to frame-dependence for things like
  speed calculations.
  * After this is complete, investigate better object detectors.

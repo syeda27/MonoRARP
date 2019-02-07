@@ -141,7 +141,7 @@ def do_arg_checks(args):
         print("TTC risk selected, forcing no speed estimator.")
         args.use_gps = False
         args.accept_speed = False
-        args.lane_based_speed = False
+        #args.lane_based_speed = False
         args.embedded_risk = False
         args.max_risk_threads = 1
     return args

@@ -68,7 +68,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
     def get_risk(self,
                  state,
                  risk_type="ttc",
-                 verbose=False):
+                 verbose=False,
+                 img_id=None):
         """
         Wrapper to compute the risk for the given state.
         It also updates the internal variable: `prev_risk`.
@@ -81,6 +82,8 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
             String, indicate which method to use to calculate the risk.
           verbose:
             Boolean, passed to called functions on whether to log.
+          img_id:
+            Integer. Used to specify save data filename, if running in offline mode.
 
         Returns
           risk:

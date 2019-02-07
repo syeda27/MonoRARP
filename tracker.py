@@ -7,7 +7,7 @@ It is essentially a wrapper class to make the main file have consistent API
 import cv2
 import numpy as np
 from collections import defaultdict
-from driver_risk_utils import general_utils, tracker_utils
+from driver_risk_utils import general_utils, tracker_utils, offline_utils
 import multi_trackers
 
 class Tracker:
@@ -25,8 +25,7 @@ class Tracker:
                  tracker_type,
                  image_height,
                  image_width,
-                 category_index,
-                 offline=False):
+                 category_index):
         """
         Arguents
           args, and argument_utils args object, containing:
@@ -41,11 +40,11 @@ class Tracker:
             Width of the image in pixels. Integer.
           category_index:
             Dictionary for what categories are which from the model.
-          offline:
-            Bool, a flag representing whether or not we want to run the offline
-            version of this module.
         """
-        self.offline = offline
+        self.offline = args.offline
+        self.save_path = args.results_save_path
+        self.overwrite_saves = args.overwrite_saves
+        self.component_name = "TRACKER"
         self.tracker_type = tracker_type
         self.det_thresh = args.det_thresh
         self.tracker_refresh = args.tracker_refresh
@@ -175,4 +174,9 @@ class Tracker:
             if ok is False: # lost tracking
                 self.init_tracker = True
         self.timer.update_end("Update One")
+        if self.offline:
+            offline_utils.save_output(
+                boxes_with_labels, self.component_name,
+                img_id, self.save_path,
+                overwrite=self.overwrite_saves)
         return boxes_with_labels

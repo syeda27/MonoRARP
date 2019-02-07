@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import runner
 import threaded_runner
-from driver_risk_utils import argument_utils, general_utils
+from driver_risk_utils import argument_utils, general_utils, offline_utils
 
 import queue
 import threading
@@ -31,7 +31,11 @@ class TFObjectDetector(object_detector.ObjectDetector):
           args: a parser object from the argparse library.
         """
         self.all_args = args
-        self.offline = self.all_args.offline
+        self.offline = args.offline
+        self.save_path = args.results_save_path
+        self.overwrite_saves = args.overwrite_saves
+        self.component_name = "OBJECT_DETECTOR"
+
         self.model_name = args.model
         self.path_to_checkpoint = self.model_name + '/frozen_inference_graph.pb'
         self.path_to_labels = args.labels
@@ -152,4 +156,10 @@ class TFObjectDetector(object_detector.ObjectDetector):
                     if verbose:
                         print("INFO: put image.")
                     self.timer.update_end("Detecting")
+                    if self.offline:
+                        offline_utils.save_output(
+                            net_out, self.component_name,
+                            self.num_detections-1, self.save_path,
+                            overwrite=self.overwrite_saves)
+
                 self._do_end_things()

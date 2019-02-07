@@ -24,7 +24,7 @@ import embedded_risk_predictor
 import tracker
 import display
 import speed_estimator
-from driver_risk_utils import argument_utils, general_utils
+from driver_risk_utils import argument_utils, general_utils, offline_utils
 
 
 class Runner:
@@ -46,10 +46,13 @@ class Runner:
           launcher: a launcher object that contains some key components, like the arguments.
           sess: a TF session object.
         """
+        self.image_id = 0 # may be different than elapsed.
         self.launcher = launcher
         self.sess = sess
         self.offline = launcher.all_args.offline
-        # None to support not using it
+        self.overwrite_saves = launcher.all_args.overwrite_saves
+        # make sure result path exists:
+        offline_utils.check_make_directory(launcher.all_args.results_save_path)
 
         self.speed_interface = speed_estimator.SpeedEstimator(self.launcher.all_args)
 
@@ -156,6 +159,7 @@ class Runner:
                 'Cannot capture source'
         _, frame = self.camera.read()
         self.height, self.width, _ = frame.shape
+        self.image_id += 1
         print("Input device of size (h,w): {},{}".format(self.height, self.width))
 
     def init_video_write(self, FPS=10):
@@ -235,6 +239,7 @@ class Runner:
         image_np = self.get_image()
         #image_np_expanded = np.expand_dims(image_np, axis=0)
         self.input_buffer.append(image_np)
+        self.image_id += 1
 
     def get_detected_objects(self, i, net_out, image):
         """
@@ -259,7 +264,7 @@ class Runner:
         # be optimized somehow...
 
         if self.tracker_obj.use_tracker:
-            boxes_with_labels = self.tracker_obj.update_one(i, net_out, image)
+            boxes_with_labels = self.tracker_obj.update_one(i, net_out, image, img_id=self.image_id)
         else:
             boxes = net_out['detection_boxes'][i][np.where(\
                     net_out['detection_scores'][i] >= self.launcher.all_args.det_thresh)]
@@ -306,15 +311,8 @@ class Runner:
         calculate_risk = self.elapsed % self.launcher.all_args.calc_risk_n == 0
         if calculate_risk and self.elapsed > 0:
             return self.risk_predictor.get_risk(
-                    self.state, risk_type, verbose)
+                    self.state, risk_type, verbose, img_id=self.image_id)
         return self.risk_predictor.prev_risk
-
-    def update_state(self, boxes_with_labels, im_h, im_w, frame_time, img_id=None):
-        """
-        Pulled out from display utils. Goes through and updates the state
-        based on the boxes and labels.
-        """
-        self.state.update_all_states(boxes_with_labels, im_h, im_w, frame_time, img_id)
 
     def visualize_one_image(self, net_out, i, frame_time):
         """
@@ -335,7 +333,8 @@ class Runner:
         self.timer.update_start("DetectObjects")
         boxes_with_labels = self.get_detected_objects(i, net_out, self.input_buffer[i])
         im_h, im_w, _ = self.input_buffer[i].shape
-        self.update_state(boxes_with_labels, im_h, im_w, frame_time)
+        self.state.update_all_states(boxes_with_labels, im_h, im_w, frame_time,
+            img_id=self.image_id)
         self.timer.update_end("DetectObjects", len(boxes_with_labels))
         self.timer.update_start("GetRisk")
 
@@ -384,8 +383,14 @@ class Runner:
             net_out = self.sess.run(self.tensor_dict,
                                     feed_dict={self.image_tensor: self.input_buffer})
             self.frames_ran_obj_det_on += 1
-            # TODO this is where we get the frameID that we can use to save the data.
             self.timer.update_end("NeuralNet", 1)
+            if self.offline:
+                offline_utils.save_output(
+                    net_out, "OBJECT_DETECTOR",
+                    self.elapsed,
+                    results_path=self.launcher.all_args.results_save_path,
+                    overwrite=self.overwrite_saves)
+
 
         self.visualize_one_image(net_out, 0, frame_time)
 
@@ -410,7 +415,7 @@ class Runner:
             ))
             return
 
-        self.state.set_ego_speed(self.speed_interface.get_reading())
+        self.state.set_ego_speed(self.speed_interface.get_reading(img_id=self.image_id))
 
         self.read_image()
         if self.done: return
@@ -464,8 +469,7 @@ class Runner:
             self.launcher.all_args.tracker_type,
             self.height,
             self.width,
-            self.launcher.category_index,
-            self.offline)
+            self.launcher.category_index)
         # Display
         self.display_obj = display.Display()
         cv2.namedWindow('image',cv2.WINDOW_NORMAL)

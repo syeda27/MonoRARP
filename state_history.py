@@ -3,7 +3,7 @@ import sys
 sys.stdout.flush()
 from collections import defaultdict
 
-from driver_risk_utils import general_utils
+from driver_risk_utils import general_utils, offline_utils
 from driver_risk_utils import state_estimation_utils as s_utils
 import vehicle_state
 

@@ -22,8 +22,8 @@ DEVICE='/gpu:0'
 
 SAVE='false'
 
-SOURCE='videos/video_GH010034-congested.mp4'
-#SAVE_PATH='videos/output_1080p.mp4'
+SOURCE='/scratch/derek/video_captures/video_GH010034-congested.mp4'
+SAVE_PATH='/scratch/derek/video_captures/output_1080p.mp4'
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"     # KCF is opencv version. Particle for ours.

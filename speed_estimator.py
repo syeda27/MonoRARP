@@ -6,7 +6,7 @@ recent calculated speed when queried.
 Author: Derek
 """
 
-from driver_risk_utils import gps_utils, general_utils
+from driver_risk_utils import gps_utils, general_utils, offline_utils
 import threading
 import lane_marking_speed_estimator
 
@@ -24,6 +24,9 @@ class SpeedEstimator():
         Speed in meters per second
         """
         self.offline = launcher_args.offline
+        self.save_path = launcher_args.results_save_path
+        self.overwrite_saves = launcher_args.overwrite_saves
+        self.component_name = "EGO_SPEED"
         self.use_gps = launcher_args.use_gps
         if self.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher_args.gps_source)
@@ -43,20 +46,20 @@ class SpeedEstimator():
         string += "\n=============="
         print(string)
 
-    def update_estimates(self, image, frame_time, img_id=None):
+    def update_estimates(self, image, frame_time):
         """
         This is unnecessary for the gps estimator, but necessary for most others
-        img_id:
-          Integer. Used to specify how to save the data, if running in offline mode.
         """
         if self.use_lane_markings:
             self.timer.update_start("Lane Based Speed Update")
             self.lane_based_speed_interface.handle_image(image, frame_time)
             self.timer.update_end("Lane Based Speed Update")
 
-    def get_reading(self):
+    def get_reading(self, img_id=None):
         """
         Returns average speed among active estimation methods in meters / second
+        img_id:
+          Integer. Used to specify how to save the data, if running in offline mode.
         """
         speed = []
         if self.use_gps:
@@ -69,9 +72,14 @@ class SpeedEstimator():
             speed.append(self.lane_based_speed_interface.get_speed())
             print("lane_speed: ", str(speed[-1]))
             self.timer.update_end("Get LBS Speed")
-        if len(speed) == 0:
-            return self.default_speed
+        if len(speed) > 0:
+            avg_speed_all_methods = sum(speed) / len(speed)
+        else:
+            avg_speed_all_methods = self.default_speed
         if self.verbose:
             print("Speed:", speed)
-            print(sum(speed) / len(speed))
-        return sum(speed) / len(speed)
+            print(avg_speed_all_methods)
+        if self.offline:
+            offline_utils.save_output(avg_speed_all_methods, self.component_name,
+                img_id, self.save_path, overwrite=self.overwrite_saves)
+        return avg_speed_all_methods
