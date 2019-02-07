@@ -15,7 +15,7 @@ class TestSaveMethods(unittest.TestCase):
         data2 = {"Test": [1,2,3,4]}
         self.data = [data0, data1, data2]
 
-    def test_all_save_options(self):
+    def test_all_options(self):
         # Test that save_output works as expected."
         for i,d in enumerate(self.data):
             offline_utils.save_output(d, "test", i, RESULTS, verbose=True)
@@ -29,6 +29,14 @@ class TestSaveMethods(unittest.TestCase):
         for i,d in enumerate(self.data):
             offline_utils.save_output(d, "test", i, RESULTS,
                 overwrite=True, verbose=True)
+
+        # test the load options
+        data0 = offline_utils.load_input("test", 0, RESULTS, verbose=True)
+        assert data0 == {"Test": 100}
+        data1 = offline_utils.load_input("test", 1, RESULTS, verbose=True)
+        assert data1 == {"Test": (1,2,3)}
+        data2 = offline_utils.load_input("test", 2, RESULTS, verbose=True)
+        assert data2 == {"Test": [1,2,3,4]}
 
 RESULTS = "/tmp/test_results"
 

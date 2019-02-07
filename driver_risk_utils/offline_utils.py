@@ -48,3 +48,22 @@ def save_output(
             print("INFO: Saving data to: {}".format(file_path))
     with open(file_path, "wb") as f:
         pickle.dump(data, f)
+
+def load_input(
+        component_to_load,
+        frame_to_load,
+        results_path="results",
+        extension=".pkl",
+        verbose=False):
+    file_name = str(frame_to_load) + extension
+    folder_path = os.path.join(results_path, component_to_load)
+    if not os.path.exists(folder_path):
+        raise ValueError("ERROR: Path to directory <{}> does not exist.".format(folder_path))
+    file_path = os.path.join(folder_path, file_name)
+    if not os.path.exists(file_path):
+        raise ValueError("ERROR: Filepath <{}> does not exist.".format(file_path))
+    if verbose:
+        print("INFO: Loading data from: {}".format(file_path))
+    with open(file_path, "rb") as f:
+        data = pickle.load(f)
+    return data
