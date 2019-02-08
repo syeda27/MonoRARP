@@ -5,13 +5,8 @@
 # and more trackers/particles. Once that is working I will revisit if we should
 # try something else.
 
-# TODO save outputs to a csv (based on a flag).
-# TODO bigger object detection model.
-# TODO more tracker particles.
-
-
 START_LOC=$(pwd)
-# TODO PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
+# PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
 TF_LOC='/home/derek/env_tf_models_research/object_detection'
 if [ "$1" != "" ]; then
     TF_LOC=$1
@@ -25,13 +20,13 @@ SAVE='false' # This is to save the video
 SOURCE='/scratch/derek/Allstate_data/video3.mp4'
 SAVE_PATH='/scratch/derek/Allstate_data/video_3_offline.mp4'
 
-# TODO more trakcers and tracker particles
 DO_TRACK='true'
 TRACKER_TYPE="Particle"
 TRACK_REFRESH=250             # 1 makes no refreshing
 TRACKER_HOLD=10
-USE_GPS='false'             # use speed readings from a GPS
 LANE_BASED_SPEED='true'
+MAX_TRACKERS=20
+NUM_TRACKER_PARTICLES=100
 
 THREADED_RUNNER='None'          # The runner-level threading method, or 'None'
 THREAD_QUEUE_SIZE=3          # The size of the queue for threaded_runner
@@ -61,17 +56,6 @@ OFFLINE='true'   # indicates we do not care about runtime and want to save all r
 RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'
 OVERWRITE_SAVES='true'
 
-
-JOBS=`jobs -p`
-if [ '$USE_GPS' = 'true' ]; then
-    echo "Running gps command to $GPS_SOURCE"
-    sudo gpsd -S 2949 -n -N -D 5 -b /dev/ttyUSB0 &> $GPS_SOURCE &
-    JOBS=`jobs -p`
-    sleep 1
-    # TODO if you need to, change this command
-fi
-cd $TF_LOC
-
 python3 $(echo $START_LOC)/launcher.py \
     --source $SOURCE --model $MODEL --device $DEVICE \
     --save $SAVE --save_path $SAVE_PATH \
@@ -80,7 +64,8 @@ python3 $(echo $START_LOC)/launcher.py \
     --horizon $RELATIVE_HORIZON \
     --resolution_h $RESOLUTION_H --resolution_w $RESOLUTION_W \
     --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
-    --tracker_hold $TRACKER_HOLD \
+    --tracker_hold $TRACKER_HOLD --num_trackers $MAX_TRACKERS \
+    --num_tracker_particles $NUM_TRACKER_PARTICLES \
     --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
     --lane_based_speed $LANE_BASED_SPEED \
     --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
@@ -93,8 +78,3 @@ python3 $(echo $START_LOC)/launcher.py \
     --offline $OFFLINE --results_save_path $RESULTS_SAVE_PATH \
     --overwrite_saves $OVERWRITE_SAVES
 cd $START_LOC
-for job in $JOBS
-do
-    echo "killing job $job"
-    kill $job
-done
