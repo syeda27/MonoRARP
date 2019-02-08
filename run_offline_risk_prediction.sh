@@ -56,6 +56,7 @@ OFFLINE='true'   # indicates we do not care about runtime and want to save all r
 RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'
 OVERWRITE_SAVES='true'
 
+cd $TF_LOC
 python3 $(echo $START_LOC)/launcher.py \
     --source $SOURCE --model $MODEL --device $DEVICE \
     --save $SAVE --save_path $SAVE_PATH \
