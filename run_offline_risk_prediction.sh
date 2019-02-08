@@ -67,7 +67,6 @@ python3 $(echo $START_LOC)/launcher.py \
     --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
     --tracker_hold $TRACKER_HOLD --num_trackers $MAX_TRACKERS \
     --num_tracker_particles $NUM_TRACKER_PARTICLES \
-    --use_gps $USE_GPS --gps_source ${START_LOC}/$GPS_SOURCE \
     --lane_based_speed $LANE_BASED_SPEED \
     --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
     --risk_type $RISK_TYPE --ttc_H $TTC_H --ttc_step $TTC_STEP \
@@ -77,5 +76,5 @@ python3 $(echo $START_LOC)/launcher.py \
     --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
     --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME \
     --offline $OFFLINE --results_save_path $RESULTS_SAVE_PATH \
-    --overwrite_saves $OVERWRITE_SAVES
+    --overwrite_saves $OVERWRITE_SAVES |& tee ${RESULTS_SAVE_PATH}/output.log
 cd $START_LOC
