@@ -72,13 +72,15 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * After this is complete, investigate better object detectors.
  * Test the save_output and other methods in `offline_utils.py` and elsewhere to ensure data integrity.
  * Implement a `load` method for each component
    - This can be external to the components, but needed to compare predictions with
    the ground truth.
  * Modify the values predicted by the risk predictor to make them consistent with the theory.
  * Support a technique to imitate a lower FPS (to get more accurate comparison of techniques)
+ * After this is complete, investigate better object detectors.
+   - Fine tune some of the other pretrained COCO models on KITTI?
+   - YOLO integration?
 
 ### Guidelines:
  * Modify the `run_offline_risk_prediction.sh` script to point to the appropriate
