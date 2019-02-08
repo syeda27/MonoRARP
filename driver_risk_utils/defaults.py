@@ -20,7 +20,7 @@ LABELS = 'data/kitti_label_map.pbtxt'
 CAR_WIDTH_m = 1.8
 CALC_RISK_EVERY_N_FRAMES = 2
 DEVICE = '/gpu:0'
-SHOW_SPEED = "False"
+SHOW_SPEED = "True"
 
 ## THREADING DEFAULTS ##
 THREADED_RUNNER = 'B'  # "None" for single threaded, otherwise, one of
