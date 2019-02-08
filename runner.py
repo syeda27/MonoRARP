@@ -433,9 +433,12 @@ class Runner:
         self.read_image()
         if self.done: return
 
+        frame_time = time.time()
+        if not self.using_camera:
+            frame_time = self.image_id / self.video_fps
         if self.elapsed % self.launcher.all_args.queue == 0:
             # this check is pretty deprecated. Careful.
-            self.process_queue(time.time())
+            self.process_queue(frame_time)
 
         choice = cv2.waitKey(1)
         if choice == 27:

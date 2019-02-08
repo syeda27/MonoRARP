@@ -72,13 +72,12 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * Argument to switch from time-dependence to frame-dependence for things like
- speed calculations.
  * After this is complete, investigate better object detectors.
  * Test the save_output and other methods in `offline_utils.py` and elsewhere to ensure data integrity.
  * Implement a `load` method for each component
    - This can be external to the components, but needed to compare predictions with
    the ground truth.
+ * Modify the values predicted by the risk predictor to make them consistent with the theory.
 
 ### Guidelines:
  * Modify the `run_offline_risk_prediction.sh` script to point to the appropriate

@@ -250,6 +250,9 @@ class ThreadedRunner(Runner):
 
         image_np = self.get_image()
         frame_time = time.time()
+        if not self.using_camera:
+            frame_time = self.image_id / self.video_fps
+
         if self.done:
             self.set_done()
             return # if no read image
