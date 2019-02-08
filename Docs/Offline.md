@@ -78,6 +78,7 @@ components for later online use cases as well.
    - This can be external to the components, but needed to compare predictions with
    the ground truth.
  * Modify the values predicted by the risk predictor to make them consistent with the theory.
+ * Support a technique to imitate a lower FPS (to get more accurate comparison of techniques)
 
 ### Guidelines:
  * Modify the `run_offline_risk_prediction.sh` script to point to the appropriate
