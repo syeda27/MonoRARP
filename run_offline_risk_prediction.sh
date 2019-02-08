@@ -12,13 +12,36 @@ if [ "$1" != "" ]; then
     TF_LOC=$1
 fi
 
+OFFLINE='true'   # indicates we do not care about runtime and want to save all results.
+
 MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
-DET_THRESH=0.01             # above 1 means nothing will get marked.
+LABELS="data/kitti_label_map.pbtxt"
+
+RUN_ID="KITTI"  # Inidcate the subdirectory of results.
+RUN_NUM="1"   # Further specify the directory (concatenated to ID)
+
+if [ "$RUN_ID" = "NAS" ]; then
+    MODEL="/scratch/derek/obj_det_models/faster_rcnn_nas_coco_2018_01_28"
+    LABELS="data/mscoco_label_map.pbtxt"
+elif [ "$RUN_ID" = "INC_LOW" ]; then
+    MODEL="/scratch/derek/obj_det_models/faster_rcnn_inception_resnet_v2_atrous_lowproposals_coco_2018_01_28"
+    LABELS="data/mscoco_label_map.pbtxt"
+fi
+
+RUN_ID=${RUN_ID}$RUN_NUM
+
+DET_THRESH=0.7             # above 1 means nothing will get marked.
 DEVICE='/gpu:0'
 
-SAVE='false' # This is to save the video
+RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'${RUN_ID}'/'
+OVERWRITE_SAVES='true'
+# TODO Double check your flag for overwriting!
+
+mkdir -p $RESULTS_SAVE_PATH
+
+SAVE_VIDEO='true'
 SOURCE='/scratch/derek/Allstate_data/video3.mp4'
-SAVE_PATH='/scratch/derek/Allstate_data/video_3_offline.mp4'
+SAVE_VIDEO_PATH=${RESULTS_SAVE_PATH}'video_3_offline.mp4'
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"
@@ -52,14 +75,12 @@ EMBEDDED_RISK='true' # boolean, whether or not to calc risk while simulating.
 RISK_TYPE="TTC" # "TTC" for constant delta v, or "Online" for sims with models
 CALC_RISK_EVERY_N_FRAMES=1
 
-OFFLINE='true'   # indicates we do not care about runtime and want to save all results.
-RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'
-OVERWRITE_SAVES='true'
 
 cd $TF_LOC
+
 python3 $(echo $START_LOC)/launcher.py \
-    --source $SOURCE --model $MODEL --device $DEVICE \
-    --save $SAVE --save_path $SAVE_PATH \
+    --source $SOURCE --model $MODEL --labels $LABELS --device $DEVICE \
+    --save $SAVE_VIDEO --save_path $SAVE_VIDEO_PATH \
     --focal $FOCAL --carW $CAR_WIDTH \
     --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
     --horizon $RELATIVE_HORIZON \
@@ -76,5 +97,6 @@ python3 $(echo $START_LOC)/launcher.py \
     --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
     --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME \
     --offline $OFFLINE --results_save_path $RESULTS_SAVE_PATH \
-    --overwrite_saves $OVERWRITE_SAVES |& tee ${RESULTS_SAVE_PATH}/output.log
+    --overwrite_saves $OVERWRITE_SAVES | tee ${RESULTS_SAVE_PATH}'output.log'
+
 cd $START_LOC
