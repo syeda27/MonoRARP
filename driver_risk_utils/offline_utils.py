@@ -28,12 +28,15 @@ def save_output(
       data - the data. Must be pickleable.
       component_name - the name of the folder within results to save to.
       frame_id - a unique identifier for this file.
+        raise a ValueError if frame_id is None.
       folder_path - where do we want to save the data to? Can be relative.
       extension - what extension do we want to give the file.
       overwrite - boolean, should we overwrite existing data of this name or
         raise a ValueError if existing data is encountered?
       verbose - boolean, True will print information.
     """
+    if frame_id is None:
+        raise ValueError("ERROR: Must pass in a valid frame_id to save_output for {}".format(component_name))
     file_name = str(frame_id) + extension
     folder_path = os.path.join(results_path, component_name)
     check_make_directory(folder_path)
@@ -55,6 +58,12 @@ def load_input(
         results_path="results",
         extension=".pkl",
         verbose=False):
+    """
+    Basically the same args as save_output, minus the data.
+    Will throw an error if frame_to_load is None
+    """
+    if frame_to_load is None:
+        raise ValueError("ERROR: Must pass in a valid frame_to_load to load_input for {}".format(component_to_load))
     file_name = str(frame_to_load) + extension
     folder_path = os.path.join(results_path, component_to_load)
     if not os.path.exists(folder_path):

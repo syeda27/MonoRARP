@@ -7,7 +7,7 @@ sys.path.append("../driver_risk_utils/")
 import offline_utils
 import unittest
 
-class TestSaveMethods(unittest.TestCase):
+class TestOfflineMethods(unittest.TestCase):
     def setUp(self):
         # test save_output
         self.data = [
@@ -17,6 +17,20 @@ class TestSaveMethods(unittest.TestCase):
             {"1": {"Test": [1,2,3]}},
             None
         ]
+
+    def test_args_raise_errors(self):
+        with self.assertRaises(ValueError):
+            # frame_id must not be None
+            offline_utils.save_output(None, "test", None, RESULTS, verbose=True)
+        with self.assertRaises(ValueError):
+            # frame_id must not be None
+            offline_utils.load_input("test", None, RESULTS, verbose=True)
+        with self.assertRaises(ValueError):
+            # folder path to results must exist
+            offline_utils.load_input("test", 0, "/ARBITRARYFOLDERPATH/19319", verbose=True)
+        with self.assertRaises(ValueError):
+            # folder path including image id must exist
+            offline_utils.load_input("test", 1.234, RESULTS, verbose=True)
 
     def test_all_save_options(self):
         # Test that save_output works as expected."
