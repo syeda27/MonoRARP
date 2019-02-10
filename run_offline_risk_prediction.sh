@@ -7,9 +7,9 @@
 
 START_LOC=$(pwd)
 # PASS IN TF_LOC AS FIRST ARGUMENT (or change the path here)
-TF_LOC='/home/derek/env_tf_models_research/object_detection'
+TF_LOC="/home/derek/env_tf_models_research/object_detection"
 if [ "$1" != "" ]; then
-    TF_LOC=$1
+    TF_LOC="$1"
 fi
 
 OFFLINE='true'   # indicates we do not care about runtime and want to save all results.
@@ -18,7 +18,7 @@ MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 LABELS="data/kitti_label_map.pbtxt"
 
 RUN_ID="KITTI"  # Inidcate the subdirectory of results.
-RUN_NUM="2"   # Further specify the directory (concatenated to ID)
+RUN_NUM="_2_SPEED"   # Further specify the directory (concatenated to ID)
 
 if [ "$RUN_ID" = "NAS" ]; then
     MODEL="/scratch/derek/obj_det_models/faster_rcnn_nas_coco_2018_01_28"
@@ -28,12 +28,12 @@ elif [ "$RUN_ID" = "INC_LOW" ]; then
     LABELS="data/mscoco_label_map.pbtxt"
 fi
 
-RUN_ID=${RUN_ID}$RUN_NUM
+RUN_ID="${RUN_ID}$RUN_NUM"
 
 DET_THRESH=0.7             # above 1 means nothing will get marked.
-DEVICE='/gpu:0'
+DEVICE="/gpu:0"
 
-RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'${RUN_ID}'/'
+RESULTS_SAVE_PATH="/scratch/derek/Allstate_data/results/${RUN_ID}/"
 OVERWRITE_SAVES='true'
 # TODO Double check your flag for overwriting!
 
@@ -44,11 +44,11 @@ LOAD_OBJ_DETECTOR='false'
 LOAD_TRACKER='false'
 LOAD_STATE='false'
 
-mkdir -p $RESULTS_SAVE_PATH
+mkdir -p "$RESULTS_SAVE_PATH"
 
 SAVE_VIDEO='true'
 SOURCE='/scratch/derek/Allstate_data/video3.mp4'
-SAVE_VIDEO_PATH=${RESULTS_SAVE_PATH}'video_3_offline.mp4'
+SAVE_VIDEO_PATH="${RESULTS_SAVE_PATH}video_3_offline.mp4"
 
 DO_TRACK='true'
 TRACKER_TYPE="Particle"
@@ -83,30 +83,29 @@ RISK_TYPE="TTC" # "TTC" for constant delta v, or "Online" for sims with models
 CALC_RISK_EVERY_N_FRAMES=1
 
 
-cd $TF_LOC
+cd "$TF_LOC"
 
-python3 $(echo $START_LOC)/launcher.py \
-    --source $SOURCE --model $MODEL --labels $LABELS --device $DEVICE \
-    --save $SAVE_VIDEO --save_path $SAVE_VIDEO_PATH \
-    --focal $FOCAL --carW $CAR_WIDTH \
-    --det_thresh $DET_THRESH --cameraH $CAMERA_HEIGHT \
-    --horizon $RELATIVE_HORIZON \
-    --resolution_h $RESOLUTION_H --resolution_w $RESOLUTION_W \
-    --track $DO_TRACK --tracker_type $TRACKER_TYPE --tracker_refresh $TRACK_REFRESH \
-    --tracker_hold $TRACKER_HOLD --num_trackers $MAX_TRACKERS \
-    --num_tracker_particles $NUM_TRACKER_PARTICLES \
-    --lane_based_speed $LANE_BASED_SPEED \
-    --risk_H $RISK_H --risk_step $RISK_STEP --n_risk_sims $RISK_N_SIMS \
-    --risk_type $RISK_TYPE --ttc_H $TTC_H --ttc_step $TTC_STEP \
-    --col_tol_x $COL_TOL_X --col_tol_y $COL_TOL_Y \
-    --calc_risk_n $CALC_RISK_EVERY_N_FRAMES \
-    --embedded_risk $EMBEDDED_RISK --max_risk_threads $RISK_THREADS \
-    --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
-    --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME \
-    --offline $OFFLINE --results_save_path $RESULTS_SAVE_PATH \
-    --overwrite_saves $OVERWRITE_SAVES --prior_results_path $PRIOR_RESULTS_PATH \
-    --L_EGO_SPEED $LOAD_EGO_SPEED --L_OBJ_DETECTOR $LOAD_OBJ_DETECTOR \
-    --L_TRACKER $LOAD_TRACKER --L_STATE $LOAD_STATE \
-    | tee ${RESULTS_SAVE_PATH}'output.log'
+python3 $(echo "$START_LOC")/launcher.py \
+    --source "$SOURCE" --model "$MODEL" --labels "$LABELS" --device "$DEVICE" \
+    --save "$SAVE_VIDEO" --save_path "$SAVE_VIDEO_PATH" \
+    --focal "$FOCAL" --carW "$CAR_WIDTH" \
+    --det_thresh "$DET_THRESH" --cameraH "$CAMERA_HEIGHT" \
+    --horizon "$RELATIVE_HORIZON" \
+    --resolution_h "$RESOLUTION_H" --resolution_w "$RESOLUTION_W" \
+    --track "$DO_TRACK" --tracker_type "$TRACKER_TYPE" --tracker_refresh "$TRACK_REFRESH" \
+    --tracker_hold "$TRACKER_HOLD" --num_trackers "$MAX_TRACKERS" \
+    --num_tracker_particles "$NUM_TRACKER_PARTICLES" \
+    --lane_based_speed "$LANE_BASED_SPEED" \
+    --risk_H "$RISK_H" --risk_step "$RISK_STEP" --n_risk_sims "$RISK_N_SIMS" \
+    --risk_type "$RISK_TYPE" --ttc_H "$TTC_H" --ttc_step "$TTC_STEP" \
+    --col_tol_x "$COL_TOL_X" --col_tol_y "$COL_TOL_Y" \
+    --calc_risk_n "$CALC_RISK_EVERY_N_FRAMES" \
+    --embedded_risk "$EMBEDDED_RISK" --max_risk_threads "$RISK_THREADS" \
+    --threaded_runner "$THREADED_RUNNER" --thread_queue_size "$THREAD_QUEUE_SIZE" \
+    --thread_max_wait "$THREAD_MAX_WAIT" --thread_wait_time "$THREAD_WAIT_TIME" \
+    --offline "$OFFLINE" --results_save_path "$RESULTS_SAVE_PATH" \
+    --overwrite_saves "$OVERWRITE_SAVES" --prior_results_path "$PRIOR_RESULTS_PATH" \
+    --L_EGO_SPEED "$LOAD_EGO_SPEED" --L_OBJ_DETECTOR "$LOAD_OBJ_DETECTOR" \
+    --L_TRACKER "$LOAD_TRACKER" --L_STATE "$LOAD_STATE" | tee "${RESULTS_SAVE_PATH}output.log"
 
-cd $START_LOC
+cd "$START_LOC"
