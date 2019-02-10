@@ -23,7 +23,8 @@ class Tracker:
     def __init__(self,
                  launcher_args,
                  tracker_type,
-                 category_index):
+                 category_index,
+                 verbose=False):
         """
         Arguents
           launcher_args, and argument_utils args object, containing:
@@ -40,8 +41,9 @@ class Tracker:
         self.overwrite_saves = launcher_args.overwrite_saves
         self.component_name = "TRACKER"
 
-        self.load_inputs = launcher_args.L_EGO_SPEED
+        self.load_inputs = launcher_args.L_TRACKER
         self.path_to_load_inputs = launcher_args.prior_results_path
+        self.verbose = verbose
 
         self.tracker_type = tracker_type
         self.det_thresh = launcher_args.det_thresh
@@ -114,6 +116,24 @@ class Tracker:
             state_object.clear()
             self.timer.update_end("Reset")
 
+    def load_tracker(self, img_id):
+        """
+        Just a wrapper to help modularize get_reading()
+        """
+        boxes_with_labels = offline_utils.load_input(
+            self.component_name,
+            img_id,
+            self.path_to_load_inputs,
+            verbose=self.verbose
+        )
+        if self.verbose:
+            print("TRACKER: Successfully loaded tracked boxes of: {} from {} for img {}".format(
+                boxes_with_labels,
+                self.path_to_load_inputs,
+                img_id
+            ))
+        return boxes_with_labels
+
     def update_one(self, image_index, net_out, image, verbose=False, img_id=None):
         """
         The main function that is called. Uses the image and object detections
@@ -135,7 +155,10 @@ class Tracker:
         Returns:
           boxes_with_labels: dictionary <int : tuple<box, str> >
             dictionary of object key : tuple of box coordinates and class label
+              (box coordinates will be absolute, not relative. AKA, pixel coords.)
         """
+        if self.load_inputs:
+            return self.load_tracker(img_id)
         self.timer.update_start("Update One")
         boxes_with_labels = dict()
         boxes = None
