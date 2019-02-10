@@ -25,6 +25,7 @@ import tracker
 import display
 import speed_estimator
 from driver_risk_utils import argument_utils, general_utils, offline_utils
+from object_detectors import tensorflow_obj_det_api
 
 
 class Runner:
@@ -235,6 +236,7 @@ class Runner:
             img = cv2.resize(image_np,(self.rsz_width,self.rsz_height))
             self.timer.update_end("Resize")
             return img
+        self.image_id += 1
         return image_np
 
 
@@ -250,7 +252,6 @@ class Runner:
         image_np = self.get_image()
         #image_np_expanded = np.expand_dims(image_np, axis=0)
         self.input_buffer.append(image_np)
-        self.image_id += 1
 
     def get_detected_objects(self, i, net_out, image):
         """
@@ -392,20 +393,11 @@ class Runner:
                 or self.tracker_obj.needs_boxes()
             ):
             self.timer.update_start("NeuralNet")
-            net_out = self.sess.run(self.tensor_dict,
-                                    feed_dict={self.image_tensor: self.input_buffer})
+            net_out = self.object_detector.get_output(self.input_buffer, self.image_id)
             self.frames_ran_obj_det_on += 1
             self.timer.update_end("NeuralNet", 1)
-            if self.offline:
-                offline_utils.save_output(
-                    net_out, "OBJECT_DETECTOR",
-                    self.elapsed,
-                    results_path=self.launcher.all_args.results_save_path,
-                    overwrite=self.overwrite_saves)
-
 
         self.visualize_one_image(net_out, 0, frame_time)
-
         self.input_buffer = list()
         self.timer.update_end("AllCalls")
 
@@ -475,14 +467,14 @@ class Runner:
         if self.launcher.all_args.save:
             self.init_video_write()
 
-        self.framework()
-        self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+        self.object_detector = tensorflow_obj_det_api.InlineTFObjectDetector(
+            self.launcher.all_args, self.sess)
 
         # Tracker
         self.tracker_obj = tracker.Tracker(
             self.launcher.all_args,
             self.launcher.all_args.tracker_type,
-            self.launcher.category_index)
+            self.launcher.category_index) # note category index is different in threaded.
         # Display
         self.display_obj = display.Display()
         cv2.namedWindow('image',cv2.WINDOW_NORMAL)

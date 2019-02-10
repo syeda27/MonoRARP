@@ -12,8 +12,6 @@ from object_detection.utils import label_map_util
 # We want to add the directory that contains this file to the path list:
 sys.path.append(os.path.dirname(__file__))
 
-import runner
-import threaded_runner
 from driver_risk_utils import argument_utils, general_utils, offline_utils
 
 import queue
@@ -68,7 +66,7 @@ class TFObjectDetector(object_detector.ObjectDetector):
             (and currently hardcoded) outputs tensors.
             This is very important for getting the output from the object
             detection network.
-
+          image_tensor
         """
         ops = tf.get_default_graph().get_operations()
         all_tensor_names = {output.name for op in ops for output in op.outputs}
@@ -78,6 +76,7 @@ class TFObjectDetector(object_detector.ObjectDetector):
             tensor_name = key + ':0'
             if tensor_name in all_tensor_names:
                 self.tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
+        self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
 
     def _do_end_things(self, force=False):
         """
@@ -102,9 +101,6 @@ class TFObjectDetector(object_detector.ObjectDetector):
 
         Picks the device, tensorflow graph, and creates the tf session, before
         entering a loop to process detections.
-
-        Raises:
-            ValueError if invalid threaded_runner method passed in.
         """
         self.done = False
         self.image_in_q = queue.Queue(queue_in_size)
@@ -117,7 +113,6 @@ class TFObjectDetector(object_detector.ObjectDetector):
            with self.detection_graph.as_default():
             with tf.Session() as sess:
                 self._framework()
-                self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
                 while not self.done:
                     start = time.time()
                     this_wait_max = max_wait
@@ -163,3 +158,104 @@ class TFObjectDetector(object_detector.ObjectDetector):
                             overwrite=self.overwrite_saves)
 
                 self._do_end_things()
+
+
+class InlineTFObjectDetector:
+    """
+    This object_detector differs from the tensorflow_obj_det_api.py class because
+    it is not a true object detector class and is designed explicitly not be to
+    threaded. It is essentially just a wrapper that allows the Runner class to
+    offload some functionality.
+
+    It does not inherit from object_detectors.object_detector, which is definitely
+    bad style...
+    """
+    def __init__(self, launcher_args, sess, verbose=False):
+        self.sess = sess
+        self.component_name = "OBJECT_DETECTOR"
+        self.offline = launcher_args.offline
+        self.save_path = launcher_args.results_save_path
+        self.overwrite_saves = launcher_args.overwrite_saves
+
+        self.load_inputs = launcher_args.L_OBJ_DETECTOR
+        self.path_to_load_inputs = launcher_args.prior_results_path
+        self.verbose = verbose
+
+        self.timer = general_utils.Timing()
+        self.timer.update_start("Overall")
+        self.num_detections = 0
+        self._framework()
+
+    def __del__(self):
+        string = "\n============== Ending Inline Object Detector =============="
+        self.timer.update_end("Overall")
+        string += "\nTiming:" + self.timer.print_stats(True)
+        string += "\nNumber of detections: " + str(self.num_detections)
+        string += "\n=============="
+        print(string)
+
+    def _framework(self):
+        """
+        Get handles to input and output tensors.
+
+        Sets internal variables for:
+          tensor_dict: Keeps track of all tensor names for the important
+            (and currently hardcoded) outputs tensors.
+            This is very important for getting the output from the object
+            detection network.
+          image_tensor
+
+        """
+        ops = tf.get_default_graph().get_operations()
+        all_tensor_names = {output.name for op in ops for output in op.outputs}
+        self.tensor_dict = {}
+        for key in ['num_detections', 'detection_boxes', 'detection_scores',
+                    'detection_classes']:
+            tensor_name = key + ':0'
+            if tensor_name in all_tensor_names:
+                self.tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
+        self.image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+
+    def get_output(self, input_buffer, img_id=None):
+        if self.load_inputs:
+            net_out = self.load_obj_dets(img_id)
+        else:
+            self.timer.update_start("Detecting")
+            net_out = self.sess.run(self.tensor_dict,
+                        feed_dict={self.image_tensor: input_buffer})
+            self.timer.update_end("Detecting", len(input_buffer))
+        if self.offline:
+            self.save_output(net_out, img_id)
+        if self.verbose and len(input_buffer) > 1:
+            print("INFO: Processed {} images.".format(len(input_buffer)))
+        self.num_detections += len(input_buffer)
+        return net_out
+
+    def load_obj_dets(self, img_id):
+        """
+        Just a wrapper to help modularize
+        """
+        self.timer.update_start("Loading Inputs")
+        net_out = offline_utils.load_input(
+            self.component_name,
+            img_id,
+            self.path_to_load_inputs,
+            verbose=self.verbose
+        )
+        self.timer.update_end("Loading Inputs")
+        if self.verbose:
+            print("{}: Successfully loaded tracked boxes of: {} from {} for img {}".format(
+                self.component_name,
+                net_out,
+                self.path_to_load_inputs,
+                img_id
+            ))
+        return net_out
+
+    def save_output(self, net_out, img_id):
+        offline_utils.save_output(
+            net_out,
+            self.component_name,
+            img_id,
+            results_path=self.save_path,
+            overwrite=self.overwrite_saves)
