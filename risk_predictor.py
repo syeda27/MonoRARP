@@ -120,7 +120,7 @@ class RiskPredictor:
 
         self.load_inputs = load_inputs
         self.path_to_load_inputs = prior_results_path
-        self.verbose = True
+        self.verbose = verbose
 
     def __del__(self):
         string = "\n=============== Ending Risk Predictor =============="
@@ -156,7 +156,7 @@ class RiskPredictor:
                 img_id
             ))
         return self.smooth_risk(risk)
-        
+
     def smooth_risk(self, risk):
         """
         A simple function to smooth risk. In the future this can be extended

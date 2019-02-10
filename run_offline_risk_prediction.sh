@@ -18,7 +18,7 @@ MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 LABELS="data/kitti_label_map.pbtxt"
 
 RUN_ID="KITTI"  # Inidcate the subdirectory of results.
-RUN_NUM="_2_SPEED"   # Further specify the directory (concatenated to ID)
+RUN_NUM="_2_ALL"   # Further specify the directory (concatenated to ID)
 
 if [ "$RUN_ID" = "NAS" ]; then
     MODEL="/scratch/derek/obj_det_models/faster_rcnn_nas_coco_2018_01_28"
@@ -40,9 +40,10 @@ OVERWRITE_SAVES='true'
 # loading data:
 PRIOR_RESULTS_PATH='/scratch/derek/Allstate_data/results/KITTI1/'
 LOAD_EGO_SPEED='true'
-LOAD_OBJ_DETECTOR='false'
-LOAD_TRACKER='false'
-LOAD_STATE='false'
+LOAD_OBJ_DETECTOR='true'
+LOAD_TRACKER='true'
+LOAD_STATE='true'
+LOAD_RISK='true'
 
 mkdir -p "$RESULTS_SAVE_PATH"
 
@@ -106,6 +107,7 @@ python3 $(echo "$START_LOC")/launcher.py \
     --offline "$OFFLINE" --results_save_path "$RESULTS_SAVE_PATH" \
     --overwrite_saves "$OVERWRITE_SAVES" --prior_results_path "$PRIOR_RESULTS_PATH" \
     --L_EGO_SPEED "$LOAD_EGO_SPEED" --L_OBJ_DETECTOR "$LOAD_OBJ_DETECTOR" \
-    --L_TRACKER "$LOAD_TRACKER" --L_STATE "$LOAD_STATE" | tee "${RESULTS_SAVE_PATH}output.log"
+    --L_TRACKER "$LOAD_TRACKER" --L_STATE "$LOAD_STATE" --L_RISK "$LOAD_RISK" \
+    | tee "${RESULTS_SAVE_PATH}output.log"
 
 cd "$START_LOC"
