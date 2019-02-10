@@ -28,18 +28,22 @@ class StateHistory:
     if the need arises it would be easy to accomodate.
     """
 
-    def __init__(self, max_history=10, all_args=None, offline=False):
+    def __init__(self, max_history=10, launcher_args=None, verbose=False):
         self.max_history = max_history
         self.state_histories = defaultdict(list)
         # A dictionary of vehicle ID: list of vehicle state history
         self.ego_speed = 0
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
-        self.all_args = all_args
-        self.offline = offline
-        self.save_path = all_args.results_save_path
-        self.overwrite_saves = all_args.overwrite_saves
+        self.launcher_args = launcher_args
+        self.offline = launcher_args.offline
+        self.save_path = launcher_args.results_save_path
+        self.overwrite_saves = launcher_args.overwrite_saves
         self.component_name = "STATE"
+
+        self.load_inputs = launcher_args.L_STATE
+        self.path_to_load_inputs = launcher_args.prior_results_path
+        self.verbose = verbose
 
     def __del__(self):
         string = "\n=============== Ending State Estimator/History =============="
@@ -131,6 +135,34 @@ class StateHistory:
         """
         self.ego_speed = general_utils.mph_to_mps(speed_mph)
 
+    def load_and_update_all_states(self, img_id):
+        self.timer.update_start("Load State")
+        loaded_data_dict = offline_utils.load_input(
+            self.component_name,
+            img_id,
+            self.path_to_load_inputs,
+            verbose=self.verbose
+        )
+        self.timer.update_end("Load State")
+        if self.verbose:
+            print("{}: Successfully loaded state of: {} from {} for img {}".format(
+                self.component_name,
+                loaded_data_dict,
+                self.path_to_load_inputs,
+                img_id
+            ))
+        # Must also update
+        self.timer.update_start("Update Loaded State")
+        for object_key in loaded_data_dict.keys():
+            state_len = len(self.state_histories[object_key])
+            if state_len >= self.max_history:
+                self.state_histories[object_key] = self.state_histories[object_key][-(self.max_history-1):]
+            self.state_histories[object_key].append(loaded_data_dict[object_key])
+        self.timer.update_end("Update Loaded State")
+        if self.verbose:
+            print("Successfully updated state too.")
+        return loaded_data_dict
+
     def update_all_states(self, boxes_with_labels, im_h, im_w, frame_time, img_id=None):
         """
         Loops over update_state() for each object
@@ -147,7 +179,7 @@ class StateHistory:
             this_state = self.update_state(
                 (left, right, top, bot),
                 im_h, im_w,
-                self.all_args,
+                self.launcher_args,
                 object_key=object_key,
                 time=frame_time).quantities
             if self.offline:

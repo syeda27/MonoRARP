@@ -59,8 +59,7 @@ class Runner:
         self.speed_interface = speed_estimator.SpeedEstimator(self.launcher.all_args)
 
         self.state = state_history.StateHistory(
-            all_args=self.launcher.all_args,
-            offline=self.launcher.all_args.offline
+            launcher_args=self.launcher.all_args
         )
         self.state.set_ego_speed_mph(35)
 
