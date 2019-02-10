@@ -118,17 +118,20 @@ class Tracker:
 
     def load_tracker(self, img_id):
         """
-        Just a wrapper to help modularize get_reading()
+        Just a wrapper to help modularize
         """
+        self.timer.update_start("Load One Update")
         boxes_with_labels = offline_utils.load_input(
             self.component_name,
             img_id,
             self.path_to_load_inputs,
             verbose=self.verbose
         )
+        self.timer.update_end("Load One Update")
         if self.verbose:
-            print("TRACKER: Successfully loaded tracked boxes of: {} from {} for img {}".format(
-                boxes_with_labels,
+            print("{}: Successfully loaded tracked boxes of: {} from {} for img {}".format(
+                self.component_name,
+                net_out,
                 self.path_to_load_inputs,
                 img_id
             ))

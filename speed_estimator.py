@@ -37,7 +37,7 @@ class SpeedEstimator():
             self.lane_based_speed_interface = \
                 lane_marking_speed_estimator.LaneMarkingSpeedEstimator(display_speed_lane)
         self.default_speed = default_speed
-        self.verbose = True
+        self.verbose = verbose
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
 
@@ -68,8 +68,9 @@ class SpeedEstimator():
             verbose=self.verbose
         )
         if self.verbose:
-            print("SPEED: Successfully loaded speed of: {} from {} for img {}".format(
-                speed,
+            print("{}: Successfully loaded tracked boxes of: {} from {} for img {}".format(
+                self.component_name,
+                net_out,
                 self.path_to_load_inputs,
                 img_id
             ))
