@@ -72,7 +72,6 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * Test the save_output and other methods in `offline_utils.py` and elsewhere to ensure data integrity.
  * Implement a `load` method for each component
    - This can be external to the components, but needed to compare predictions with
    the ground truth.

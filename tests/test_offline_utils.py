@@ -10,13 +10,15 @@ import unittest
 class TestSaveMethods(unittest.TestCase):
     def setUp(self):
         # test save_output
-        data0 = {"Test": 100}
-        data1 = {"Test": (1,2,3)}
-        data2 = {"Test": [1,2,3,4]}
-        data3 = {"1": {"Test": [1,2,3]}}
-        self.data = [data0, data1, data2, data3]
+        self.data = [
+            {"Test": 100},
+            {"Test": (1,2,3)},
+            {"Test": [1,2,3,4]},
+            {"1": {"Test": [1,2,3]}},
+            None
+        ]
 
-    def test_all_options(self):
+    def test_all_save_options(self):
         # Test that save_output works as expected."
         for i,d in enumerate(self.data):
             offline_utils.save_output(d, "test", i, RESULTS, verbose=True)
@@ -31,17 +33,32 @@ class TestSaveMethods(unittest.TestCase):
             offline_utils.save_output(d, "test", i, RESULTS,
                 overwrite=True, verbose=True)
 
-        # test the load options
+    def test_load_integrity(self):
+        just_remove(RESULTS)
+        for i,d in enumerate(self.data):
+            offline_utils.save_output(d, "test", i, RESULTS, verbose=True)
+
+        # test the different data types
         data0 = offline_utils.load_input("test", 0, RESULTS, verbose=True)
         self.assertEqual(data0, {"Test": 100})
+
         data1 = offline_utils.load_input("test", 1, RESULTS, verbose=True)
         self.assertEqual(data1, {"Test": (1,2,3)})
+
         data2 = offline_utils.load_input("test", 2, RESULTS, verbose=True)
         self.assertEqual(data2, {"Test": [1,2,3,4]})
+
         data3 = offline_utils.load_input("test", 3, RESULTS, verbose=True)
         self.assertEqual(data3, {"1": {"Test": [1,2,3]}})
 
+        data4 = offline_utils.load_input("test", 4, RESULTS, verbose=True)
+        self.assertEqual(data4, None)
+
 RESULTS = "/tmp/test_results"
+
+def just_remove(path):
+    import shutil
+    shutil.rmtree(path)
 
 def check_user_remove(path):
     print("All items to remove:")
