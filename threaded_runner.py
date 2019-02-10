@@ -303,8 +303,6 @@ class ThreadedRunner(Runner):
         self.tracker_obj = tracker.Tracker(
             self.launcher.all_args,
             self.launcher.all_args.tracker_type,
-            self.height,
-            self.width,
             self.object_detector.category_index)
         # Display
         self.display_obj = display.Display()

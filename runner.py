@@ -51,8 +51,9 @@ class Runner:
         self.sess = sess
         self.offline = launcher.all_args.offline
         self.overwrite_saves = launcher.all_args.overwrite_saves
-        # make sure result path exists:
-        offline_utils.check_make_directory(launcher.all_args.results_save_path)
+        if self.offline:
+            # make sure result path exists:
+            offline_utils.check_make_directory(launcher.all_args.results_save_path)
 
         self.speed_interface = speed_estimator.SpeedEstimator(self.launcher.all_args)
 
@@ -127,8 +128,6 @@ class Runner:
           using_camera: whether the input is a camera or not
             - if it is not a camera, then it is a file.
           camera: the actual capture device returneed by cv2.VideoCapture()
-          self.height: the height of the capture device's frame.
-          self.width: the width of the capture device's frame.
 
         Arguments
           input: a string for the file to load from, or an int to specificy
@@ -169,10 +168,6 @@ class Runner:
                 self.video_fps = self.camera.get(cv2.cv.CV_CAP_PROP_FPS)
             else:
                 self.video_fps = self.camera.get(cv2.CAP_PROP_FPS)
-        _, frame = self.camera.read()
-        self.height, self.width, _ = frame.shape
-        self.image_id += 1
-        print("Input device of size (h,w): {},{}".format(self.height, self.width))
 
     def init_video_write(self, FPS=10):
         """
@@ -227,6 +222,10 @@ class Runner:
         use this in case we want to do any camera processing.
         """
         _, image_np = self.camera.read()
+        if self.image_id == 0:
+            h, w, _ = image_np.shape
+            print("Input device of size (h,w): {},{}".format(h, w))
+
         if image_np is None:
             print('\nEnd of Video')
             self.done = True
@@ -483,8 +482,6 @@ class Runner:
         self.tracker_obj = tracker.Tracker(
             self.launcher.all_args,
             self.launcher.all_args.tracker_type,
-            self.height,
-            self.width,
             self.launcher.category_index)
         # Display
         self.display_obj = display.Display()

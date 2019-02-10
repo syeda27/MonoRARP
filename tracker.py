@@ -21,41 +21,39 @@ class Tracker:
     """
 
     def __init__(self,
-                 args,
+                 launcher_args,
                  tracker_type,
-                 image_height,
-                 image_width,
                  category_index):
         """
         Arguents
-          args, and argument_utils args object, containing:
+          launcher_args, and argument_utils args object, containing:
             det_thresh
             tracker_refresh
             track
           tracker_type:
             String. What type of tracker?
-          image_height:
-            Height of the image in pixels. Integer.
-          image_width:
-            Width of the image in pixels. Integer.
           category_index:
             Dictionary for what categories are which from the model.
         """
-        self.offline = args.offline
-        self.save_path = args.results_save_path
-        self.overwrite_saves = args.overwrite_saves
+        self.offline = launcher_args.offline
+        self.save_path = launcher_args.results_save_path
+        self.overwrite_saves = launcher_args.overwrite_saves
         self.component_name = "TRACKER"
+
+        self.load_inputs = launcher_args.L_EGO_SPEED
+        self.path_to_load_inputs = launcher_args.prior_results_path
+
         self.tracker_type = tracker_type
-        self.det_thresh = args.det_thresh
-        self.tracker_refresh = args.tracker_refresh
+        self.det_thresh = launcher_args.det_thresh
+        self.tracker_refresh = launcher_args.tracker_refresh
 
         self.multi_tracker = None
-        self.use_tracker = args.track
-        self.args = args
+        self.use_tracker = launcher_args.track
+        self.args = launcher_args
 
         self.init_tracker = True
         self.labels = [] # i -> list of labels
-        self.horizon = args.horizon
+        self.horizon = launcher_args.horizon
         self.category_index = category_index
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
