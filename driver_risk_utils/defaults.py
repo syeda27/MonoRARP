@@ -73,6 +73,6 @@ It avoids deepcopies and is more efficient, but less modular.
 """
 
 ## DEFAULTS FOR THE OFFLINE VERSION ##
-OFFLINE = "False"
-RESULTS_SAVE_PATH = "results"
-OVERWRITE_SAVES = "False"
+OFFLINE = "False"    # Whether or not to ignore computational constraints and save all outputs
+RESULTS_SAVE_PATH = "results"  # if we are saving all outputs, where do we save them?
+OVERWRITE_SAVES = "False"   # Do we overwrite any exisiting saved data?
