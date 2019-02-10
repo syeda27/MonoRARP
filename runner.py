@@ -78,7 +78,9 @@ class Runner:
             max_threads=launcher.all_args.max_risk_threads,
             offline=launcher.all_args.offline,
             save_path=launcher.all_args.results_save_path,
-            overwrite_saves=launcher.all_args.overwrite_saves
+            overwrite_saves=launcher.all_args.overwrite_saves,
+            load_inputs=launcher.all_args.L_RISK,
+            prior_results_path=launcher.all_args.prior_results_path
         )
         self.reset_vars()
         self.thread_queue_size = launcher.all_args.thread_queue_size

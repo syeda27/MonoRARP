@@ -93,6 +93,9 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
           ValueError:
             If an unsupported risk type is used.
         """
+        if self.load_inputs:
+            return self.load_risk(img_id)
+            
         risk = None
         self.timer.update_start("Get Risk")
 
@@ -122,13 +125,13 @@ class EmbeddedRiskPredictor(RiskPredictor, Scene):
         if risk is None:
             risk = 0
         # TODO average indicated by an argument?
-        self.prev_risk = (risk + self.prev_risk) / 2.0
+        smoothed_risk = self.smooth_risk(risk)
         self.timer.update_end("Get Risk")
         if self.offline:
             # save does not average last two risk predictions
             offline_utils.save_output(risk, self.component_name, img_id, self.save_path,
                 overwrite=self.overwrite_saves)
-        return self.prev_risk
+        return smoothed_risk
 
     def thread_deepcopy(self):
         self.timer.update_start("Thread DeepCopy")

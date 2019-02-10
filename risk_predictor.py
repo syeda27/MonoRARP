@@ -61,7 +61,10 @@ class RiskPredictor:
                  max_threads=10,
                  offline=False,
                  save_path="results",
-                 overwrite_saves=False):
+                 overwrite_saves=False,
+                 load_inputs=False,
+                 prior_results_path="",
+                 verbose=False):
         """
         Arguments
           num_sims:
@@ -88,6 +91,12 @@ class RiskPredictor:
             String, if offline is true, need a path to save to.
           overwrite_saves:
             Boolean, passed to save_output().
+          load_inputs:
+            Boolean, whether to load risk instead of calculating it.
+          prior_results_path:
+            String, if loading inputs, nead the path.
+          verboxe:
+            Boolean.
         """
         self.num_sims = num_sims
         self.sim_horizon = sim_horizon
@@ -108,7 +117,10 @@ class RiskPredictor:
         self.save_path = save_path
         self.overwrite_saves = overwrite_saves
         self.component_name = "RISK"
-        # TODO: load path?
+
+        self.load_inputs = load_inputs
+        self.path_to_load_inputs = prior_results_path
+        self.verbose = True
 
     def __del__(self):
         string = "\n=============== Ending Risk Predictor =============="
@@ -123,6 +135,35 @@ class RiskPredictor:
         This may change in the future.
         """
         self.prev_risk = 0.0
+
+    def load_risk(self, img_id):
+        """
+        Just a wrapper to help modularize
+        """
+        self.timer.update_start("Load Risk")
+        risk = offline_utils.load_input(
+            self.component_name,
+            img_id,
+            self.path_to_load_inputs,
+            verbose=self.verbose
+        )
+        self.timer.update_end("Load Risk")
+        if self.verbose:
+            print("{}: Successfully loaded risk: {} from {} for img {}".format(
+                self.component_name,
+                risk,
+                self.path_to_load_inputs,
+                img_id
+            ))
+        return self.smooth_risk(risk)
+        
+    def smooth_risk(self, risk):
+        """
+        A simple function to smooth risk. In the future this can be extended
+        to more complicated functions.
+        """
+        self.prev_risk = (risk + self.prev_risk) / 2.0
+        return self.prev_risk
 
     def get_risk(self,
                  state,
@@ -152,6 +193,9 @@ class RiskPredictor:
           ValueError:
             If an unsupported risk type is used.
         """
+        if self.load_inputs:
+            return self.load_risk(img_id)
+
         risk = None
         self.timer.update_start("Get Risk")
         if risk_type.lower() == "ttc":
@@ -186,10 +230,10 @@ class RiskPredictor:
         if risk is None:
             risk = 0
         # TODO average indicated by an argument?
-        self.prev_risk = (risk + self.prev_risk) / 2.0
+        smoothed_risk = self.smooth_risk(risk)
         self.timer.update_end("Get Risk")
         if self.offline:
             # save does not average last two risk predictions
             offline_utils.save_output(risk, self.component_name, img_id, self.save_path,
                 overwrite=self.overwrite_saves)
-        return self.prev_risk
+        return smoothed_risk
