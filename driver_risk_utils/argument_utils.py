@@ -4,6 +4,8 @@ try:
 except ImportError:  # For testing
     import defaults
 
+import os
+
 # for argparsing
 def str2bool(v):
     return v.lower() == "true"
@@ -99,6 +101,16 @@ def add_offline_args(parser):
     parser.add_argument("--results_save_path", type=str, default=defaults.RESULTS_SAVE_PATH)
     parser.add_argument("--overwrite_saves", type=str2bool, default=defaults.OVERWRITE_SAVES)
 
+def add_eval_load_flags(parser):
+    parser.add_argument("--prior_results_path", type=str, default=defaults.PRIOR_RESULTS_PATH)
+    parser.add_argument("--L_EGO_SPEED", type=str2bool, default=defaults.MODULE_LOAD)
+    parser.add_argument("--L_OBJ_DETECTOR", type=str2bool, default=defaults.MODULE_LOAD)
+    parser.add_argument("--L_TRACKER", type=str2bool, default=defaults.MODULE_LOAD)
+    parser.add_argument("--L_STATE", type=str2bool, default=defaults.MODULE_LOAD)
+    parser.add_argument("--L_RISK", type=str2bool, default=defaults.MODULE_LOAD)
+    # The reason we allow loading the risk is in case we want to just test speed
+    # and other similar debugging purposes. Probably won't be useful to the average user.
+
 """
 parse_args creates a parser object, adds the arguments and default arguments,
   and concludes by returning the parsed arugments.
@@ -118,6 +130,7 @@ def parse_args():
     add_risk_args(parser)
     add_thread_args(parser)
     add_offline_args(parser)
+    add_eval_load_flags(parser)
     args = parser.parse_args()
 
     return do_arg_checks(args)
@@ -128,23 +141,46 @@ do_arg_checks:
 Returns:
     args: If all checks succeed
 Raises:
-    AssertionError: if there is an invalid horizon argument
+    ValueError:
+        - if there is an invalid horizon argument
+        - Invalid use of the KCF tracker (it must refresh)
+        - Invalid path to prior results
+        - Indicate we want to load prior results using threaded runner
+            - (reason is just that it is currently UNSUPPORTED)
 """
 def do_arg_checks(args):
     if args.source == "0" or args.source == "1":
         args.source = int(args.source)
-        assert (args.horizon >= 0.0 and args.horizon <= 1.0), \
-            'Must pass in a relative horizon position, between 0 and 1'
-    assert (not (args.track and args.tracker_type == "KCF" and args.tracker_refresh == 1)), \
-        'KCF tracker must refresh'
+    if args.horizon < 0 or args.horizon > 1:
+        raise ValueError("ERROR: Must pass in a relative horizon position, between 0 and 1.")
+    if args.track and args.tracker_type == "KCF" and args.tracker_refresh == 1:
+        raise ValueError("ERROR: KCF tracker must refresh.")
     if args.track and args.tracker_type == "KCF" and args.threaded_runner == 'B':
-        print("Warning: KCF tracker not 100% compatible with threaded runner B, and will drop frames.")
+        print("WARN: KCF tracker not 100% compatible with threaded runner B, and will drop frames.")
     if args.risk_type.lower() == "ttc" and args.offline == False:
-        print("TTC risk selected, forcing no speed estimator.")
+        print("INFO: TTC risk selected, forcing no speed estimator.")
         args.use_gps = False
         args.accept_speed = False
         args.lane_based_speed = False
         args.embedded_risk = False
         args.max_risk_threads = 1
         args.show_speed = False
+    if args.prior_results_path is not defaults.PRIOR_RESULTS_PATH:
+        if not os.path.exists(args.prior_results_path):
+            raise ValueError("ERROR: Prior results path does not exist.")
+        if args.threaded_runner.lower() != "none":
+            raise ValueError("ERROR: Threaded runner does not currently support loading prior results.")
+        if not (args.L_EGO_SPEED or
+                args.L_OBJ_DETECTOR or
+                args.L_TRACKER or
+                args.L_STATE or
+                args.L_RISK):
+            print("INFO: Indicated we wanted to load prior results, but no modules were flagged to load.")
+    else:
+        if (args.L_EGO_SPEED or
+                args.L_OBJ_DETECTOR or
+                args.L_TRACKER or
+                args.L_STATE or
+                args.L_RISK):
+            raise ValueError("ERROR: Indicated we wanted to load a module, but no path was given.")
     return args

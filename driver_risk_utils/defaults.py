@@ -76,3 +76,5 @@ It avoids deepcopies and is more efficient, but less modular.
 OFFLINE = "False"    # Whether or not to ignore computational constraints and save all outputs
 RESULTS_SAVE_PATH = "results"  # if we are saving all outputs, where do we save them?
 OVERWRITE_SAVES = "False"   # Do we overwrite any exisiting saved data?
+PRIOR_RESULTS_PATH = ""     # Do we try to load any prior results? If not, empty.
+MODULE_LOAD = "False"       # When evaluating, do we load the existing results?

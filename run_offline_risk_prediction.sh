@@ -18,7 +18,7 @@ MODEL="/scratch/derek/obj_det_models/faster_rcnn_resnet101_kitti_2018_01_28"
 LABELS="data/kitti_label_map.pbtxt"
 
 RUN_ID="KITTI"  # Inidcate the subdirectory of results.
-RUN_NUM="1"   # Further specify the directory (concatenated to ID)
+RUN_NUM="2"   # Further specify the directory (concatenated to ID)
 
 if [ "$RUN_ID" = "NAS" ]; then
     MODEL="/scratch/derek/obj_det_models/faster_rcnn_nas_coco_2018_01_28"
@@ -36,6 +36,13 @@ DEVICE='/gpu:0'
 RESULTS_SAVE_PATH='/scratch/derek/Allstate_data/results/'${RUN_ID}'/'
 OVERWRITE_SAVES='true'
 # TODO Double check your flag for overwriting!
+
+# loading data:
+PRIOR_RESULTS_PATH='/scratch/derek/Allstate_data/results/KITTI1/'
+LOAD_EGO_SPEED='true'
+LOAD_OBJ_DETECTOR='false'
+LOAD_TRACKER='false'
+LOAD_STATE='false'
 
 mkdir -p $RESULTS_SAVE_PATH
 
@@ -97,6 +104,9 @@ python3 $(echo $START_LOC)/launcher.py \
     --threaded_runner $THREADED_RUNNER --thread_queue_size $THREAD_QUEUE_SIZE \
     --thread_max_wait $THREAD_MAX_WAIT --thread_wait_time $THREAD_WAIT_TIME \
     --offline $OFFLINE --results_save_path $RESULTS_SAVE_PATH \
-    --overwrite_saves $OVERWRITE_SAVES | tee ${RESULTS_SAVE_PATH}'output.log'
+    --overwrite_saves $OVERWRITE_SAVES --prior_results_path $PRIOR_RESULTS_PATH \
+    --L_EGO_SPEED $LOAD_EGO_SPEED --L_OBJ_DETECTOR $LOAD_OBJ_DETECTOR \
+    --L_TRACKER $LOAD_TRACKER --L_STATE $LOAD_STATE \
+    | tee ${RESULTS_SAVE_PATH}'output.log'
 
 cd $START_LOC

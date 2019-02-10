@@ -1,6 +1,3 @@
-# TODO Use google unit tests
-# Currently tests are run by running the python script
-
 import time
 import sys
 sys.path.append("..")
@@ -8,6 +5,7 @@ sys.path.append("../driver_risk_utils/")
 import defaults
 import argument_utils
 import unittest
+
 
 class TestArguments(unittest.TestCase):
     def test_str2bool(self):
@@ -89,6 +87,47 @@ class TestArguments(unittest.TestCase):
         self.assertEqual(args.offline, argument_utils.str2bool(defaults.OFFLINE))
         self.assertEqual(args.results_save_path, defaults.RESULTS_SAVE_PATH)
         self.assertEqual(args.overwrite_saves, argument_utils.str2bool(defaults.OVERWRITE_SAVES))
+
+    def test_default_eval(self):
+        args = argument_utils.parse_args()
+        self.assertEqual(args.prior_results_path, defaults.PRIOR_RESULTS_PATH)
+        self.assertEqual(args.L_EGO_SPEED, argument_utils.str2bool(defaults.MODULE_LOAD))
+        self.assertEqual(args.L_OBJ_DETECTOR, argument_utils.str2bool(defaults.MODULE_LOAD))
+        self.assertEqual(args.L_TRACKER, argument_utils.str2bool(defaults.MODULE_LOAD))
+        self.assertEqual(args.L_STATE, argument_utils.str2bool(defaults.MODULE_LOAD))
+        self.assertEqual(args.L_RISK, argument_utils.str2bool(defaults.MODULE_LOAD))
+
+    def test_horizon_error(self):
+        args = argument_utils.parse_args()
+        with self.assertRaises(ValueError):
+            args.horizon = -0.1
+            argument_utils.do_arg_checks(args)
+        with self.assertRaises(ValueError):
+            args.horizon = 1.1
+            argument_utils.do_arg_checks(args)
+
+    def test_KCF_error(self):
+        args = argument_utils.parse_args()
+        with self.assertRaises(ValueError):
+            args.track = True
+            args.tracker_type = "KCF"
+            args.tracker_refresh = 1
+            argument_utils.do_arg_checks(args)
+
+    def test_load_results_error(self):
+        args = argument_utils.parse_args()
+        with self.assertRaises(ValueError):
+            args.prior_results_path = "NONEXISTANT/ASDFADSK"
+            argument_utils.do_arg_checks(args)
+        with self.assertRaises(ValueError):
+            args.prior_results_path = "."
+            args.threaded_runner = "B"
+            argument_utils.do_arg_checks(args)
+        with self.assertRaises(ValueError):
+            args.prior_results_path = ""
+            args.L_EGO_SPEED = True
+            argument_utils.do_arg_checks(args)
+
 
 if __name__ == "__main__":
     unittest.main()
