@@ -27,15 +27,17 @@ class SpeedEstimator():
         self.save_path = launcher_args.results_save_path
         self.overwrite_saves = launcher_args.overwrite_saves
         self.component_name = "EGO_SPEED"
-        self.use_gps = launcher_args.use_gps
+        self.load_inputs = launcher_args.L_EGO_SPEED
+        self.path_to_load_inputs = launcher_args.prior_results_path
+        self.use_gps = launcher_args.use_gps and not self.load_inputs
         if self.use_gps:
             self.gps_interface = gps_utils.GPS_Interface(launcher_args.gps_source)
-        self.use_lane_markings = launcher_args.lane_based_speed
+        self.use_lane_markings = launcher_args.lane_based_speed and not self.load_inputs
         if self.use_lane_markings:
             self.lane_based_speed_interface = \
                 lane_marking_speed_estimator.LaneMarkingSpeedEstimator(display_speed_lane)
         self.default_speed = default_speed
-        self.verbose = verbose
+        self.verbose = True
         self.timer = general_utils.Timing()
         self.timer.update_start("Overall")
 
@@ -55,12 +57,32 @@ class SpeedEstimator():
             self.lane_based_speed_interface.handle_image(image, frame_time)
             self.timer.update_end("Lane Based Speed Update")
 
+    def load_speed(self, img_id):
+        """
+        Just a wrapper to help modularize get_reading()
+        """
+        speed = offline_utils.load_input(
+            self.component_name,
+            img_id,
+            self.path_to_load_inputs,
+            verbose=self.verbose
+        )
+        if self.verbose:
+            print("SPEED: Successfully loaded speed of: {} from {} for img {}".format(
+                speed,
+                self.path_to_load_inputs,
+                img_id
+            ))
+        return speed
+
     def get_reading(self, img_id=None):
         """
         Returns average speed among active estimation methods in meters / second
         img_id:
           Integer. Used to specify how to save the data, if running in offline mode.
         """
+        if self.load_inputs:
+            return self.load_speed(img_id)
         speed = []
         if self.use_gps:
             self.timer.update_start("Get GPS Speed")
@@ -81,5 +103,6 @@ class SpeedEstimator():
             print(avg_speed_all_methods)
         if self.offline:
             offline_utils.save_output(avg_speed_all_methods, self.component_name,
-                img_id, self.save_path, overwrite=self.overwrite_saves)
+                img_id, self.save_path, overwrite=self.overwrite_saves,
+                verbose=self.verbose)
         return avg_speed_all_methods
