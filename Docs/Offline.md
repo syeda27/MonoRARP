@@ -72,9 +72,7 @@ This should offer the most flexibility in terms of loading from individual
 components for later online use cases as well.
 
 ### TODOs:
- * Implement a `load` method for each component
-   - This can be external to the components, but needed to compare predictions with
-   the ground truth.
+ * Compute metrics, make sure perfect if ground truth = predicted.
  * Modify the values predicted by the risk predictor to make them consistent with the theory.
  * Support a technique to imitate a lower FPS (to get more accurate comparison of techniques)
  * After this is complete, investigate better object detectors.
