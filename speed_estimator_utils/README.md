@@ -12,3 +12,8 @@ with minor editing and integration by djp42 of Stanford University
   - see compilation.txt for the command you should run
   - alternatively check the tests folder for test_speed_estimator_class_hwy101.sh
     as an example of how to run everything.
+
+## Feb 12, 2019
+
+  - Lane Detection and Speed Estimation have been integrated (For this integrated version the Class is: Lane_detector)
+  - Compliance with the required API has been provided
