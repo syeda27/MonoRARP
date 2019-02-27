@@ -9,12 +9,12 @@
 #include <fstream>
 #include <string>
 #include <random>
-#include "speed_estimation.h"
+#include "lane_detection.h"
 
 using namespace std;
 using namespace cv;
 
-double Speed_estimator::get_speed()
+double Lane_detector::get_speed()
 {
 
     return speed_official;

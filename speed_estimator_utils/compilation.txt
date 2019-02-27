@@ -1,9 +1,2 @@
+g++ -o main `pkg-config opencv --cflags` main.cpp image_reading.cpp scanning_region.cpp criteria_before_sampling.cpp lane_detection_initialization.cpp road_sampling.cpp outlayer_removal_and_average_brightness.cpp average_delta_across_marking.cpp determination_of_parallelism_with_previously_tracked_lanes.cpp lane_signature_detection.cpp display_writevideo.cpp eliminate_duplicate_road_marks.cpp merging_all_road_marks.cpp filtering.cpp recording_of_currently_detected_lanes.cpp long_term_average_of_lanes.cpp speed_estimation.cpp speed_estimation_update_speed.cpp speed_estimation_get_speed.cpp  `pkg-config opencv --libs`
 
-g++ -std=c++11 -o \
-  line_detection_main_videoHwy101_only_speed_and_lane2_class.out \
-  `pkg-config opencv --cflags` \
-  line_detection_main_videoHwy101_only_speed_and_lane2_class.cpp \
-  speed_estimation_initialization.cpp speed_estimation_update.cpp \
-  speed_estimation_whitemark_detection_and_speed_calculation.cpp \
-  speed_estimation_get_speed.cpp \
-  `pkg-config opencv --libs`
