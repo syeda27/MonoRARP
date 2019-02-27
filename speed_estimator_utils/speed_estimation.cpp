@@ -58,7 +58,7 @@ void
    //cout<<"Lintersection "<<Lintersection<<endl;
    x2_lane=base_ptx_lane_vec_speed+Lintersection*mux_lane_vec_speed+offset_adjustment;
         
-   line(img4, Point(int(x2_lane-50), int(0.7*h1)), Point(int(x2_lane+50), int(0.7*h1)), Scalar(255,0,0), 1, LINE_AA);
+   //line(img4, Point(int(x2_lane-50), int(0.7*h1)), Point(int(x2_lane+50), int(0.7*h1)), Scalar(255,0,0), 1, LINE_AA);
 
    //cout<<"blk b"<<endl;
 
@@ -149,7 +149,7 @@ void
                     Lintersection=(0.7*h1-k6-base_pty_lane_vec_speed)/muy_lane_vec_speed;
                     x2_lane_scan=base_ptx_lane_vec_speed+Lintersection*mux_lane_vec_speed+offset_adjustment;
                         
-                    line(img4, Point(int(x2_lane_scan-50), int(0.7*h1-k6)), Point(int(x2_lane_scan+50), int(0.7*h1-k6)), Scalar(255,0,0), 1, LINE_AA);
+                    //line(img4, Point(int(x2_lane_scan-50), int(0.7*h1-k6)), Point(int(x2_lane_scan+50), int(0.7*h1-k6)), Scalar(255,0,0), 1, LINE_AA);
 
                     count_scanned_lines=count_scanned_lines+1;
                         
@@ -251,7 +251,7 @@ void
                     Lintersection=(0.7*h1+k6-base_pty_lane_vec_speed)/muy_lane_vec_speed;
                     x2_lane_scan=base_ptx_lane_vec_speed+Lintersection*mux_lane_vec_speed+offset_adjustment;
                         
-                    line(img4, Point(int(x2_lane_scan-50), int(0.7*h1+k6)), Point(int(x2_lane_scan+50), int(0.7*h1+k6)), Scalar(0,0,255), 1, LINE_AA);                  
+                    //line(img4, Point(int(x2_lane_scan-50), int(0.7*h1+k6)), Point(int(x2_lane_scan+50), int(0.7*h1+k6)), Scalar(0,0,255), 1, LINE_AA);                  
                     count_scanned_lines_reverse=count_scanned_lines_reverse+1;
                         
                     out_of_the_mark_reverse=1;

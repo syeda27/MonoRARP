@@ -65,8 +65,8 @@ int Lane_detector::lane_signature_detection(double brightness_ratio_threshold, i
                         //cin>>any;
                                      
                                   
-                        line(img4, Point(int(rx1[top_left]), int(ry1[top_left])), Point(int(rx2[top_left]),int(ry2[top_left])), Scalar(0,0,255), 6, 1);
-                        line(img4, Point(int(rx1[top_right]), int(ry1[top_right])), Point(int(rx2[top_right]),int(ry2[top_right])), Scalar(0,255,0), 6, 1);
+                        //line(img4, Point(int(rx1[top_left]), int(ry1[top_left])), Point(int(rx2[top_left]),int(ry2[top_left])), Scalar(0,0,255), 6, 1);
+                        //line(img4, Point(int(rx1[top_right]), int(ry1[top_right])), Point(int(rx2[top_right]),int(ry2[top_right])), Scalar(0,255,0), 6, 1);
 
                         //cv::resize(img6, img7, cv::Size(3840,2880), 0, 0);
 

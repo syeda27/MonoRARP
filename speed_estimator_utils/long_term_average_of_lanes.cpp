@@ -157,8 +157,8 @@ void Lane_detector::long_term_average_of_lanes(int average_window, double &muy_l
         //#Lintersection=(h1-base_pty_ave)/muy_lane_ave
         x2_lane=base_ptx_ave+Lintersection*mux_lane_ave;
         
-        line(img4, Point(int(base_ptx_ave), int(base_pty_ave)), Point(int(x1_lane),int(0)), Scalar(255,255,255), 1, 1);
-        line(img4, Point(int(base_ptx_ave), int(base_pty_ave)), Point(int(x2_lane),int(H)), Scalar(255,255,255), 1, 1);   
+        //line(img4, Point(int(base_ptx_ave), int(base_pty_ave)), Point(int(x1_lane),int(0)), Scalar(255,255,255), 1, 1);
+        //line(img4, Point(int(base_ptx_ave), int(base_pty_ave)), Point(int(x2_lane),int(H)), Scalar(255,255,255), 1, 1);   
 
         //if count_lanes_average_vec==98:
 
@@ -234,8 +234,8 @@ void Lane_detector::long_term_average_of_lanes(int average_window, double &muy_l
         //#Lintersection=(h1-base_pty_ave2)/muy_lane_ave2
         x2_lane=base_ptx_ave2+Lintersection*mux_lane_ave2;
     
-        line(img4, Point(int(base_ptx_ave2), int(base_pty_ave2)), Point(int(x1_lane),int(0)), Scalar(255,255,255), 1, 1);
-        line(img4, Point(int(base_ptx_ave2), int(base_pty_ave2)), Point(int(x2_lane),int(H)), Scalar(255,255,255), 1, 1);
+        //line(img4, Point(int(base_ptx_ave2), int(base_pty_ave2)), Point(int(x1_lane),int(0)), Scalar(255,255,255), 1, 1);
+        //line(img4, Point(int(base_ptx_ave2), int(base_pty_ave2)), Point(int(x2_lane),int(H)), Scalar(255,255,255), 1, 1);
     }  
 
     count_lanes_average_vec2_out2=count_lanes_average_vec2;

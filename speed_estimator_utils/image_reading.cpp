@@ -45,7 +45,7 @@ void Lane_detector::image_reading(Mat img_color)
         cvtColor(img_color, img, CV_BGR2GRAY);
         
         img(Rect(0,1000,2704-0,1340-1000)).copyTo(img2);
-        img3(Rect(0,1000,2704-0,1340-1000)).copyTo(img4);
+        //img3(Rect(0,1000,2704-0,1340-1000)).copyTo(img4);
 
         H = img.rows;
         W = img.cols;

@@ -141,7 +141,7 @@ void Lane_detector::speed_estimator_update(Mat image_color, double time)
     image_number=image_number+1;
 
 
-        
+    
         Lane_detector::image_reading(image_color);
 
         for (int xregion=scan_x_ini; xregion<=scan_x_end; xregion += scan_x_step)
@@ -418,7 +418,7 @@ void Lane_detector::speed_estimator_update(Mat image_color, double time)
             count_scanned_lines_for_speed_previous_1=count_scanned_lines_for_speed_1;
         }
         //cout<<"blk 8"<<endl;
-        Lane_detector::display(speed_official,first_reading_available_flag,image_number);
+        //Lane_detector::display(speed_official,first_reading_available_flag,image_number);
 
         if ((speed_read_flag==1) || (speed_read_flag_1==1))
         {
